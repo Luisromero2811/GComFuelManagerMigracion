@@ -11,6 +11,7 @@ namespace GComFuelManager.Client.Helpers.Validations
 		{
 			RuleFor(x => x.Den).NotEmpty().WithName("Nombre");
 			RuleFor(x => x.Tipven).NotEmpty().WithName("Tipo de Venta");
+			RuleFor(x => x.MdVenta).NotEmpty().WithName("Modelo de Venta");
 		}
 	}
 }

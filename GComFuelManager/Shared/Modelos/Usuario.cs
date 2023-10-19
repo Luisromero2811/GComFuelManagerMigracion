@@ -15,9 +15,9 @@ namespace GComFuelManager.Shared.Modelos
         public int Cod { get; set; }
         [JsonProperty("den"),MaxLength(64)]
         public string? Den { get; set; } = string.Empty;
-        [JsonProperty("usu"), MaxLength(10)]
+        [JsonProperty("usu"), MaxLength(16)]
         public string? Usu { get; set; } = string.Empty;
-        [JsonProperty("cve"), MaxLength(10)]
+        [JsonProperty("cve"), MaxLength(16)]
         public string? Cve { get; set; } = string.Empty;
         [JsonProperty("fch")]
         public DateTime? Fch { get; set; } = DateTime.Now;

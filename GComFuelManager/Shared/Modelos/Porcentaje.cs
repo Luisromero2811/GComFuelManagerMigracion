@@ -11,6 +11,6 @@ namespace GComFuelManager.Shared.Modelos
     {
         [Key] public int? Cod { get; set; }
         public string? Accion { get; set; } = string.Empty;
-        public double? Porcen { get; set; } = 0;
+        public double Porcen { get; set; } = 1;
     }
 }

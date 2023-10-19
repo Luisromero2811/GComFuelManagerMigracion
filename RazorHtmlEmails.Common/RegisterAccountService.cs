@@ -34,7 +34,7 @@ namespace RazorHtmlEmails.Common
 
             //AlternateView alternate = AlternateView.CreateAlternateViewFromString(body, null, MediaTypeNames.Text.Html);
 
-            message.From.Add(new MailboxAddress("Gcom Fuel Manager", "endpoint@gasamigas.com"));
+            message.From.Add(new MailboxAddress("Gcom Fuel Management", "admon@energasmx.mx"));
             //message.To.Add(new MailboxAddress(content.Nombre, content.Email));
             message.To.AddRange(content.ToList);
             message.Cc.AddRange(content.CC);

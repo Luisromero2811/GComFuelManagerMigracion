@@ -1,0 +1,67 @@
+﻿<nav>
+    <ul class="pagination justify-content-center">
+        @foreach (var item in Enlaces)
+        {
+            <li class="page-item @(item.Habilitada ? null : "disabled") @(item.Activa ? "active" : null)" style="cursor:pointer"
+            @onclick="@(()=>PaginaSeleccionadaInterno(item))">
+                <a class="page-link">@item.Texto</a>
+            </li>
+        }
+    </ul>
+</nav>
+
+@code {
+    [Parameter] public int PaginaActual { get; set; } = 1;
+    [Parameter] public int PaginasTotales { get; set; }
+    [Parameter] public int Radio { get; set; } = 5;
+    [Parameter] public EventCallback<int> PaginaSeleccionada { get; set; }
+    List<PaginaModel> Enlaces = new List<PaginaModel>();
+
+    protected override void OnParametersSet()
+    {
+        Enlaces = new List<PaginaModel>();
+        var enlaceAnteriorHabilitado = PaginaActual != 1;
+        var enlaceAnteriorPagina = PaginaActual - 1;
+        Enlaces.Add(new PaginaModel
+            {
+                Texto = "<",
+                Pagina = enlaceAnteriorPagina,
+                Habilitada = enlaceAnteriorHabilitado
+            });
+        for (int i = 1; i <= PaginasTotales; i++)
+        {
+            if (i >= PaginaActual - Radio && i <= PaginaActual + Radio)
+            {
+                Enlaces.Add(new PaginaModel
+                    {
+                        Pagina = i,
+                        Texto = i.ToString(),
+                        Activa = PaginaActual == i
+                    });
+            }
+        }
+        var enlaceSiguienteHabilitado = PaginaActual != PaginasTotales;
+        var enlaceSiguientePagina = PaginaActual + 1;
+        Enlaces.Add(new PaginaModel
+            {
+                Texto = ">",
+                Pagina = enlaceSiguientePagina,
+                Habilitada = enlaceSiguienteHabilitado
+            });
+    }
+
+    private async Task PaginaSeleccionadaInterno(PaginaModel model)
+    {
+        if (model.Pagina == PaginaActual) { return; }
+        if (!model.Habilitada) { return; }
+        await PaginaSeleccionada.InvokeAsync(model.Pagina);
+    }
+
+    class PaginaModel
+    {
+        public string Texto { get; set; } = null!;
+        public int Pagina { get; set; }
+        public bool Habilitada { get; set; } = true;
+        public bool Activa { get; set; } = false;
+    }
+}

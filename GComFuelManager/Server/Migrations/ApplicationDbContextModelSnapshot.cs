@@ -162,6 +162,49 @@ namespace GComFuelManager.Server.Migrations
                     b.ToTable("Actividad");
                 });
 
+            modelBuilder.Entity("GComFuelManager.Shared.Modelos.ActividadRegistrada", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AffectedColumns")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NewValues")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OldValues")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PrimaryKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TableName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ActividadRegistrada");
+                });
+
             modelBuilder.Entity("GComFuelManager.Shared.Modelos.BitacoraModificacion", b =>
                 {
                     b.Property<int>("Cod")
@@ -230,6 +273,31 @@ namespace GComFuelManager.Server.Migrations
                     b.ToTable("Chofer");
                 });
 
+            modelBuilder.Entity("GComFuelManager.Shared.Modelos.CierrePrecioDespuesFecha", b =>
+                {
+                    b.Property<int?>("Cod")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("Cod"));
+
+                    b.Property<int?>("CodCie")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CodCte")
+                        .HasColumnType("int");
+
+                    b.Property<short?>("CodPrd")
+                        .HasColumnType("smallint");
+
+                    b.Property<double?>("Precio")
+                        .HasColumnType("float");
+
+                    b.HasKey("Cod");
+
+                    b.ToTable("CierrePrecioDespuesFecha");
+                });
+
             modelBuilder.Entity("GComFuelManager.Shared.Modelos.Ciudad", b =>
                 {
                     b.Property<int>("Cod")
@@ -261,7 +329,7 @@ namespace GComFuelManager.Server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Cod"));
 
-                    b.Property<bool?>("Activo")
+                    b.Property<bool>("Activo")
                         .HasColumnType("bit");
 
                     b.Property<string>("CodCte")
@@ -297,6 +365,9 @@ namespace GComFuelManager.Server.Migrations
 
                     b.Property<bool?>("Esenergas")
                         .HasColumnType("bit");
+
+                    b.Property<string>("MdVenta")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Tem")
                         .HasMaxLength(50)
@@ -479,12 +550,15 @@ namespace GComFuelManager.Server.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Cod"));
 
-                    b.Property<bool?>("Activo")
+                    b.Property<bool>("Activo")
                         .HasColumnType("bit");
 
                     b.Property<string>("Ciu")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<long?>("CodGamo")
+                        .HasColumnType("bigint");
 
                     b.Property<int?>("CodbdTan")
                         .HasColumnType("int");
@@ -608,6 +682,9 @@ namespace GComFuelManager.Server.Migrations
 
                     b.Property<DateTime?>("Fch")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("MdVenta")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Tipven")
                         .HasMaxLength(16)
@@ -758,7 +835,6 @@ namespace GComFuelManager.Server.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Bolguiid")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
@@ -781,6 +857,7 @@ namespace GComFuelManager.Server.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("CompartmentId")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.Property<string>("Dendes")
@@ -792,6 +869,10 @@ namespace GComFuelManager.Server.Migrations
 
                     b.Property<DateTime?>("Fchcar")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("Folio")
+                        .IsRequired()
+                        .HasColumnType("int");
 
                     b.Property<long?>("Liniteid")
                         .HasColumnType("bigint");
@@ -811,6 +892,8 @@ namespace GComFuelManager.Server.Migrations
                         .HasColumnType("float");
 
                     b.HasKey("Cod");
+
+                    b.HasAlternateKey("BatchId");
 
                     b.HasIndex("Codchf");
 
@@ -891,7 +974,7 @@ namespace GComFuelManager.Server.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasAnnotation("Relational:JsonPropertyName", "observaciones");
 
-                    b.Property<double?>("Precio")
+                    b.Property<double>("Precio")
                         .HasColumnType("float")
                         .HasAnnotation("Relational:JsonPropertyName", "precio");
 
@@ -915,6 +998,9 @@ namespace GComFuelManager.Server.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("Relational:JsonPropertyName", "volumen");
 
+                    b.Property<DateTime?>("fchPrecio")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Cod");
 
                     b.HasIndex("CodCon");
@@ -922,6 +1008,10 @@ namespace GComFuelManager.Server.Migrations
                     b.HasIndex("CodCte");
 
                     b.HasIndex("CodDes");
+
+                    b.HasIndex("CodGru")
+                        .IsUnique()
+                        .HasFilter("[CodGru] IS NOT NULL");
 
                     b.HasIndex("CodPed")
                         .IsUnique()
@@ -961,7 +1051,7 @@ namespace GComFuelManager.Server.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Bolguidid")
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Codchf")
                         .HasColumnType("int");
@@ -1022,8 +1112,6 @@ namespace GComFuelManager.Server.Migrations
 
                     b.HasKey("Cod");
 
-                    b.HasIndex("Bolguidid");
-
                     b.HasIndex("Codchf");
 
                     b.HasIndex("Coddes");
@@ -1037,6 +1125,10 @@ namespace GComFuelManager.Server.Migrations
                     b.HasIndex("Codtad");
 
                     b.HasIndex("Codton");
+
+                    b.HasIndex("Folio", "CompartmentId")
+                        .IsUnique()
+                        .HasFilter("[Folio] IS NOT NULL AND [CompartmentId] IS NOT NULL");
 
                     b.ToTable("OrdenEmbarque");
                 });
@@ -1057,7 +1149,9 @@ namespace GComFuelManager.Server.Migrations
 
                     b.HasKey("Cod");
 
-                    b.HasIndex("CodPed");
+                    b.HasIndex("CodPed")
+                        .IsUnique()
+                        .HasFilter("[CodPed] IS NOT NULL");
 
                     b.ToTable("OrdenPedido");
                 });
@@ -1107,7 +1201,7 @@ namespace GComFuelManager.Server.Migrations
                     b.Property<string>("Accion")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double?>("Porcen")
+                    b.Property<double>("Porcen")
                         .HasColumnType("float");
 
                     b.HasKey("Cod");
@@ -1132,7 +1226,7 @@ namespace GComFuelManager.Server.Migrations
                     b.Property<DateTime>("FchDia")
                         .HasColumnType("datetime2");
 
-                    b.Property<double?>("Pre")
+                    b.Property<double>("Pre")
                         .HasColumnType("float");
 
                     b.Property<int?>("codCte")
@@ -1206,6 +1300,54 @@ namespace GComFuelManager.Server.Migrations
                     b.HasIndex("codZona");
 
                     b.ToTable("PreciosHistorico");
+                });
+
+            modelBuilder.Entity("GComFuelManager.Shared.Modelos.PrecioProgramado", b =>
+                {
+                    b.Property<int?>("Cod")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("Cod"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("FchActualizacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FchDia")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("Pre")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("codCte")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("codDes")
+                        .HasColumnType("int");
+
+                    b.Property<short?>("codGru")
+                        .HasColumnType("smallint");
+
+                    b.Property<byte?>("codPrd")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int?>("codZona")
+                        .HasColumnType("int");
+
+                    b.HasKey("Cod");
+
+                    b.HasIndex("codCte");
+
+                    b.HasIndex("codDes");
+
+                    b.HasIndex("codPrd");
+
+                    b.HasIndex("codZona");
+
+                    b.ToTable("PrecioProgramado");
                 });
 
             modelBuilder.Entity("GComFuelManager.Shared.Modelos.Privilegio", b =>
@@ -1761,24 +1903,12 @@ namespace GComFuelManager.Server.Migrations
                     b.Navigation("Cliente");
                 });
 
-            modelBuilder.Entity("GComFuelManager.Shared.Modelos.OrdEmbDet", b =>
-                {
-                    b.HasOne("GComFuelManager.Shared.Modelos.Orden", "Orden")
-                        .WithMany()
-                        .HasForeignKey("Bol")
-                        .HasPrincipalKey("BatchId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Orden");
-                });
-
             modelBuilder.Entity("GComFuelManager.Shared.Modelos.Orden", b =>
                 {
                     b.HasOne("GComFuelManager.Shared.Modelos.OrdEmbDet", "OrdEmbDet")
-                        .WithMany()
-                        .HasForeignKey("BatchId")
-                        .HasPrincipalKey("Bol")
+                        .WithOne("Orden")
+                        .HasForeignKey("GComFuelManager.Shared.Modelos.Orden", "BatchId")
+                        .HasPrincipalKey("GComFuelManager.Shared.Modelos.OrdEmbDet", "Bol")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1829,6 +1959,10 @@ namespace GComFuelManager.Server.Migrations
                         .WithMany()
                         .HasForeignKey("CodDes");
 
+                    b.HasOne("GComFuelManager.Shared.Modelos.Grupo", "Grupo")
+                        .WithOne()
+                        .HasForeignKey("GComFuelManager.Shared.Modelos.OrdenCierre", "CodGru");
+
                     b.HasOne("GComFuelManager.Shared.Modelos.OrdenEmbarque", "OrdenEmbarque")
                         .WithOne("OrdenCierre")
                         .HasForeignKey("GComFuelManager.Shared.Modelos.OrdenCierre", "CodPed");
@@ -1843,6 +1977,8 @@ namespace GComFuelManager.Server.Migrations
 
                     b.Navigation("Destino");
 
+                    b.Navigation("Grupo");
+
                     b.Navigation("OrdenEmbarque");
 
                     b.Navigation("Producto");
@@ -1850,11 +1986,6 @@ namespace GComFuelManager.Server.Migrations
 
             modelBuilder.Entity("GComFuelManager.Shared.Modelos.OrdenEmbarque", b =>
                 {
-                    b.HasOne("GComFuelManager.Shared.Modelos.Orden", "Orden")
-                        .WithMany()
-                        .HasForeignKey("Bolguidid")
-                        .HasPrincipalKey("Bolguiid");
-
                     b.HasOne("GComFuelManager.Shared.Modelos.Chofer", "Chofer")
                         .WithMany()
                         .HasForeignKey("Codchf");
@@ -1883,6 +2014,11 @@ namespace GComFuelManager.Server.Migrations
                         .WithMany()
                         .HasForeignKey("Codton");
 
+                    b.HasOne("GComFuelManager.Shared.Modelos.Orden", "Orden")
+                        .WithOne("OrdenEmbarque")
+                        .HasForeignKey("GComFuelManager.Shared.Modelos.OrdenEmbarque", "Folio", "CompartmentId")
+                        .HasPrincipalKey("GComFuelManager.Shared.Modelos.Orden", "Folio", "CompartmentId");
+
                     b.Navigation("Chofer");
 
                     b.Navigation("Destino");
@@ -1903,8 +2039,8 @@ namespace GComFuelManager.Server.Migrations
             modelBuilder.Entity("GComFuelManager.Shared.Modelos.OrdenPedido", b =>
                 {
                     b.HasOne("GComFuelManager.Shared.Modelos.OrdenEmbarque", "OrdenEmbarque")
-                        .WithMany()
-                        .HasForeignKey("CodPed");
+                        .WithOne("OrdenPedido")
+                        .HasForeignKey("GComFuelManager.Shared.Modelos.OrdenPedido", "CodPed");
 
                     b.Navigation("OrdenEmbarque");
                 });
@@ -1937,6 +2073,33 @@ namespace GComFuelManager.Server.Migrations
                 });
 
             modelBuilder.Entity("GComFuelManager.Shared.Modelos.PrecioHistorico", b =>
+                {
+                    b.HasOne("GComFuelManager.Shared.Modelos.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("codCte");
+
+                    b.HasOne("GComFuelManager.Shared.Modelos.Destino", "Destino")
+                        .WithMany()
+                        .HasForeignKey("codDes");
+
+                    b.HasOne("GComFuelManager.Shared.Modelos.Producto", "Producto")
+                        .WithMany()
+                        .HasForeignKey("codPrd");
+
+                    b.HasOne("GComFuelManager.Shared.Modelos.Zona", "Zona")
+                        .WithMany()
+                        .HasForeignKey("codZona");
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("Destino");
+
+                    b.Navigation("Producto");
+
+                    b.Navigation("Zona");
+                });
+
+            modelBuilder.Entity("GComFuelManager.Shared.Modelos.PrecioProgramado", b =>
                 {
                     b.HasOne("GComFuelManager.Shared.Modelos.Cliente", "Cliente")
                         .WithMany()
@@ -2055,9 +2218,21 @@ namespace GComFuelManager.Server.Migrations
                     b.Navigation("Clientes");
                 });
 
+            modelBuilder.Entity("GComFuelManager.Shared.Modelos.OrdEmbDet", b =>
+                {
+                    b.Navigation("Orden");
+                });
+
+            modelBuilder.Entity("GComFuelManager.Shared.Modelos.Orden", b =>
+                {
+                    b.Navigation("OrdenEmbarque");
+                });
+
             modelBuilder.Entity("GComFuelManager.Shared.Modelos.OrdenEmbarque", b =>
                 {
                     b.Navigation("OrdenCierre");
+
+                    b.Navigation("OrdenPedido");
                 });
 #pragma warning restore 612, 618
         }

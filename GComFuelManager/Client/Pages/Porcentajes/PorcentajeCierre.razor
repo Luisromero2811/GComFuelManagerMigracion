@@ -14,7 +14,7 @@
         <div class="col-12 row">
             <div class="col-8">
                 <label class="form-label">Porcentaje</label>
-                <RadzenNumeric @bind-Value="Porcentaje.Porcen" Min="1" Max="99" class="col-12" />
+                <RadzenNumeric @bind-Value="Porcentaje.Porcen" Min="1" Max="99" class="col-12" MaxLenght="4"/>
             </div>
             <div class="col-4 d-flex">
                 <button class="col-12 btn gcom-bg-amarillo mt-auto" @onclick="@SendPercent">

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using OfficeOpenXml.Attributes;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -17,8 +18,9 @@ namespace GComFuelManager.Shared.Modelos
         [JsonProperty("desCod")] public int? DesCod { get; set; }
         [JsonProperty("activo")] public bool? Activo { get; set; } = true;
 
-        [NotMapped] public Cliente? Cliente { get; set; } = null!;
+        [EpplusIgnore, NotMapped] public Cliente? Cliente { get; set; } = new Cliente();
         [NotMapped] public Zona? Zona { get; set; } = null!;
         [NotMapped] public Destino? Destino { get; set; } = null!;
+        [NotMapped] public short? Codgru { get; set; }
     }
 }

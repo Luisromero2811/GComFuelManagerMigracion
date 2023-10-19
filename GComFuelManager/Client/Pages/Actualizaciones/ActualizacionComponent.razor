@@ -66,20 +66,22 @@
                                 </RadzenButton>
                             </div>
                         </div>
-                        <div class="col-6 mb-3">
-                            <div class="col-12">
-                                <RadzenButton class="col-12 h-100 btn shadow-sm" Variant="Variant.Text" Click="@ServiceClientDestination" Disabled="updateData">
-                                    <div class="col-12 row">
-                                        <div class="col-4">
-                                            <img src="img/rating.png" class="img-fluid" />
+                        <AuthorizeView Roles="Admin, Administrador Sistema, Programador" Context="UpdateDes">
+                            <div class="col-6 mb-3">
+                                <div class="col-12">
+                                    <RadzenButton class="col-12 h-100 btn shadow-sm" Variant="Variant.Text" Click="@ServiceClientDestination" Disabled="updateData">
+                                        <div class="col-12 row">
+                                            <div class="col-4">
+                                                <img src="img/rating.png" class="img-fluid" />
+                                            </div>
+                                            <div class="col d-flex align-items-center text-black justify-content-start">
+                                                <b>Actualizar clientes/destinos</b>
+                                            </div>
                                         </div>
-                                        <div class="col d-flex align-items-center text-black justify-content-start">
-                                            <b>Actualizar clientes/destinos</b>
-                                        </div>
-                                    </div>
-                                </RadzenButton>
+                                    </RadzenButton>
+                                </div>
                             </div>
-                        </div>
+                        </AuthorizeView>
                     </div>
                 </div>
             </div>
@@ -87,48 +89,7 @@
     </Authorized>
 </AuthorizeView>
 
-<AuthorizeView Roles="Admin, Administrador Sistema">
-    <Authorized>
-        <div class="col-12 d-flex justify-content-center my-2">
-            <div class="col-9 card shadow ">
-                <div class="card-body">
-                    <EditForm Model="@codCte" class="form col-12" OnValidSubmit="@PutClientes" Context="validations">
-                        <FluentValidationValidator Validator="validation" />
-                        <ValidationSummary />
-                        <div class="col-12 row">
-                            <div class="col-8 d-flex mt-auto">
-                                <RadzenDropDown TValue="Cliente" Data="Clientes" @bind-Value="codCte.cliente" class="col-12" AllowFiltering="true" TextProperty="Den"
-                                                AllowVirtualization="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains">
-                                    <Template Context="data">
-                                        @((data as Cliente)!.Den) | @((data as Cliente)!.CodCte)
-                                    </Template>
-                                    <ValueTemplate Context="data">
-                                        @((data as Cliente)!.Den) | @((data as Cliente)!.CodCte)
-                                    </ValueTemplate>
-                                </RadzenDropDown>
-                            </div>
-                            <div class="col-2">
-                                <label class="form-label">Codigo de identificacion:</label>
-                                <InputText @bind-Value="codCte.CodCte" class="col-12 form-control" />
-                            </div>
-                            <div class="col-2 d-flex mt-auto">
-                                <button class="btn gcom-bg-amarillo col-12" type="submit">
-                                    <i class="fa fa-solid fa-check"></i>
-                                </button>
-                            </div>
-                        </div>
-                        </EditForm>
-                </div>
-            </div>
-        </div>
-    </Authorized>
-</AuthorizeView>
-
-
-
 @code {
-    CodCteDTO codCte { get; set; } = new CodCteDTO();
-
 
     IEnumerable<Cliente> Clientes { get; set; } = new List<Cliente>();
     Cliente Cliente { get; set; } = new Cliente();
@@ -144,7 +105,6 @@
     protected override async Task OnInitializedAsync()
     {
         await GetTransportista();
-        await GetClientes();
     }
 
     public async Task GetTransportista()
@@ -158,50 +118,6 @@
         else
         {
             Transportistas = response.Response;
-        }
-    }
-
-    private async Task GetClientes()
-    {
-        try
-        {
-            var response = await repositorio.Get<IEnumerable<Cliente>>("api/clientes/all");
-            if (response.Error)
-            {
-                var responseHttp = await response.ObtenerMensajeError();
-                await swal.FireAsync("Error", responseHttp, SweetAlertIcon.Error);
-            }
-            else
-            {
-                Clientes = response.Response;
-            }
-        }
-        catch (Exception e)
-        {
-            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
-        }
-    }
-
-    private async Task PutClientes()
-    {
-        try
-        {
-            codCte.cliente.CodCte = codCte.CodCte;
-            var response = await repositorio.Put<Cliente>("api/clientes", codCte.cliente);
-            if (response.Error)
-            {
-                var responseHttp = await response.ObtenerMensajeError();
-                await swal.FireAsync("Error", responseHttp, SweetAlertIcon.Error);
-            }
-            else
-            {
-                await swal.FireAsync("Exito", "Cliente modificado.", SweetAlertIcon.Success);
-
-            }
-        }
-        catch (Exception e)
-        {
-            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
         }
     }
 

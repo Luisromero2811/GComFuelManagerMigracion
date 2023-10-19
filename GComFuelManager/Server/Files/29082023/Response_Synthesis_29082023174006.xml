@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WsBillOfLadingResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" schemaVersion="1.0" result="failure">
+  <Errors xmlns="http://www.entessa.com/synthesisSchema/1/">
+    <AppError xmlns="http://openseal.org/XmlSchema/1">
+      <ErrorKey>BUSINESS</ErrorKey>
+      <Message>Unexpected BOL save result.  An unique identifier was not returned.  This may indicate an empty ExternalBolNumber or that the BOL already exists in Synthesis.</Message>
+      <ErrorLevel>
+        <Value>ERROR</Value>
+      </ErrorLevel>
+      <ErrorType>
+        <Value>BUSINESS</Value>
+      </ErrorType>
+      <TimeStamp>
+        <Value>638289275707339014</Value>
+      </TimeStamp>
+    </AppError>
+  </Errors>
+  <Request xsi:type="WsSaveBillOfLadingRequest" xmlns="http://www.entessa.com/synthesisSchema/1/">
+    <Properties />
+    <IncludeChildObjects xsi:nil="true" />
+    <BillOfLading>
+      <ExternalBolNumber xsi:nil="true" />
+      <HeaderId>
+        <Value xmlns="http://openseal.org/XmlSchema/1">50383</Value>
+      </HeaderId>
+      <ExternalBolAlternativeId xsi:nil="true" />
+      <BolGuidId />
+      <StartLoadTime>
+        <Value xmlns="http://openseal.org/XmlSchema/1">2023-08-29T00:00:00</Value>
+        <FirstDayOfWeek xmlns="http://openseal.org/XmlSchema/1">Sunday</FirstDayOfWeek>
+      </StartLoadTime>
+      <EndLoadTime>
+        <Value xmlns="http://openseal.org/XmlSchema/1">2023-08-31T00:00:00</Value>
+        <FirstDayOfWeek xmlns="http://openseal.org/XmlSchema/1">Sunday</FirstDayOfWeek>
+      </EndLoadTime>
+      <Terminal>
+        <LocationId>
+          <Id>
+            <Value xmlns="http://openseal.org/XmlSchema/1">1100</Value>
+          </Id>
+          <ExternalId xsi:nil="true" />
+        </LocationId>
+        <LocationName xsi:nil="true" />
+        <LocationDescription xsi:nil="true" />
+        <LocationType xsi:nil="true" />
+        <LocationCode xsi:nil="true" />
+        <System xsi:nil="true" />
+        <Address xsi:nil="true" />
+        <Phone xsi:nil="true" />
+        <EpaRegistrationNumber xsi:nil="true" />
+        <LocationCustodyOwner xsi:nil="true" />
+        <LocationOperatorId xsi:nil="true" />
+        <ExternalLocationId xsi:nil="true" />
+        <ExstarsFilingCompanyCode xsi:nil="true" />
+        <UtcOffset xsi:nil="true" />
+        <TerminalControlNumber xsi:nil="true" />
+        <ParentLocation xsi:nil="true" />
+        <BookInventoryUnitInd xsi:nil="true" />
+        <LeftIndex xsi:nil="true" />
+        <RightIndex xsi:nil="true" />
+        <ExternalIdentifiers />
+        <SequenceNumber xsi:nil="true" />
+        <LocationAttribute xsi:nil="true" />
+        <ActiveIndicator xsi:nil="true" />
+        <DisplayValue xsi:nil="true" />
+        <SchedulingQty xsi:nil="true" />
+        <SchedulingMaxRate xsi:nil="true" />
+        <SchedulingDefaultActivity xsi:nil="true" />
+        <SchedulingBatchLabel xsi:nil="true" />
+        <DefaultHeadSafety xsi:nil="true" />
+        <DefaultTailSafety xsi:nil="true" />
+        <ShowTankAlarms xsi:nil="true" />
+        <SchedulingCustomField1 xsi:nil="true" />
+        <SchedulingCustomField2 xsi:nil="true" />
+        <SchedulingCustomField3 xsi:nil="true" />
+        <CustomFieldInstances />
+      </Terminal>
+      <Shipper>
+        <BusinessEntityId>
+          <Id>
+            <Value xmlns="http://openseal.org/XmlSchema/1">51004</Value>
+          </Id>
+          <ExternalId xsi:nil="true" />
+        </BusinessEntityId>
+        <BusinessEntityName xsi:nil="true" />
+        <BusinessEntityShortName xsi:nil="true" />
+        <BusinessEntityCode xsi:nil="true" />
+        <BusinessEntityType xsi:nil="true" />
+        <Ein xsi:nil="true" />
+        <ExternalBusinessEntityId xsi:nil="true" />
+        <Address xsi:nil="true" />
+        <Contact xsi:nil="true" />
+        <Notes xsi:nil="true" />
+        <DunsNumber xsi:nil="true" />
+        <RequestedBy xsi:nil="true" />
+        <BusinessEntityLocations />
+        <BusinessEntityAssociations />
+        <BusinessEntityCredits />
+        <Destinations />
+        <ExternalIdentifiers />
+        <SequenceNumber xsi:nil="true" />
+        <ActiveIndicator xsi:nil="true" />
+        <DisplayValue xsi:nil="true" />
+        <CustomFieldInstances />
+        <IsTaxExempt xsi:nil="true" />
+      </Shipper>
+      <Stockholder>
+        <BusinessEntityId>
+          <Id>
+            <Value xmlns="http://openseal.org/XmlSchema/1">51004</Value>
+          </Id>
+          <ExternalId xsi:nil="true" />
+        </BusinessEntityId>
+        <BusinessEntityName xsi:nil="true" />
+        <BusinessEntityShortName xsi:nil="true" />
+        <BusinessEntityCode xsi:nil="true" />
+        <BusinessEntityType xsi:nil="true" />
+        <Ein xsi:nil="true" />
+        <ExternalBusinessEntityId xsi:nil="true" />
+        <Address xsi:nil="true" />
+        <Contact xsi:nil="true" />
+        <Notes xsi:nil="true" />
+        <DunsNumber xsi:nil="true" />
+        <RequestedBy xsi:nil="true" />
+        <BusinessEntityLocations />
+        <BusinessEntityAssociations />
+        <BusinessEntityCredits />
+        <Destinations />
+        <ExternalIdentifiers />
+        <SequenceNumber xsi:nil="true" />
+        <ActiveIndicator xsi:nil="true" />
+        <DisplayValue xsi:nil="true" />
+        <CustomFieldInstances />
+        <IsTaxExempt xsi:nil="true" />
+      </Stockholder>
+      <Customer>
+        <BusinessEntityId>
+          <Id>
+            <Value xmlns="http://openseal.org/XmlSchema/1">51932</Value>
+          </Id>
+          <ExternalId xsi:nil="true" />
+        </BusinessEntityId>
+        <BusinessEntityName xsi:nil="true" />
+        <BusinessEntityShortName xsi:nil="true" />
+        <BusinessEntityCode xsi:nil="true" />
+        <BusinessEntityType xsi:nil="true" />
+        <Ein xsi:nil="true" />
+        <ExternalBusinessEntityId xsi:nil="true" />
+        <Address xsi:nil="true" />
+        <Contact xsi:nil="true" />
+        <Notes xsi:nil="true" />
+        <DunsNumber xsi:nil="true" />
+        <RequestedBy xsi:nil="true" />
+        <BusinessEntityLocations />
+        <BusinessEntityAssociations />
+        <BusinessEntityCredits />
+        <Destinations />
+        <ExternalIdentifiers />
+        <SequenceNumber xsi:nil="true" />
+        <ActiveIndicator xsi:nil="true" />
+        <DisplayValue xsi:nil="true" />
+        <CustomFieldInstances />
+        <IsTaxExempt xsi:nil="true" />
+      </Customer>
+      <RevisionNumber>
+        <Value xmlns="http://openseal.org/XmlSchema/1">1</Value>
+      </RevisionNumber>
+      <LineItems>
+        <BillOfLadingLineItem>
+          <BolLineItemId xsi:nil="true" />
+          <BaseProduct>
+            <ProductId>
+              <Id>
+                <Value xmlns="http://openseal.org/XmlSchema/1">10094</Value>
+              </Id>
+              <ExternalId xsi:nil="true" />
+            </ProductId>
+            <ProductName xsi:nil="true" />
+            <ProductCode xsi:nil="true" />
+            <ProductDescription xsi:nil="true" />
+            <ProductType xsi:nil="true" />
+            <ExternalProductId xsi:nil="true" />
+            <ProductGroup xsi:nil="true" />
+            <ProductGrade xsi:nil="true" />
+            <GsvCorrectionMethod xsi:nil="true" />
+            <GovermentProductCode xsi:nil="true" />
+            <StandardGravity xsi:nil="true" />
+            <ProductMessage xsi:nil="true" />
+            <Color xsi:nil="true" />
+            <ExternalIdentifiers />
+            <SequenceNumber xsi:nil="true" />
+            <ActiveIndicator xsi:nil="true" />
+            <ProductSpecifications />
+            <CustomFieldInstances />
+            <RequireVaporRecovery xsi:nil="true" />
+            <VaporRecoveryDetails xsi:nil="true" />
+          </BaseProduct>
+          <OrderedProduct>
+            <ProductId>
+              <Id>
+                <Value xmlns="http://openseal.org/XmlSchema/1">10094</Value>
+              </Id>
+              <ExternalId xsi:nil="true" />
+            </ProductId>
+            <ProductName xsi:nil="true" />
+            <ProductCode xsi:nil="true" />
+            <ProductDescription xsi:nil="true" />
+            <ProductType xsi:nil="true" />
+            <ExternalProductId xsi:nil="true" />
+            <ProductGroup xsi:nil="true" />
+            <ProductGrade xsi:nil="true" />
+            <GsvCorrectionMethod xsi:nil="true" />
+            <GovermentProductCode xsi:nil="true" />
+            <StandardGravity xsi:nil="true" />
+            <ProductMessage xsi:nil="true" />
+            <Color xsi:nil="true" />
+            <ExternalIdentifiers />
+            <SequenceNumber xsi:nil="true" />
+            <ActiveIndicator xsi:nil="true" />
+            <ProductSpecifications />
+            <CustomFieldInstances />
+            <RequireVaporRecovery xsi:nil="true" />
+            <VaporRecoveryDetails xsi:nil="true" />
+          </OrderedProduct>
+          <Supplier>
+            <BusinessEntityId>
+              <Id>
+                <Value xmlns="http://openseal.org/XmlSchema/1">51004</Value>
+              </Id>
+              <ExternalId xsi:nil="true" />
+            </BusinessEntityId>
+            <BusinessEntityName xsi:nil="true" />
+            <BusinessEntityShortName xsi:nil="true" />
+            <BusinessEntityCode xsi:nil="true" />
+            <BusinessEntityType xsi:nil="true" />
+            <Ein xsi:nil="true" />
+            <ExternalBusinessEntityId xsi:nil="true" />
+            <Address xsi:nil="true" />
+            <Contact xsi:nil="true" />
+            <Notes xsi:nil="true" />
+            <DunsNumber xsi:nil="true" />
+            <RequestedBy xsi:nil="true" />
+            <BusinessEntityLocations />
+            <BusinessEntityAssociations />
+            <BusinessEntityCredits />
+            <Destinations />
+            <ExternalIdentifiers />
+            <SequenceNumber xsi:nil="true" />
+            <ActiveIndicator xsi:nil="true" />
+            <DisplayValue xsi:nil="true" />
+            <CustomFieldInstances />
+            <IsTaxExempt xsi:nil="true" />
+          </Supplier>
+          <BaseNetQuantity>
+            <Value xmlns="http://openseal.org/XmlSchema/1">0</Value>
+          </BaseNetQuantity>
+          <BaseGrossQuantity xsi:nil="true" />
+          <OrderedNetQuantity xsi:nil="true" />
+          <OrderedGrossQuantity xsi:nil="true" />
+          <NetTenderAmount xsi:nil="true" />
+          <GrossTenderAmount xsi:nil="true" />
+          <NetMass xsi:nil="true" />
+          <Temperature xsi:nil="true" />
+          <Density xsi:nil="true" />
+          <SpecificGravity xsi:nil="true" />
+          <BaseGravity xsi:nil="true" />
+          <Vcf xsi:nil="true" />
+          <TrailerId>14364</TrailerId>
+          <Vehicle xsi:nil="true" />
+          <CompartmentId>
+            <Value xmlns="http://openseal.org/XmlSchema/1">4654</Value>
+          </CompartmentId>
+          <BolMessage xsi:nil="true" />
+          <Tank>
+            <DeviceId>
+              <Id>
+                <Value xmlns="http://openseal.org/XmlSchema/1">16023</Value>
+              </Id>
+              <ExternalId xsi:nil="true" />
+            </DeviceId>
+            <DeviceType xsi:nil="true" />
+            <DeviceName xsi:nil="true" />
+            <DeviceCode xsi:nil="true" />
+            <DeviceDescription xsi:nil="true" />
+            <ExternalDeviceId xsi:nil="true" />
+            <Location xsi:nil="true" />
+            <Lease xsi:nil="true" />
+            <ManufacturerName xsi:nil="true" />
+            <ModelName xsi:nil="true" />
+            <SerialNumber xsi:nil="true" />
+            <IsTemperatureCompensating xsi:nil="true" />
+            <IsPressureCompensating xsi:nil="true" />
+            <Notes xsi:nil="true" />
+            <ExternalIdentifiers />
+            <FmpNum xsi:nil="true" />
+            <Size xsi:nil="true" />
+            <MeterType xsi:nil="true" />
+            <RepairDate xsi:nil="true" />
+            <PulsePerUom xsi:nil="true" />
+            <SequenceNumber xsi:nil="true" />
+            <ActiveIndicator xsi:nil="true" />
+            <IsMasterMeter xsi:nil="true" />
+            <DisplayValue xsi:nil="true" />
+            <InternalId xsi:nil="true" />
+            <SampleGravityBy xsi:nil="true" />
+            <MeterFactorMethod xsi:nil="true" />
+            <ProverDeviceId xsi:nil="true" />
+            <StorageUnitId xsi:nil="true" />
+            <Rtu xsi:nil="true" />
+            <IsShared xsi:nil="true" />
+            <LinearCoefficientThermalExpansion xsi:nil="true" />
+          </Tank>
+          <SupplierEpaRegistrationNumber xsi:nil="true" />
+          <EndLoadTime>
+            <Value xmlns="http://openseal.org/XmlSchema/1">2023-08-31T00:00:00</Value>
+            <FirstDayOfWeek xmlns="http://openseal.org/XmlSchema/1">Sunday</FirstDayOfWeek>
+          </EndLoadTime>
+          <BolLineItemAssociations />
+          <ActivitySteps />
+          <Customer>
+            <BusinessEntityId>
+              <Id>
+                <Value xmlns="http://openseal.org/XmlSchema/1">51932</Value>
+              </Id>
+              <ExternalId xsi:nil="true" />
+            </BusinessEntityId>
+            <BusinessEntityName xsi:nil="true" />
+            <BusinessEntityShortName xsi:nil="true" />
+            <BusinessEntityCode xsi:nil="true" />
+            <BusinessEntityType xsi:nil="true" />
+            <Ein xsi:nil="true" />
+            <ExternalBusinessEntityId xsi:nil="true" />
+            <Address xsi:nil="true" />
+            <Contact xsi:nil="true" />
+            <Notes xsi:nil="true" />
+            <DunsNumber xsi:nil="true" />
+            <RequestedBy xsi:nil="true" />
+            <BusinessEntityLocations />
+            <BusinessEntityAssociations />
+            <BusinessEntityCredits />
+            <Destinations />
+            <ExternalIdentifiers />
+            <SequenceNumber xsi:nil="true" />
+            <ActiveIndicator xsi:nil="true" />
+            <DisplayValue xsi:nil="true" />
+            <CustomFieldInstances />
+            <IsTaxExempt xsi:nil="true" />
+          </Customer>
+          <Destination>
+            <DestinationId>
+              <Id>
+                <Value xmlns="http://openseal.org/XmlSchema/1">1926</Value>
+              </Id>
+              <ExternalId xsi:nil="true" />
+            </DestinationId>
+            <DestinationName xsi:nil="true" />
+            <DestinationCode xsi:nil="true" />
+            <DestinationType xsi:nil="true" />
+            <Ein xsi:nil="true" />
+            <EinType xsi:nil="true" />
+            <ExternalDestinationId xsi:nil="true" />
+            <Address xsi:nil="true" />
+            <Contact xsi:nil="true" />
+            <Notes xsi:nil="true" />
+            <DunsNumber xsi:nil="true" />
+            <RequestedBy xsi:nil="true" />
+            <DestinationDescription xsi:nil="true" />
+            <SpecialInstructions xsi:nil="true" />
+            <PidxNumber xsi:nil="true" />
+            <ExternalIdentifiers />
+            <SequenceNumber xsi:nil="true" />
+            <ActiveIndicator xsi:nil="true" />
+            <PerformTransform xsi:nil="true" />
+          </Destination>
+          <Brand xsi:nil="true" />
+          <OrderedQuantity xsi:nil="true" />
+          <BswPct xsi:nil="true" />
+          <GrossWeight xsi:nil="true" />
+          <TareWeight xsi:nil="true" />
+          <CustomerOrderQuantity>
+            <Value xmlns="http://openseal.org/XmlSchema/1">30000</Value>
+          </CustomerOrderQuantity>
+          <SpecialInstructions xsi:nil="true" />
+          <TankShellCapacity xsi:nil="true" />
+          <LoadingIncrement xsi:nil="true" />
+          <OrderId xsi:nil="true" />
+          <OrderRecipeNoticeAssociations />
+          <CustomerOrderUOM>
+            <Value>L</Value>
+          </CustomerOrderUOM>
+          <ReferenceTemperature xsi:nil="true" />
+          <CustomFieldInstances>
+            <CustomFieldInstance>
+              <CustomFieldInstanceId xsi:nil="true" />
+              <EntityId xsi:nil="true" />
+              <FieldStringValue>ENER-90490_1</FieldStringValue>
+              <FieldNumericValue xsi:nil="true" />
+              <FieldDateTimeValue xsi:nil="true" />
+              <CustomFieldMetaData>
+                <CustomFieldMetaDataId>
+                  <Value xmlns="http://openseal.org/XmlSchema/1">46</Value>
+                </CustomFieldMetaDataId>
+                <Name>96996</Name>
+                <DataType xsi:nil="true" />
+                <EntityName>BILL_OF_LADING_LINE_ITEM</EntityName>
+                <EntityKey>96996</EntityKey>
+                <DisplayKey xsi:nil="true" />
+                <DefaultValue xsi:nil="true" />
+                <HasMultipleValues xsi:nil="true" />
+                <IsRequired xsi:nil="true" />
+                <DisplayControl xsi:nil="true" />
+                <SeqNum xsi:nil="true" />
+                <RuleClassId xsi:nil="true" />
+                <ActiveIndicator xsi:nil="true" />
+              </CustomFieldMetaData>
+            </CustomFieldInstance>
+          </CustomFieldInstances>
+        </BillOfLadingLineItem>
+      </LineItems>
+      <LoadSystem>
+        <Value>UNKNOWN</Value>
+      </LoadSystem>
+      <FolioNumber xsi:nil="true" />
+      <PdxbNumber xsi:nil="true" />
+      <ExternalTransactionType xsi:nil="true" />
+      <PurchaseOrderRef>ENER-90490</PurchaseOrderRef>
+      <Destination>
+        <DestinationId>
+          <Id>
+            <Value xmlns="http://openseal.org/XmlSchema/1">1926</Value>
+          </Id>
+          <ExternalId xsi:nil="true" />
+        </DestinationId>
+        <DestinationName xsi:nil="true" />
+        <DestinationCode xsi:nil="true" />
+        <DestinationType xsi:nil="true" />
+        <Ein xsi:nil="true" />
+        <EinType xsi:nil="true" />
+        <ExternalDestinationId xsi:nil="true" />
+        <Address xsi:nil="true" />
+        <Contact xsi:nil="true" />
+        <Notes xsi:nil="true" />
+        <DunsNumber xsi:nil="true" />
+        <RequestedBy xsi:nil="true" />
+        <DestinationDescription xsi:nil="true" />
+        <SpecialInstructions xsi:nil="true" />
+        <PidxNumber xsi:nil="true" />
+        <ExternalIdentifiers />
+        <SequenceNumber xsi:nil="true" />
+        <ActiveIndicator xsi:nil="true" />
+        <PerformTransform xsi:nil="true" />
+      </Destination>
+      <TruckCarrier>
+        <BusinessEntityId>
+          <Id>
+            <Value xmlns="http://openseal.org/XmlSchema/1">21</Value>
+          </Id>
+          <ExternalId xsi:nil="true" />
+        </BusinessEntityId>
+        <BusinessEntityName xsi:nil="true" />
+        <BusinessEntityShortName xsi:nil="true" />
+        <BusinessEntityCode xsi:nil="true" />
+        <BusinessEntityType xsi:nil="true" />
+        <Ein xsi:nil="true" />
+        <ExternalBusinessEntityId xsi:nil="true" />
+        <Address xsi:nil="true" />
+        <Contact xsi:nil="true" />
+        <Notes xsi:nil="true" />
+        <DunsNumber xsi:nil="true" />
+        <RequestedBy xsi:nil="true" />
+        <BusinessEntityLocations />
+        <BusinessEntityAssociations />
+        <BusinessEntityCredits />
+        <Destinations />
+        <ExternalIdentifiers />
+        <SequenceNumber xsi:nil="true" />
+        <ActiveIndicator xsi:nil="true" />
+        <DisplayValue xsi:nil="true" />
+        <CustomFieldInstances />
+        <IsTaxExempt xsi:nil="true" />
+        <CarrierId xsi:nil="true" />
+        <ScacCode xsi:nil="true" />
+        <ExternalCarrierId xsi:nil="true" />
+        <LoadSystemType xsi:nil="true" />
+        <InsuranceExpiryDate xsi:nil="true" />
+        <CarrierType xsi:nil="true" />
+        <InsuranceCompanyName xsi:nil="true" />
+        <InsurancePolicyId xsi:nil="true" />
+        <InsuranceLiabilityAmount xsi:nil="true" />
+        <InterstatePermitId xsi:nil="true" />
+        <InterstatePermitExpiryDate xsi:nil="true" />
+        <TabsCarrierId xsi:nil="true" />
+        <EpaRegistrationNumber xsi:nil="true" />
+        <VehicleLiabilityExpiryDate xsi:nil="true" />
+        <VehicleLiabilityAmount xsi:nil="true" />
+        <VehicleExcessLiabilityExpiryDate xsi:nil="true" />
+        <VehicleExcessLiabilityAmount xsi:nil="true" />
+        <WorkersCompensationExpiryDate xsi:nil="true" />
+        <WorkersCompensationAmount xsi:nil="true" />
+        <CarrierDrivers />
+      </TruckCarrier>
+      <TruckDriver xsi:nil="true" />
+      <Driver>
+        <DriverId>
+          <Id>
+            <Value xmlns="http://openseal.org/XmlSchema/1">53406</Value>
+          </Id>
+          <ExternalId xsi:nil="true" />
+        </DriverId>
+        <Name xsi:nil="true" />
+      </Driver>
+      <DeliveryReceiptIndicator>
+        <Value xmlns="http://openseal.org/XmlSchema/1">1</Value>
+      </DeliveryReceiptIndicator>
+      <ModeOfTransport>
+        <Value>TRUCK</Value>
+      </ModeOfTransport>
+      <UnitOfMeasure>
+        <Value>L</Value>
+      </UnitOfMeasure>
+      <Comments>
+        <FlexComment>
+          <CommentId xsi:nil="true" />
+          <EntityName xsi:nil="true" />
+          <EntityIdentifier xsi:nil="true" />
+          <EntityItemIdentifier xsi:nil="true" />
+          <CommentKey xsi:nil="true" />
+          <CommentText>Synthesis Web Service Innovacion</CommentText>
+          <SequenceNumber xsi:nil="true" />
+          <ActiveIndicator xsi:nil="true" />
+        </FlexComment>
+      </Comments>
+      <ChargeCount xsi:nil="true" />
+      <BolStatus>
+        <Value xmlns="http://openseal.org/XmlSchema/1">34</Value>
+      </BolStatus>
+      <LoadType>
+        <Value>SCHED</Value>
+      </LoadType>
+      <IsNonMeteredLoad xsi:nil="true" />
+      <SeqNum>
+        <Value xmlns="http://openseal.org/XmlSchema/1">10</Value>
+      </SeqNum>
+      <Tractor xsi:nil="true" />
+      <ExcludeInThroughput xsi:nil="true" />
+      <VehicleNumber xsi:nil="true" />
+      <VisualDate xsi:nil="true" />
+      <InternalDate xsi:nil="true" />
+      <LeakageDate xsi:nil="true" />
+      <FDTransaction xsi:nil="true" />
+      <NumCompartments xsi:nil="true" />
+      <ShipDate xsi:nil="true" />
+      <TestDate xsi:nil="true" />
+      <OrderId xsi:nil="true" />
+      <ContractScheduleId xsi:nil="true" />
+      <ActivityId>
+        <Value xmlns="http://openseal.org/XmlSchema/1">1009</Value>
+      </ActivityId>
+      <Attributes xsi:nil="true" />
+      <ContractNumber xsi:nil="true" />
+      <ContractId xsi:nil="true" />
+      <CustomFieldInstances />
+      <CreatedBy>energasws Sistemas</CreatedBy>
+      <CustomerReference>ENER-90490</CustomerReference>
+    </BillOfLading>
+    <saveXML>false</saveXML>
+    <GenerateBolFromOrder>
+      <Value xmlns="http://openseal.org/XmlSchema/1">false</Value>
+    </GenerateBolFromOrder>
+    <EnableExplicitRevisioning>
+      <Value xmlns="http://openseal.org/XmlSchema/1">true</Value>
+    </EnableExplicitRevisioning>
+    <ReferenceTemperature xsi:nil="true" />
+  </Request>
+</WsBillOfLadingResponse>

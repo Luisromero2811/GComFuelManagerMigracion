@@ -168,3 +168,8 @@ a, .btn-link {
 .premium{
     background-color: #AC0608;
 }
+* {
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+

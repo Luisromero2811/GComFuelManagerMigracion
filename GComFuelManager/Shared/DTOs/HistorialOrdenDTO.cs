@@ -20,7 +20,7 @@ namespace GComFuelManager.Shared.DTOs
         [EpplusIgnore]
         public double? Volumen { get; set; } = 0;
         [DisplayName("Volumen")]
-        public string Volumenes { get { return Volumen!.Value.ToString("N2"); } }
+        public string Volumenes { get { return string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", Volumen); } }
         [DisplayName("Fecha de Carga")]
         public string? FechaCarga { get; set; } = string.Empty;
         public string? Transportista { get; set; } = string.Empty;
@@ -28,5 +28,6 @@ namespace GComFuelManager.Shared.DTOs
         public int? Compartimento { get; set; } = 0;
         public string? Operador { get; set; } = string.Empty;
         public int? Bin { get; set; } = 0;
+        public string? Estado { get; set; } = string.Empty;
 	}
 }

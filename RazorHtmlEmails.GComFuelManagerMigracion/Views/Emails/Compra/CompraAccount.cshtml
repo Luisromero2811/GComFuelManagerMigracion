@@ -81,10 +81,10 @@
                             @item.Volumen?.ToString("N")
                         </td>
                         <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 300; line-height: 24px; padding: 15px 10px 5px 10px;">
-                            @item.Precio?.ToString("N")
+                            @item.Precio.ToString("N4")
                         </td>
                         <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 300; line-height: 24px; padding: 15px 10px 5px 10px;">
-                            @((Convert.ToDouble(item.Volumen) * item.Precio)?.ToString("N"))
+                            @((Convert.ToDouble(item.Volumen) * item.Precio).ToString("N"))
                         </td>
                     </tr>
                 }
@@ -105,9 +105,6 @@
                             <div style="width:100%;text-align:start;">
                                 <b>Tipo de pago: @Model.Lista!.FirstOrDefault()!.TipoPago</b>
                             </div>
-                            <div style="width:100%;text-align:start;">
-                            </div>
-                            <b>Ejecutivo de cuenta: @Model.Lista!.FirstOrDefault()!.Vendedor</b>
                         </div>
                     </td>
                 </tr>
@@ -115,8 +112,8 @@
                     <td>
                         <div colspan="4" style="width:100%;margin-top:25px;">
                             <a style="background-color:#EABF1A; color:black; border:none; border-radius:5px;margin:10px;padding:15px 25px;box-shadow: 0px 4px 4px 0px #00000040;
-                                                                                            font-size:18px; text-decoration:none;" href="https://localhost:44333/orden/@Model.Lista.First().Folio">
-                                Ver estado de orden
+                                                                                                font-size:18px; text-decoration:none;" href="https://gcom.dgl.com.mx/orden/@Model.Lista.First().Folio">
+                                Ver pedido
                             </a>
                         </div>
                     </td>

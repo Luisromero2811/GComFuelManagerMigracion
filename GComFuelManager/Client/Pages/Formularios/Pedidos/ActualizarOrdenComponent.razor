@@ -1,0 +1,327 @@
+﻿@page "/actualizar/pedidos"
+@inject IRepositorio http
+@inject SweetAlertService Swal
+@inject TooltipService ts
+@inject IJSRuntime js
+@inject AuthenticationStateProvider auth
+@inject DialogService ds
+
+@attribute [Authorize(Roles = "Admin, Administrador Sistema, Direccion, Gerencia, Programador")]
+
+<AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Operativo, Programador">
+    <div class="col-12 row">
+        <div class="col-1 d-flex justify-content-end">
+            <p class="my-auto">ENER-</p>
+        </div>
+        <div class="col-3 row">
+            <InputText class="form-control" @bind-Value="@folio" />
+        </div>
+        <div class="col-3">
+            <button class="col-12 btn gcom-bg-amarillo px-0" @onclick="@BuscarOrdenes">
+                <i class="fa fa-solid fa-magnifying-glass"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="col-12 d-flex justify-content-center row">
+        <div class="col-12 my-2">
+            <div class="col-3">
+                <button class="btn gcom-bg-amarillo col-12" @onclick="@ActualizarOrdenes" disabled="@loadingUpdate">
+                    <i class="fa fa-solid fa-repeat"></i> Actualizar ordenes
+                    @if (loadingUpdate)
+                    {
+                        <SpinnerLoading />
+                    }
+                </button>
+            </div>
+        </div>
+        <RadzenDataGrid TItem="OrdenEmbarque" Data="@ordens" AllowColumnResize="true" AllowVirtualization="true" AllowPickAllColumns="true"
+                        GridLines="DataGridGridLines.Both" class="ancho" Style="height:600px;" ColumnWidth="200px" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Settings="@Settings"
+                        IsLoading="loading" @ref="@gridOC" AllowSorting="true" AllowFiltering="true" Culture="CultureInfo.CurrentCulture" AllowColumnPicking="true">
+            <Columns>
+                @*<AuthorizeView Roles="Admin, Administrador Sistema, Ejecutivo de Cuenta Operativo, Programador, Comprador" Context="Acciones">
+                <Authorized>*@
+                @*<RadzenDataGridColumn TItem="OrdenEmbarque" Title="Acciones" Filterable="false" Width="170px" OrderIndex="1">
+                <Template Context="item">
+                <AuthorizeView Roles="Admin, Administrador Sistema, Ejecutivo de Cuenta Operativo, Programador" Context="Acciones">
+                <Authorized>
+                <div class="col">
+                <button class="btn gcom-bg-amarillo col-12" @onclick="@(()=>ActualizarOrden(item))" disabled="@loadingUpdate">
+                <i class="fa fa-solid fa-repeat"></i>
+                @if (loadingUpdate)
+                {
+                <SpinnerLoading />
+                }
+                </button>
+                </div>
+                </Authorized>
+                </AuthorizeView>
+                </Template>
+                </RadzenDataGridColumn>*@
+                @*</Authorized>
+                </AuthorizeView>*@
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Folio" Property="Folio" Width="110px" Filterable="false" />
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Destino" Property="Destino.Den" Width="300px" Filterable="false" />
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Producto" Property="Producto.Den" Width="280px" Filterable="false" />
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Volumen" Width="130px" FormatString="{0:N2}" Filterable="false">
+
+                    <Template Context="item">
+                        <div class="col-12">
+                            @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}",
+                            item?.Compartment == 1 && item.Tonel is not null ? item?.Tonel?.Capcom
+                            : item?.Compartment == 2 && item.Tonel is not null ? item?.Tonel?.Capcom2
+                            : item?.Compartment == 3 && item.Tonel is not null ? item?.Tonel?.Capcom3
+                            : item?.Compartment == 4 && item.Tonel is not null ? item?.Tonel?.Capcom4
+                            : item?.Vol
+                            )
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Precio" Width="140px" Property="OrdenEmbarque.Pre" Filterable="false" />
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Fecha de carga" Property="OrdenEmbarque.Fchcar" FormatString="{0:d}" Width="180px" Filterable="false" />
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Estado" Width="130px" Filterable="false">
+                    <Template Context="item">
+                        <div class="col-12">
+                            @(item?.Orden != null ? item.Orden.Estado?.den :
+                                item?.Estado != null ? item?.Estado?.den : "Sin estado")
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Chofer" Property="Chofer.Den" Width="300px" Filterable="false" />
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Unidad" Property="Tonel.Veh" Width="300px" Filterable="false" />
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Compartimento" Property="Compartment" Width="300px" Filterable="false" />
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+</AuthorizeView>
+<style type="text/css">
+    .ancho {
+        width: @TotalWidth;
+    }
+</style>
+
+@code {
+
+    //grid
+    private RadzenDataGrid<OrdenEmbarque> gridOC = new RadzenDataGrid<OrdenEmbarque>();
+
+    private OrdenEmbarque ordenEmbarque { get; set; } = new OrdenEmbarque();
+    private List<OrdenEmbarque> ordens { get; set; } = new List<OrdenEmbarque>();
+
+    private List<Orden> ordenCierres { get; set; } = new List<Orden>();
+    private OrdenCierre ordenCierre { get; set; } = new OrdenCierre() { OrdenEmbarque = new OrdenEmbarque() { Producto = new Producto() } };
+
+    private float Precio = 0;
+
+    private string folio { get; set; } = string.Empty;
+
+    bool loading = false;
+    bool loadingUpdate = false;
+
+    private Cliente Cliente { get; set; } = new Cliente();
+    private List<CodDenDTO> ClientesFiltro { get; set; } = null!;
+
+    private ClaimsPrincipal User { get; set; } = null!;
+    int width = 0;
+    string TotalWidth = string.Empty;
+    bool isClose = false;
+
+    int count = 0;
+
+    DataGridSettings _settings;
+    DataGridSettings Settings { get { return _settings; } set { if (_settings != value) { _settings = value; InvokeAsync(SaveStateAsync); } } }
+
+    CierreFiltroDTO fechas { get; set; } = new CierreFiltroDTO();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var cm = await js.GetItemLocalStorage("CloseMenu");
+        if (!string.IsNullOrEmpty(cm))
+            isClose = bool.Parse(cm);
+
+        if (isClose)
+            width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 110;
+        else
+            width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 360;
+
+        if (width < 0)
+            width = 500;
+        TotalWidth = $"{width}px";
+        var authState = await auth.GetAuthenticationStateAsync();
+        if (authState is not null)
+            User = authState.User;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        if (first)
+        {
+            await LoadStateAsync();
+            StateHasChanged();
+        }
+    }
+
+
+
+    private async Task PutClientes()
+    {
+        try
+        {
+            var response = await http.Put<Cliente>("api/clientes", Cliente);
+            if (response.Error)
+            {
+                var responseHttp = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", responseHttp, SweetAlertIcon.Error);
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task SaveStateAsync()
+    {
+        try
+        {
+            await Task.CompletedTask;
+            await js.SetItemLocalStorage("settingPedido", JsonConvert.SerializeObject(Settings));
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        try
+        {
+            await Task.CompletedTask;
+            var result = await js.GetItemLocalStorage("settingsPedido");
+            if (!string.IsNullOrEmpty(result))
+            {
+                _settings = JsonConvert.DeserializeObject<DataGridSettings>(result)!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task OpenModal()
+    {
+        try
+        {
+            await ds.OpenAsync<ViewFoliosPedidosComponent>("Folios de pedidos", options: new DialogOptions()
+                {
+                    Width = "90%",
+                    Height = "600px",
+                    Resizable = true,
+                    Draggable = false
+                });
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private async Task BuscarOrdenes()
+    {
+        try
+        {
+            var response = await http.Get<List<OrdenEmbarque>>($"api/pedido/orden/{folio}");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                ordens = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private async Task ActualizarOrden(OrdenEmbarque orden)
+    {
+        try
+        {
+            loadingUpdate = true;
+            var response = await http.Post<OrdenEmbarque, OrdenEmbarque>($"api/services/updates", orden);
+            if (response.Error)
+            {
+                loadingUpdate = false;
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                loadingUpdate = false;
+                if (response.Response is null)
+                    return;
+
+                //var index = ordens.IndexOf(ordens.FirstOrDefault(x => x.Cod == response.Response.Cod)!);
+                //ordens.RemoveAt(index);
+                //ordens.Insert(index, response.Response);
+                await BuscarOrdenes();
+                await Swal.FireAsync("Actualizacion", "Orden actualizada exitosamente", SweetAlertIcon.Success);
+
+                //gridOC?.Reload();
+            }
+        }
+        catch (Exception e)
+        {
+            loadingUpdate = false;
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private async Task ActualizarOrdenes()
+    {
+        try
+        {
+            loadingUpdate = true;
+            foreach (var item in ordens)
+            {
+                loadingUpdate = true;
+                var response = await http.Post<OrdenEmbarque, OrdenEmbarque>($"api/services/updates", item);
+                if (response.Error)
+                {
+                    loadingUpdate = false;
+                    var message = await response.ObtenerMensajeError();
+                    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    if (response.Response is null)
+                        return;
+
+                    //var index = ordens.IndexOf(ordens.FirstOrDefault(x => x.Cod == response.Response.Cod)!);
+                    //ordens.RemoveAt(index);
+                    //ordens.Insert(index, response.Response);
+
+                    //gridOC?.Reload();
+                    await BuscarOrdenes();
+                }
+            }
+            await Swal.FireAsync("Actualizacion", "Orden actualizada exitosamente", SweetAlertIcon.Success);
+            loadingUpdate = false;
+        }
+        catch (Exception e)
+        {
+            loadingUpdate = false;
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+}

@@ -4,48 +4,52 @@
 @inject SweetAlertService Swal
 @inject IJSRuntime js
 @inject NotificationService ms
-@attribute [Authorize(Roles = "Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Contador, Correo de Clientes")]
-   
-        <RadzenTabs>
-            <Tabs>
-                <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Contador">
-                    <RadzenTabsItem Text="Asignar Cliente - Grupo">
-                        <AsignarClienteComponent />
-                    </RadzenTabsItem>
-                    <RadzenTabsItem Text="Asignar Destino - Cliente">
-                        <AsignacionDestinoComponent />
-                    </RadzenTabsItem>
-                </AuthorizeView>
-                <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia">
-                    <RadzenTabsItem Text="Asignar Zona">
-                        <AsignarZonaComponent />
-                    </RadzenTabsItem>
-                </AuthorizeView>
-                <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Correo de Clientes" Context="Contactos">
-                    <RadzenTabsItem Text="Asignar Contacto">
-                        <AsignarContactoComponent />
-                    </RadzenTabsItem>
-                </AuthorizeView>
+@attribute [Authorize(Roles = "Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Contador, Correo de Clientes, Ejecutivo de Cuenta Comercial")]
 
-            </Tabs>
-    </RadzenTabs>
+<RadzenTabs>
+    <Tabs>
+        <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Contador">
+            <RadzenTabsItem Text="Asignar Cliente - Grupo">
+                <AsignarClienteComponent />
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="Asignar Destino - Cliente">
+                <AsignacionDestinoComponent />
+            </RadzenTabsItem>
+        </AuthorizeView>
+        <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia">
+            <RadzenTabsItem Text="Asignar Zona">
+                <AsignarZonaComponent />
+            </RadzenTabsItem>
+        </AuthorizeView>
+        <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Correo de Clientes, Ejecutivo de Cuenta Comercial" Context="Contactos">
+            <RadzenTabsItem Text="Asignar Contacto">
+                <AsignarContactoComponent />
+            </RadzenTabsItem>
+        </AuthorizeView>
+        <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial">
+            <RadzenTabsItem Text="Asignar Codigo de Folio">
+                <AsignarClienteCodigoComponent/>
+            </RadzenTabsItem>
+        </AuthorizeView>
+    </Tabs>
+</RadzenTabs>
 
-    <style type="text/css" media="screen and (min-width:1200px)">
-        .ancho {
-            width: 1100px;
-        }
-    </style>
+<style type="text/css" media="screen and (min-width:1200px)">
+    .ancho {
+        width: 1100px;
+    }
+</style>
 
-    <style type="text/css" media="screen and (min-width:1500px)">
-        .ancho {
-            width: 1500px;
-        }
-    </style>
-    <style type="text/css" media="screen and (min-width:1100px)">
-        .ancho {
-            width: 1000px;
-        }
-    </style>
+<style type="text/css" media="screen and (min-width:1500px)">
+    .ancho {
+        width: 1500px;
+    }
+</style>
+<style type="text/css" media="screen and (min-width:1100px)">
+    .ancho {
+        width: 1000px;
+    }
+</style>
 
     @code {
 

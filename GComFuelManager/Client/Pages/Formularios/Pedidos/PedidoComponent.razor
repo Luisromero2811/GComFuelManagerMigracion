@@ -5,75 +5,39 @@
 @inject IJSRuntime js
 @inject AuthenticationStateProvider auth
 @inject PedidoOrdenValidation validation
+@inject DialogService ds
 
-@attribute [Authorize(Roles = "Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Operativo, Programador, Comprador")]
+@attribute [Authorize(Roles = "Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Operativo, Programador")]
 
-<AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Operativo, Programador, Comprador">
-    <h4><b>Pedidos</b></h4>
+<AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Operativo, Programador">
+    <h4><b>Órdenes - Pedidos</b></h4>
     <div class="col-12 card shadow-sm mb-3">
         <div class="col-12 card-body">
             <div class="col-12 mb-3 row">
                 <div class="col-12 row">
-                    <div class="col-8">
-                        <label><b>Filtro de folios</b></label>
-                    </div>
-                </div>
-                <div class="col-12 row">
-                    <div class="col-3 mb-2">
-                        <div class="col-12">
-                            <label class="form-label">Grupo</label>
-                            <RadzenDropDown Data="Grupos" class="col-12" TextProperty="Den" ValueProperty="Cod" @bind-Value="GrupoSeleccionadoFiltro"
-                                            AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                            AllowVirtualization="true" Change="@GetClientesFiltro" />
-                        </div>
-                    </div>
-                    <div class="col-3 mb-2">
-                        <div class="col-12">
-                            <label class="form-label">Cliente</label>
-                            <RadzenDropDown Data="ClientesFiltro" class="col-12" TextProperty="Den" ValueProperty="Cod" @bind-Value="ClienteSeleccionadoFiltro"
-                                            AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                            AllowVirtualization="true" />
-                        </div>
-                    </div>
-                    <div class="col-2 mb-2">
-                        <label class="form-label">Del:</label>
-                        <InputDate class="form-control col-12" Type="InputDateType.DateTimeLocal" @bind-Value:format="yyyy-MM-dd hh:mm:ss" @bind-Value="@fechas.FchInicio" />
-                    </div>
-                    <div class="col-2 mb-2">
-                        <label class="form-label">A:</label>
-                        <InputDate class="form-control col-12" Type="InputDateType.DateTimeLocal" @bind-Value:format="yyyy-MM-dd hh:mm:ss" @bind-Value="@fechas.FchFin" />
-                    </div>
-                    <div class="col-2 mt-2">
-                        <label class="form-label"></label>
-                        <button class="col-12 btn gcom-bg-amarillo" @onclick="@GetFoliosFiltro">
-                            <i class="fa fa-solid fa-magnifying-glass"></i> Buscar
-                        </button>
-                    </div>
-                </div>
-
-                <div class="col-12 row">
                     <div class="col-3">
                         <label class="form-label">Folio</label>
                         @*<InputText class="form-control col-12" @bind-Value="filtro.Folio" />*@
-                        <RadzenDropDown Data="Folios" class="col-12" @bind-Value="@filtro.Folio" Style="height:50px"
-                                        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                        AllowVirtualization="true">
-                            <ValueTemplate Context="data">
-                                <InputText class="form-control col-12" @bind-Value="@filtro.Folio" />
-                            </ValueTemplate>
-                        </RadzenDropDown>
+                        <InputText class="form-control col-12" @bind-Value="@filtro.Folio" MaxLenght="10" />
+
                         @*<FolioListSearch folio="@filtro.Folio">
                         </FolioListSearch>*@
                     </div>
-                    <div class="col-3 d-flex row mb-2">
-                        <div class="col-6 mt-auto">
+                    <div class="col-9 d-flex row mb-2">
+                        <div class="col-2 mt-auto">
                             <button class="col-12 btn gcom-bg-amarillo" @onclick="@GetFiltroCierres">
                                 <i class="fa fa-solid fa-magnifying-glass"></i>
                             </button>
                         </div>
-                        <div class="col-6 mt-auto">
+                        <div class="col-2 mt-auto">
                             <button class="col-12 btn gcom-bg-amarillo" @onclick="@ClearGridData">
                                 <i class="fa fa-solid fa-broom"></i>
+                            </button>
+                        </div>
+                        <div class="col-6 mt-auto">
+                            <button class="col-12 btn gcom-bg-amarillo" @onclick="@OpenModal">
+                                <i class="fa fa-solid fa-magnifying-glass"></i>
+                                Ver Folios de pedidos
                             </button>
                         </div>
                     </div>
@@ -83,7 +47,7 @@
     </div>
 </AuthorizeView>
 
-<AuthorizeView Roles="Admin, Administrador Sistema, Ejecutivo de Cuenta Operativo, Programador, Comprador" Context="Create">
+<AuthorizeView Roles="Admin, Administrador Sistema, Ejecutivo de Cuenta Operativo, Programador" Context="Create">
     <div class="col-12 card shadow">
         <div class="card-body">
             <div class="col-12 row">
@@ -137,16 +101,54 @@
                     <div class="col-4 mb-1">
                         <div class="col-12">
                             <label>Producto</label>
-                            <RadzenDropDown Data="Precios" class="col-12" TextProperty="Producto.Den" ValueProperty="Producto.Cod" @bind-Value="ordenCierre.CodPrd"
-                                            AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Change="@ChangeProducto"
-                                            AllowVirtualization="true" Disabled="isFolio && !ordenCierre.IsCierreVolumen">
-                                <Template Context="data">
-                                    @((data as Precio).Producto.Den) | $@((data as Precio).Pre)
-                                </Template>
-                                <ValueTemplate Context="data">
-                                    @((data as Precio).Producto.Den) | $@((data as Precio).Pre)
-                                </ValueTemplate>
-                            </RadzenDropDown>
+                            @if (ordenCierre.IsAutoPrecio)
+                            {
+                                <RadzenDropDown Data="Precios" class="col-12" TextProperty="Producto.Den" ValueProperty="Producto.Cod" @bind-Value="ordenCierre.CodPrd"
+                                                AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Change="@ChangeProducto"
+                                                AllowVirtualization="true" Disabled="isFolio && !ordenCierre.IsCierreVolumen">
+                                    <Template Context="data">
+                                        @((data as Precio).Producto.Den) | $@((data as Precio).Pre)
+                                        <RadzenBadge Variant="Variant.Outlined" Text="@((data as Precio)?.FchDia.ToShortDateString())" />
+
+                                    </Template>
+                                    <ValueTemplate Context="data">
+                                        @((data as Precio).Producto.Den) | $@((data as Precio).Pre)
+                                    </ValueTemplate>
+                                </RadzenDropDown>
+                            }
+                            else
+                            {
+                                <InputSelect @bind-Value="ordenCierre.CodPrd" class="form-select">
+                                    <option>-- Selecciona una Opcion --</option>
+                                    @if (Productos is null)
+                                    {
+                                        <option disabled> Cargando ...</option>
+                                    }
+                                    else if (Productos.Count == 0)
+                                    {
+                                        <option disabled> No hay productos </option>
+                                    }
+                                    else
+                                    {
+                                        foreach (var item in Productos)
+                                        {
+                                            <option value="@item.Cod">@item.Den</option>
+                                        }
+                                    }
+                                </InputSelect>
+                            }
+                            @*<RadzenDropDown Data="Precios" class="col-12" TextProperty="Producto.Den" ValueProperty="Producto.Cod" @bind-Value="ordenCierre.CodPrd"
+                            AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Change="@ChangeProducto"
+                            AllowVirtualization="true" Disabled="isFolio && !ordenCierre.IsCierreVolumen">
+                            <Template Context="data">
+                            @((data as Precio).Producto.Den) | $@((data as Precio).Pre)
+                            <RadzenBadge Variant="Variant.Outlined" Text="@((data as Precio)?.FchDia.ToShortDateString())" />
+
+                            </Template>
+                            <ValueTemplate Context="data">
+                            @((data as Precio).Producto.Den) | $@((data as Precio).Pre)
+                            </ValueTemplate>
+                            </RadzenDropDown>*@
                         </div>
                     </div>
                     @if (!ordenCierre.IsDifferentVol)
@@ -154,6 +156,7 @@
                         <div class="col-2 mb-1">
                             <div class="col-12">
                                 <label class="form-label">Volumen</label>
+                               
                                 <InputSelect @bind-Value="ordenCierre.Volumen" class="form-select" disabled="@(isFolio && !ordenCierre.IsCierreVolumen)">
                                     <option>-- Selecciona una opcion --</option>
                                     @if (Cantidades is null)
@@ -168,7 +171,7 @@
                                     {
                                         foreach (var item in Cantidades)
                                         {
-                                            <option value="@item">@item.ToString("N2")</option>
+                                            <option value="@item">  @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @item)</option>
                                         }
                                     }
                                 </InputSelect>
@@ -200,44 +203,84 @@
                     <div class="col-4 mb-1">
                         <div class="col-12">
                             <label>Fecha de carga en terminal</label>
-                            <InputDate class="col-3 form-control" TValue="DateTime?" @bind-Value="@ordenCierre.FchCar"></InputDate>
+                            <RadzenDatePicker class="col-12" TValue="DateTime?" @bind-Value="@ordenCierre.FchCar" DateFormat="dd/MM/yyy" ShowTime="false" />
                         </div>
                     </div>
 
                     <div class="col-4 mb-1">
                         <div class="col-12">
                             <label>Fecha estimada de llegada</label>
-                            <InputDate class="col-3 form-control" TValue="DateTime?" @bind-Value="@ordenCierre.FchLlegada"></InputDate>
+                            <RadzenDatePicker class="col-12" TValue="DateTime?" @bind-Value="@ordenCierre.FchLlegada" DateFormat="dd/MM/yyy" ShowTime="false" />
+                        </div>
+                    </div>
+                    @if (!ordenCierre.IsDifferentTurn)
+                    {
+                        <div class="col-2 mb-1">
+                            <div class="col-12">
+                                <label>Turno</label>
+                                <InputSelect @bind-Value="ordenCierre.Turno" class="form-select">
+                                    <option>-- Selecciona una opcion --</option>
+                                    @if (Turnos is null)
+                                    {
+                                        <option disabled> Cargando ...</option>
+                                    }
+                                    else if (Turnos.Count == 0)
+                                    {
+                                        <option disabled> No hay capacidades</option>
+                                    }
+                                    else
+                                    {
+                                        foreach (var item in Turnos)
+                                        {
+                                            <option value="@item">@item</option>
+                                        }
+                                    }
+                                </InputSelect>
+                            </div>
+                        </div>
+                    }
+                    @if (ordenCierre.IsDifferentTurn)
+                    {
+                        <div class="col-2 mb-1">
+                            <div class="col-12">
+                                <label class="form-label">Turno</label>
+                                <InputText class="form-control col-12" @bind-Value="ordenCierre.Turno" />
+                            </div>
+                        </div>
+                    }
+                    <div class="col-2 mb-1 d-flex">
+                        <div class="col-12 my-auto d-flex">
+                            <RadzenCheckBox @bind-Value=@ordenCierre.IsDifferentTurn Name="CheckBox2" class="me-2" />
+                            <div class="col-12 row p-0" @onmouseenter="@(args => ShowTooltipTurno(infoIconVolumen))" @ref="infoIconVolumen">
+                                <label class="form-label" for="CheckBox2">
+                                    Turno Libre <i class="fa-solid fa-circle-info fa-xs"></i>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
                     <div class="col-4 mb-1">
                         <div class="col-12">
-                            <label>Turno</label>
-                            <InputSelect @bind-Value="ordenCierre.Turno" class="form-select">
-                                <option>-- Selecciona una opcion --</option>
-                                @if (Turnos is null)
-                                {
-                                    <option disabled> Cargando ...</option>
-                                }
-                                else if (Turnos.Count == 0)
-                                {
-                                    <option disabled> No hay capacidades</option>
-                                }
-                                else
-                                {
-                                    foreach (var item in Turnos)
-                                    {
-                                        <option value="@item">@item</option>
-                                    }
-                                }
-                            </InputSelect>
-                        </div>
-                    </div>
-                    <div class="col-4 mb-1">
-                        <div class="col-12">
-                            <label>Precio</label>
-                            <InputNumber class="form-control col-12" TValue="double?" @bind-Value="@ordenCierre.Precio" disabled="true"></InputNumber>
+                            @if (ordenCierre.IsAutoPrecio)
+                            {
+                                <div>
+                                    <label>
+                                        Precio <i class="fa-solid fa-circle-info fa-xs"></i>
+                                    </label>
+                                </div>
+                                <RadzenNumeric class="form-control col-12" @bind-Value="ordenCierre.Precio" Disabled="true" TValue="double" />
+                            }
+                            else
+                            {
+                                <div class="col-12 row p-0">
+                                    <label>
+                                        Precio <i class="fa-solid fa-circle-info fa-xs"></i>
+                                    </label>
+                                </div>
+                                <InputNumber class="form-control col-12" TValue="double" @bind-Value="@ordenCierre.Precio"></InputNumber>
+                            }
+
+                            @*<InputNumber class="form-control col-12" TValue="double" @bind-Value="@ordenCierre.Precio" disabled="true"></InputNumber>*@
                         </div>
                     </div>
                     @if (!isFolio || ordenCierre.IsCierreVolumen)
@@ -276,10 +319,25 @@
                     }
                     @if (!isEditing)
                     {
+
+                        @if (!isFolio || ordenCierre.IsCierreVolumen)
+                        {
+                            <div class="col-4 px-2">
+                                <button class="btn gcom-bg-amarillo col-12 mx-2 @(SendOrden ? "disabled" : "" )" type="submit" disabled="@SendOrden">
+                                    <i class="fa fa-solid fa-check"></i>
+                                    <b>Crear orden</b>
+                                    @if (SendOrden)
+                                    {
+                                        <SpinnerLoading></SpinnerLoading>
+                                    }
+                                </button>
+                            </div>
+                        }
+
                         <div class="col-4 px-2">
                             <button class="btn gcom-bg-amarillo col-12 mx-2" type="button" @onclick="@ConfirmPedido">
                                 <i class="fa fa-solid fa-check"></i>
-                                <b>Confirmar Pedidos</b>
+                                <b>Confirmar ordenes</b>
                                 @if (loadingConfirm)
                                 {
                                     <SpinnerLoading></SpinnerLoading>
@@ -287,19 +345,6 @@
                             </button>
                         </div>
 
-                        @if (!isFolio || ordenCierre.IsCierreVolumen)
-                        {
-                            <div class="col-4 px-2">
-                                <button class="btn gcom-bg-amarillo col-12 mx-2" type="submit">
-                                    <i class="fa fa-solid fa-check"></i>
-                                    <b>Crear orden</b>
-                                    @if (loadingConfirm)
-                                    {
-                                        <SpinnerLoading></SpinnerLoading>
-                                    }
-                                </button>
-                            </div>
-                        }
                     }
                 </div>
             </EditForm>
@@ -307,7 +352,7 @@
     </div>
 </AuthorizeView>
 
-<AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Operativo, Programador, Comprador">
+<AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Operativo, Programador">
     <div class="col-12 d-flex justify-content-center row">
         @if (ordenCierre.IsCierreVolumen is true && volumenDisponible.Productos.Count > 0)
         {
@@ -319,7 +364,7 @@
                         @if (!string.IsNullOrEmpty(item.Nombre))
                         {
                             <div class="col-12 row">
-                                <p>@(item.Nombre) | Total : @(item.Total?.ToString("N")) | Disponible : @(item.Disponible?.ToString("N")) | Espera Carga : @(item.Congelado?.ToString("N")) | Consumido : @(item.Consumido?.ToString("N"))</p>
+                                <p>@(item.Nombre) | Total : @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @item.Total) | Disponible : @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @item.Disponible) | Solicitado : @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @item.Solicitud) | Programado : @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @item.Programado) | Espera Carga : @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @item.Congelado) | Consumido : @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @item.Consumido)</p>
                             </div>
 
                         }
@@ -328,37 +373,48 @@
             </div>
         }
         <RadzenDataGrid TItem="OrdenCierre" Data="@ordenCierres" AllowColumnResize="true" AllowVirtualization="true" AllowPickAllColumns="true"
-                        GridLines="DataGridGridLines.Both" class="rz-my-12 ancho" Style="height:600px;" @bind-Settings="@Settings"
-                        IsLoading="loading" @ref="@gridOC" AllowSorting="true" AllowColumnPicking="true">
+                        GridLines="DataGridGridLines.Both" class="rz-my-12 ancho" Style="height:600px;" ColumnWidth="200px" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" @bind-Settings="@Settings"
+                        IsLoading="loading" @ref="@gridOC" AllowSorting="true" AllowFiltering="true" Culture="CultureInfo.CurrentCulture" AllowColumnPicking="true">
             <Columns>
-                <RadzenDataGridColumn TItem="OrdenCierre" Title="Acciones" Width="140px" Visible="true" Frozen="true">
+                @*<AuthorizeView Roles="Admin, Administrador Sistema, Ejecutivo de Cuenta Operativo, Programador, Comprador" Context="Acciones">
+                <Authorized>*@
+                <RadzenDataGridColumn TItem="OrdenCierre" Title="Acciones" Filterable="false" Width="170px" OrderIndex="1">
                     <Template Context="item">
-                        <AuthorizeView Roles="Admin, Administrador Sistema, Ejecutivo de Cuenta Operativo, Programador, Comprador" Context="Acciones">
-                            <div class="col-12 row">
-                                @if (item.OrdenEmbarque!.CodordCom is null)
-                                {
-                                    <div class="col">
-                                        <button class="btn btn-primary col-12" @onclick="@(()=>SetEdit(item))"><i class="fa fa-solid fa-pen-to-square"></i></button>
-                                    </div>
-                                    <div class="col">
-                                        <button class="btn btn-danger col-12" @onclick="@(()=>CancelPedido(item))"><i class="fa fa-solid fa-cancel"></i></button>
-                                    </div>
-                                }
-                            </div>
+                        <AuthorizeView Roles="Admin, Administrador Sistema, Ejecutivo de Cuenta Operativo, Programador" Context="Acciones">
+                            <Authorized>
+                                <div class="col-12 row">
+                                    @if (item.OrdenEmbarque is not null && item.Estatus == true)
+                                    {
+                                        @if (item.OrdenEmbarque.CodordCom == null)
+                                        {
+                                            <div class="col">
+                                                <button class="btn btn-primary col-12" @onclick="@(()=>SetEdit(item))"><i class="fa fa-solid fa-pen-to-square"></i></button>
+                                            </div>
+                                        }
+                                        @if (string.IsNullOrEmpty(item.OrdenEmbarque.Bolguidid))
+                                        {
+                                            <div class="col">
+                                                <button class="btn btn-danger col-12" @onclick="@(()=>CancelPedido(item))"><i class="fa fa-solid fa-cancel"></i></button>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </Authorized>
                         </AuthorizeView>
                     </Template>
                 </RadzenDataGridColumn>
-
-                <RadzenDataGridColumn TItem="OrdenCierre" Title="Folio" Property="Folio" Width="80px" Frozen="true"/>
-                <RadzenDataGridColumn TItem="OrdenCierre" Title="Bin" Property="OrdenEmbarque.Bin" Width="90px" Frozen="true"/>
-                <RadzenDataGridColumn TItem="OrdenCierre" Title="Terminal" Property="OrdenEmbarque.Tad.Den" Width="140px" />
-                <RadzenDataGridColumn TItem="OrdenCierre" Title="Destino" Property="OrdenEmbarque.Destino.Den" Width="300px" />
-                <RadzenDataGridColumn TItem="OrdenCierre" Title="Producto" Property="OrdenEmbarque.Producto.Den" Width="280px" />
-                <RadzenDataGridColumn TItem="OrdenCierre" Title="Volumen" Width="130px" FormatString="{0:N2}" Filterable="false">
+                @*</Authorized>
+                </AuthorizeView>*@
+                <RadzenDataGridColumn TItem="OrdenCierre" Title="Folio" Property="Folio" Width="110px" Filterable="false" OrderIndex="2" />
+                <RadzenDataGridColumn TItem="OrdenCierre" Title="Bin" Property="OrdenEmbarque.Bin" Width="100px" OrderIndex="3" Filterable="false" />
+                <RadzenDataGridColumn TItem="OrdenCierre" Title="Terminal" Property="OrdenEmbarque.Tad.Den" Width="140px" OrderIndex="4" Filterable="false" />
+                <RadzenDataGridColumn TItem="OrdenCierre" Title="Destino" Property="Destino.Den" Width="300px" OrderIndex="5" Filterable="false" />
+                <RadzenDataGridColumn TItem="OrdenCierre" Title="Producto" Property="Producto.Den" Width="280px" OrderIndex="6" Filterable="false" />
+                <RadzenDataGridColumn TItem="OrdenCierre" Title="Volumen" Width="130px" FormatString="{0:N2}" Filterable="false" OrderIndex="7">
 
                     <Template Context="item">
                         <div class="col-12">
-                            @string.Format("{0:N2}",
+                            @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}",
                             item?.OrdenEmbarque?.Orden is not null ? item?.OrdenEmbarque?.Orden?.Vol :
                             item?.OrdenEmbarque?.Compartment == 1 && item.OrdenEmbarque?.Tonel is not null ? item?.OrdenEmbarque?.Tonel?.Capcom
                             : item?.OrdenEmbarque?.Compartment == 2 && item.OrdenEmbarque?.Tonel is not null ? item?.OrdenEmbarque?.Tonel?.Capcom2
@@ -369,8 +425,16 @@
                         </div>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="OrdenCierre" Title="Precio" Width="140px" Property="OrdenEmbarque.Pre" />
-                <RadzenDataGridColumn TItem="OrdenCierre" Title="Fecha de carga" Property="OrdenEmbarque.Fchcar" FormatString="{0:d}" Width="180px" />
+                <RadzenDataGridColumn TItem="OrdenCierre" Title="Precio" Width="140px" Property="OrdenEmbarque.Pre" OrderIndex="8" Filterable="false" />
+                <RadzenDataGridColumn TItem="OrdenCierre" Title="Fecha de carga" Property="OrdenEmbarque.Fchcar" FormatString="{0:d}" Width="180px" OrderIndex="9" Filterable="false" />
+                <RadzenDataGridColumn TItem="OrdenCierre" Title="Estado" Width="130px" Filterable="false" OrderIndex="10">
+                    <Template Context="item">
+                        <div class="col-12">
+                            @(item?.OrdenEmbarque?.Orden != null ? item?.OrdenEmbarque?.Orden?.Estado?.den :
+                                item?.OrdenEmbarque?.Estado != null ? item.OrdenEmbarque.Estado.den : "Sin estado")
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
             </Columns>
         </RadzenDataGrid>
     </div>
@@ -402,13 +466,12 @@
     private List<CodDenDTO> Clientes { get; set; } = null!;
     private List<CodDenDTO> Estaciones { get; set; } = null!;
     private List<Precio> Precios { get; set; } = null!;
-    private List<Producto> Productos { get; set; } = null!;
+    private List<Producto> Productos { get; set; } = new List<Producto>();
     private List<Precio> ProductosDisponibles { get; set; } = null!;
     private IEnumerable<CodDenDTO> Destino { get; set; } = null!;
     private List<int> Cantidades { get; set; } = null!;
     private List<string> Folios { get; set; } = new List<string>();
 
-    private DateTime FechaCarga = DateTime.MinValue;
     private float Precio = 0;
 
     private string folio { get; set; } = string.Empty;
@@ -420,6 +483,7 @@
     bool isFolio = false;
     bool isEditing = false;
     bool IsCierreVolumen = false;
+    bool SendOrden = false;
 
     private byte? CodProductoSeleccionado = 0;
     private int? DestinoSeleccionado = 0;
@@ -440,6 +504,7 @@
     private ClaimsPrincipal User { get; set; } = null!;
     int width = 0;
     string TotalWidth = string.Empty;
+    bool isClose = false;
 
     int count = 0;
 
@@ -448,13 +513,24 @@
 
     CierreFiltroDTO fechas { get; set; } = new CierreFiltroDTO();
 
+    Dictionary<string, string> queryStringObject = new Dictionary<string, string>();
+
     protected override async Task OnInitializedAsync()
     {
-        await GetFolios();
         await GetTerminales();
         await GetGrupos();
         await GetCantidades();
-        width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 360;
+        await GetProductos();
+
+        var cm = await js.GetItemLocalStorage("CloseMenu");
+        if (!string.IsNullOrEmpty(cm))
+            isClose = bool.Parse(cm);
+
+        if (isClose)
+            width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 110;
+        else
+            width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 360;
+
         if (width < 0)
             width = 500;
         TotalWidth = $"{width}px";
@@ -480,9 +556,11 @@
         isEditing = false;
         ordenCierre.IsCierreVolumen = false;
         isFolio = false;
+        filtro.Folio = string.Empty;
     }
 
     void ShowTooltipVolumen(ElementReference elementReference, TooltipOptions options = null!) => ts.Open(elementReference, "Introduzca una cantidad diferente.", options);
+    void ShowTooltipTurno(ElementReference elementReference, TooltipOptions options = null!) => ts.Open(elementReference, "Introduzca un turno de forma manual.", options);
     void ShowTooltip(ElementReference elementReference, TooltipOptions options = null!) =>
     ts.Open(elementReference, "El Folio se llenara automaticamente al crear el pedido.", options);
 
@@ -493,28 +571,6 @@
         else
             ordenCierre.IsDifferentVol = false;
         isEditing = !isEditing;
-    }
-
-    public async Task GetFolios()
-    {
-        try
-        {
-            var response = await http.Get<List<string>>($"api/cierre/folios");
-            if (response.Error)
-            {
-                var message = await response.ObtenerMensajeError();
-                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
-            }
-            else
-            {
-                Folios = response.Response;
-            }
-        }
-        catch (Exception e)
-        {
-            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
-            throw e;
-        }
     }
 
     public async Task GetPedidoFolio()
@@ -631,6 +687,27 @@
         }
     }
 
+    private async Task GetProductos()
+    {
+        try
+        {
+            var response = await http.Get<List<Producto>>("api/producto");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+            }
+            else
+            {
+                Productos = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
     public async Task GetCantidades()
     {
         try
@@ -663,7 +740,7 @@
             {
                 ordens = new List<OrdenEmbarque>();
                 foreach (var item in ordenCierres)
-                    if (item.OrdenEmbarque!.CodordCom == null && item.OrdenEmbarque.Codtad != 0)
+                    if (item.OrdenEmbarque!.CodordCom == null && item.OrdenEmbarque.Codtad != 0 && item.Estatus == true)
                         ordens.Add(item.OrdenEmbarque!);
 
                 if (ordens.Count > 0)
@@ -718,6 +795,12 @@
             }
             else
             {
+                if (ordenCierre.OrdenEmbarque is null)
+                {
+                    await Swal.FireAsync("Error", "No se encontro una orden.", SweetAlertIcon.Error);
+                    return;
+                }
+
                 var response = await http.Post<OrdenEmbarque, OrdenEmbarque>("api/pedido/update", ordenCierre.OrdenEmbarque);
                 if (response.Error)
                 {
@@ -729,7 +812,10 @@
                 {
                     loadingAgregar = false;
                     CancelEdit();
-                    await GetFiltroCierres();
+                    // await GetFiltroCierres();
+                    var index = ordenCierres.IndexOf(ordenCierres.FirstOrDefault(x => x.Cod == responseOC.Response.Cod)!);
+                    ordenCierres.RemoveAt(index);
+                    ordenCierres.Insert(index, responseOC.Response);
                 }
             }
         }
@@ -832,7 +918,7 @@
                 filtro.forFolio = true;
                 if (!string.IsNullOrEmpty(filtro.Folio))
                 {
-                    var response = await http.Post<CierreFiltroDTO, List<OrdenCierre>>("api/cierre/filtrar", filtro);
+                    var response = await http.Post<CierreFiltroDTO, List<OrdenCierre>>("api/cierre/filtrar/activo", filtro);
                     if (response.Error)
                     {
                         var message = await response.ObtenerMensajeError();
@@ -840,46 +926,50 @@
                     }
                     else
                     {
-                        if (response.Response.FirstOrDefault()!.CodPed == 0)
-                        {
-                            ordenCierre.IsCierreVolumen = true;
+                        if (response.Response.Count > 0)
+                            if (response.Response.FirstOrDefault()!.CodPed == 0)
+                            {
+                                ordenCierre.IsCierreVolumen = true;
 
-                            filtro.forFolio = true;
-                            ordenCierre.CodGru = response.Response.FirstOrDefault().CodGru;
-                            ordenCierre.CodCte = response.Response.FirstOrDefault().CodCte;
-                            await GetClientes();
-                            ordenCierre.CodDes = response.Response.FirstOrDefault().CodDes;
-                            await GetEstaciones();
-                            ordenCierre.CodPrd = response.Response.FirstOrDefault().CodPrd;
-                            await GetPrecios();
-                            ordenCierre.Precio = response.Response.FirstOrDefault().Precio;
-                            var responseDetalle = await http.Get<List<OrdenCierre>>($"api/cierre/{filtro.Folio}/detalle");
-                            if (responseDetalle.Error)
-                            {
-                                var message = await responseDetalle.ObtenerMensajeError();
-                                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
-                            }
-                            else
-                            {
-                                var responseVolumen = await http.Post<CierreFiltroDTO, VolumenDisponibleDTO>($"api/cierre/volumen", filtro);
-                                if (response.Error)
+                                filtro.forFolio = true;
+                                ordenCierre.CodGru = response.Response.FirstOrDefault()?.CodGru;
+                                ordenCierre.CodCte = response.Response.FirstOrDefault()?.CodCte;
+                                await GetClientes();
+                                ordenCierre.CodDes = response.Response.FirstOrDefault()?.CodDes;
+                                await GetEstaciones();
+                                ordenCierre.CodPrd = response.Response.FirstOrDefault()?.CodPrd;
+                                await GetPrecios();
+                                ordenCierre.Precio = response.Response.FirstOrDefault().Precio;
+                                var responseDetalle = await http.Get<List<OrdenCierre>>($"api/cierre/{filtro.Folio}/detalle");
+                                if (responseDetalle.Error)
                                 {
-                                    var message = await response.ObtenerMensajeError();
+                                    var message = await responseDetalle.ObtenerMensajeError();
                                     await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
                                 }
                                 else
                                 {
-                                    volumenDisponible = responseVolumen.Response;
-                                    ordenCierres = responseDetalle.Response;
-                                    count = 0;
+                                    var responseVolumen = await http.Post<CierreFiltroDTO, VolumenDisponibleDTO>($"api/cierre/volumen/activo", filtro);
+                                    if (response.Error)
+                                    {
+                                        var message = await response.ObtenerMensajeError();
+                                        await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                                    }
+                                    else
+                                    {
+                                        volumenDisponible = responseVolumen.Response;
+                                        ordenCierres = responseDetalle.Response;
+                                        count = 0;
+                                    }
                                 }
                             }
-                        }
+                            else
+                            {
+                                ordenCierre.IsCierreVolumen = false;
+                                ordenCierres = response.Response;
+                            }
                         else
-                        {
-                            ordenCierre.IsCierreVolumen = false;
-                            ordenCierres = response.Response;
-                        }
+                            await Swal.FireAsync("", "No se encontraron pedidos activos en este folio.", SweetAlertIcon.Info);
+
                     }
                 }
                 else
@@ -899,11 +989,39 @@
     {
         try
         {
+            SendOrden = true;
+            if (!string.IsNullOrEmpty(filtro.Folio))
+            {
+                queryStringObject["folio"] = filtro.Folio;
+
+                var DefaultValues = new List<string>() { "false", "", "0" };
+                var uri = string.Join("&", queryStringObject.Where(x => !DefaultValues.Contains(x.Value.ToLower()))
+                .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+
+                var responseVerify = await http.Get<OrdenCierre>($"api/cierre/caducidad/verify?{uri}");
+                if (responseVerify.Error)
+                {
+                    var message = await responseVerify.ObtenerMensajeError();
+                    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                    SendOrden = false;
+                }
+                else
+                {
+                    if (responseVerify.Response.Activa == false)
+                    {
+                        await Swal.FireAsync("Aviso", $"Este pedido ya no se encuentra vigente. Fecha de vecimiento: {responseVerify.Response.FchVencimiento?.ToString("dd/MM/yyyy")}", SweetAlertIcon.Error);
+                        return;
+                    }
+                }
+
+            }
+
             var response = await http.Get<Cliente>($"api/clientes/{ordenCierre.CodCte}");
             if (response.Error)
             {
                 var message = await response.ObtenerMensajeError();
                 await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                SendOrden = false;
             }
             else
             {
@@ -912,12 +1030,19 @@
                     Cliente = response.Response;
                     Cliente.Consecutivo = Cliente.Consecutivo != null ? Cliente.Consecutivo + 1 : 1;
                     var userCod = User.Identity?.Name?.Substring(0, 3);
-                    ordenCierre.Folio = $"{userCod}{Cliente.Consecutivo}";
+                    var guid = Guid.NewGuid().ToString().Split("-");
+                    if (!string.IsNullOrEmpty(filtro.Folio))
+                        ordenCierre.Folio = $"O-{userCod}{Cliente.Consecutivo}-{guid[0]}";
+                    else
+                        ordenCierre.Folio = $"OP-{userCod}{Cliente.Consecutivo}-{guid[0]}";
                 }
 
                 await PutClientes();
                 await CreateCierre();
+                SendOrden = false;
             }
+
+            SendOrden = false;
         }
         catch (Exception e)
         {
@@ -947,12 +1072,16 @@
     {
         try
         {
-            if (ordenCierre.CodPrd != null && CodProductoSeleccionado != ordenCierre.CodPrd)
-            {
-                ordenCierre.Precio = Precios.FirstOrDefault(x => x.Producto?.Cod == ordenCierre.CodPrd)?.Pre;
-                CodProductoSeleccionado = ordenCierre.CodPrd;
-                //StateHasChanged();
-            }
+            if (ordenCierre.CodPrd != null && Precios.Count > 0)
+                ordenCierre.Precio = Precios.FirstOrDefault(x => x.Producto != null && x.Producto?.Cod == ordenCierre?.CodPrd).Pre;
+            else
+                ordenCierre.Precio = 0;
+            // if (ordenCierre.CodPrd != null && CodProductoSeleccionado != ordenCierre.CodPrd)
+            // {
+            //     ordenCierre.Precio = Precios.FirstOrDefault(x => x.Producto?.Cod == ordenCierre?.CodPrd).Pre;
+            //     CodProductoSeleccionado = ordenCierre.CodPrd;
+            //     //StateHasChanged();
+            // }
             //CodProductoSeleccionado = ordenCierre.CodPrd;
         }
         catch (Exception e)
@@ -980,6 +1109,7 @@
             {
                 Precios = response.Response;
                 DestinoSeleccionado = ordenCierre.CodDes;
+                await ChangeProducto();
                 StateHasChanged();
             }
 
@@ -1109,7 +1239,7 @@
     {
         try
         {
-            var response = await http.Post<CierreFiltroDTO,List<string>>($"api/cierre/folios/{ClienteSeleccionadoFiltro}",fechas);
+            var response = await http.Post<CierreFiltroDTO, List<string>>($"api/cierre/folios/{ClienteSeleccionadoFiltro}", fechas);
             if (response.Error)
             {
                 var message = await response.ObtenerMensajeError();
@@ -1165,11 +1295,31 @@
                 {
                     ordenCierre.CodPrd = Precios.FirstOrDefault()?.Producto?.Cod;
                 }
-                ordenCierre.Precio = Precios.FirstOrDefault(x => x.Producto?.Cod == ordenCierre.CodPrd)?.Pre;
+                ordenCierre.Precio = Precios.FirstOrDefault(x => x.Producto?.Cod == ordenCierre.CodPrd).Pre;
+                ordenCierre.fchPrecio = Precios.FirstOrDefault(x => x.Producto?.Cod == ordenCierre.CodPrd).FchDia;
                 CodProductoSeleccionado = ordenCierre.CodPrd;
                 StateHasChanged();
             }
 
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private async Task OpenModal()
+    {
+        try
+        {
+            await ds.OpenAsync<ViewFoliosPedidosComponent>("Folios de pedidos", options: new DialogOptions()
+                {
+                    Width = "90%",
+                    Height = "600px",
+                    Resizable = true,
+                    Draggable = false
+                });
         }
         catch (Exception e)
         {

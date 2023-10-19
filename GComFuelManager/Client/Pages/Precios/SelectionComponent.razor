@@ -1,12 +1,28 @@
-﻿@inject DialogService ds
+﻿@inject IRepositorio http
+@inject DialogService ds
 
 <div class="col-12 card">
     <div class="col-12 card-body">
-        <RadzenDataGrid Data="lista" TItem="string" Context="data" SelectionMode="DataGridSelectionMode.Multiple" @bind-Value="ClientesSeleccionados" AllowFiltering="true"
-        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" Style="height:400px"
-                        GridLines="DataGridGridLines.Both" AllowRowSelectOnRowClick="false" AllowSorting="true" AllowVirtualization="true">
+        <div class="row col-12">
+            <div class="d-flex justify-content-center">
+                <div class="form-check form-check-inline">
+                    <input type="radio" class="form-check-input" id="SinCargar" name="estatus" checked="@(TipoPrecio == 1)" @onchange="@(()=>TipoPrecio = 1)" />
+                    <label class="form-check-label" for="SinCargar">Precio Vigente</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" id="Cargadas" name="estatus" checked="@(TipoPrecio == 2)" @onchange="@(()=>TipoPrecio = 2)" />
+                    <label class="form-check-label" for="Cargadas">Precio Programado</label>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <RadzenTextBox Change="@LoadData" @bind-Value="@FilterText" Placeholder="Buscar cliente..." />
+        </div>
+        <RadzenDataGrid Data="@ClienteFiltrado" TItem="string" Context="data" SelectionMode="DataGridSelectionMode.Multiple" @bind-Value="ClientesSeleccionados"
+        Style="height:400px" AllowPaging="true" ShowPagingSummary="true"
+                        GridLines="DataGridGridLines.Both" AllowRowSelectOnRowClick="false" AllowVirtualization="true">
             <Columns>
-                <RadzenDataGridColumn TItem="string" Sortable="false" Filterable="false" Width="60px">
+                <RadzenDataGridColumn TItem="string" Width="60px">
                     <HeaderTemplate>
                         <RadzenCheckBox TriState="false" TValue="bool" Value="@(lista.Any(i => ClientesSeleccionados != null && ClientesSeleccionados.Contains(i)))"
                                         Change="@(args => ClientesSeleccionados = args ? lista.ToList() : new List<string>())" />
@@ -16,7 +32,7 @@
                                         TValue="bool" Change="@((bool args) => ToggleCheck(args, data))" />
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Cliente" TItem="string" Filterable="true" Property="" Sortable="true">
+                <RadzenDataGridColumn Title="Cliente" TItem="string" Property=".">
                     <Template>
                         @context
                     </Template>
@@ -34,12 +50,27 @@
 </div>
 
 @code {
-    [Parameter] public IEnumerable<string> lista { get; set; } = new List<string>();
+    public IEnumerable<string> lista { get; set; } = new List<string>();
     public IList<string> ClientesSeleccionados { get; set; } = new List<string>();
+    private string FilterText = string.Empty;
+    private IEnumerable<string> ClienteFiltrado => lista.Where(x => string.IsNullOrEmpty(FilterText) || x.Contains(FilterText, StringComparison.OrdinalIgnoreCase));
+
+    private EnvioTipoPreciosEmailDtoClass1 envioTipo = new EnvioTipoPreciosEmailDtoClass1();
+
+    Dictionary<string, string> queryStringObject = new Dictionary<string, string>();
+
+    CodDenDTO busqueda = new CodDenDTO();
+    Int16 TipoPrecio = 1;
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
 
     private void HandledValidClientes()
     {
-        ds.Close(ClientesSeleccionados);
+        envioTipo.TipoEnvio = TipoPrecio;
+        envioTipo.Clientes = ClientesSeleccionados.ToList();
+        ds.Close(envioTipo);
     }
 
     private async void ToggleCheck(bool args, string orden)
@@ -56,5 +87,37 @@
         {
             throw e;
         }
+    }
+
+    private async Task GetClientes(string? uri)
+    {
+        try
+        {
+            var response = await http.Get<List<string>>($"api/clientes/buscar?{uri}");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+            }
+            else
+            {
+                lista = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            throw e;
+        }
+    }
+
+    private async Task LoadData()
+    {
+        if (queryStringObject is null) { queryStringObject = new Dictionary<string, string>(); }
+        queryStringObject["den"] = busqueda.Den;
+
+        var DefaultValues = new List<string>() { "false", "", "0" };
+        var uri = string.Join("&", queryStringObject.Where(x => !DefaultValues.Contains(x.Value.ToLower()))
+        .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+
+        await GetClientes(uri);
     }
 }

@@ -60,7 +60,7 @@ namespace GComFuelManager.Shared.Modelos
         public string? TipoPago { get; set; } = string.Empty;
 
         [JsonPropertyName("precio"), DisplayName("Precio")]
-        public double? Precio { get; set; } = 0;
+        public double Precio { get; set; } = 0;
         
         //[JsonPropertyName("temperatura"), DisplayName("Temperatura")]
         //[NotMapped] public double? Temperatura { get; set; } = null!;
@@ -80,9 +80,10 @@ namespace GComFuelManager.Shared.Modelos
         [DisplayName("cliente")]
         public string? Cli { get { return Cliente != null ? Cliente.Den : string.Empty; } }
 
-        [JsonPropertyName("volumen"), DisplayName("Volumen"), DisplayFormat(DataFormatString = "{0:#,0.00}"), EpplusIgnore]
+        [JsonPropertyName("volumen"), DisplayName("Volumen"), EpplusIgnore]
         public int? Volumen { get; set; }
-        public string Volumenes { get { return Volumen.Value.ToString("N2"); } }
+        [DisplayName("Volumen")]
+        public string Volumenes { get { return string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", Volumen); } }
 
         [JsonPropertyName("observaciones"), DisplayName("Observaciones")]
         public string? Observaciones { get; set; } = string.Empty;
@@ -94,7 +95,7 @@ namespace GComFuelManager.Shared.Modelos
         public bool? Activa { get; set; } = true;
 
         [JsonPropertyName("confirmada"), EpplusIgnore]
-        public bool? Confirmada { get; set; } = false;
+        public bool? Confirmada { get; set; } = true;
 
         [JsonProperty("codCon"), EpplusIgnore]
         public int? CodCon { get; set; }
@@ -128,6 +129,10 @@ namespace GComFuelManager.Shared.Modelos
 
         [EpplusIgnore, NotMapped]
         public bool IsDifferentVol { get; set; } = false;
+        //Turno cambiado
+        [EpplusIgnore, NotMapped]
+        public bool IsDifferentTurn { get; set; } = false;
+
         [EpplusIgnore, NotMapped]
         public DateTime? FchCar { get; set; } = DateTime.Today;
         [EpplusIgnore, NotMapped]
@@ -136,6 +141,22 @@ namespace GComFuelManager.Shared.Modelos
         public bool IsAutoPrecio { get; set; } = true;
 
         [EpplusIgnore, NotMapped]
-        public VolumenDisponibleDTO? VolumenDisponible { get; set; } = new VolumenDisponibleDTO(); 
-    }
+        public VolumenDisponibleDTO? VolumenDisponible { get; set; } = new VolumenDisponibleDTO();
+        [EpplusIgnore, NotMapped]
+        public bool isGroup { get; set; } = false;
+        [EpplusIgnore, NotMapped]
+        public bool PrecioOverDate { get; set; }
+
+        [DisplayName("fchPrecio"), EpplusIgnore]
+        public DateTime? fchPrecio { get; set; } = DateTime.Now;
+        [DisplayName("Fecha de Precio"), NotMapped]
+        public string? FchPre { get { return fchPrecio?.ToString("dd/MM/yyyy"); } }
+
+        //Props de navegación
+      
+        [NotMapped] public Cliente? Cllientes { get; set; } = null!;
+        [NotMapped] public Destino? Destinos { get; set; } = null!;
+        [NotMapped] public Producto? Prods { get; set; } = null!;
+        [NotMapped] public Grupo? Grups { get; set; } = null!;
+    } 
 }

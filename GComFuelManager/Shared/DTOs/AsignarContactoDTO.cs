@@ -18,7 +18,7 @@ namespace GComFuelManager.Shared.DTOs
         public List<Accion> accione { get; set; } = new List<Accion>();
 
         public List<Accion> acciones { get; set; } = null!;
-        public Cliente? cliente { get; set; }
+        public Cliente? cliente { get; set; } = null!;
        
     }
 }

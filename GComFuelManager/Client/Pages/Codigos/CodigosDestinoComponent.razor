@@ -1,0 +1,251 @@
+﻿@page "/datos/codigos/destino"
+
+@inject IRepositorio http
+@inject SweetAlertService Swal
+@inject IJSRuntime js
+
+<h3>Codigos Destino</h3>
+
+<div class="col-12 card">
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-4 mb-1">
+                <div class="col-12">
+                    <label>Grupo</label>
+                    <RadzenDropDown Data="Grupos" class="col-12" TextProperty="Den" ValueProperty="Cod" @bind-Value="Grupo.Cod"
+                                    AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    AllowVirtualization="true" Change="@GetClientes" />
+                </div>
+            </div>
+
+            <div class="col-4 mb-1">
+                <div class="col-12">
+                    <label>Cliente</label>
+                    <RadzenDropDown Data="Clientes" class="col-12" TextProperty="Den" ValueProperty="Cod" @bind-Value="Cliente.Cod"
+                                    AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    AllowVirtualization="true" Change="@GetData" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-center my-2">
+    <RadzenDataGrid TItem="Destino" Data="@Destinos" AllowColumnResize="true" AllowVirtualization="true" AllowPickAllColumns="true" AllowPaging="true"
+                    GridLines="DataGridGridLines.Both" class="rz-my-2 ancho" Style="height:600px;" ColumnWidth="200px" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    IsLoading="loading" @ref="@grid" AllowSorting="true" AllowFiltering="true" Culture="CultureInfo.CurrentCulture" AllowColumnPicking="true"
+    @bind-Settings="@Settings" ShowPagingSummary="true" FilterMode="FilterMode.Simple" EditMode="DataGridEditMode.Single">
+        <Columns>
+            <RadzenDataGridColumn TItem="Destino" Title="Destino" Property="Den" Filterable="true" OrderIndex="2" />
+            <RadzenDataGridColumn TItem="Destino" Title="Direccion" Property="Dir" Filterable="false" OrderIndex="3" />
+            <RadzenDataGridColumn TItem="Destino" Title="Codigo de synthesis" Property="Codsyn" Filterable="false" Width="100px" OrderIndex="3" />
+            <RadzenDataGridColumn TItem="Destino" Title="Codigo de tuxpan" Property="CodGamo" Filterable="false" Width="100px" OrderIndex="4">
+                <EditTemplate Context="destino">
+                    <RadzenNumeric @bind-Value="destino.CodGamo" Style="width:100%;display:block;" />
+                </EditTemplate>
+            </RadzenDataGridColumn>
+            <AuthorizeView Roles="Admin, Administrador Sistema, Ejecutivo de Cuenta Comercial, Programador, Autorizador Vigencia Pedidos, Autorizador Vigencia Completo" Context="Cerrar">
+                <RadzenDataGridColumn TItem="Destino" Context="order" Filterable="false" Sortable="false" TextAlign="TextAlign.Left" Width="100px" Title="Editar">
+                    <Template Context="data">
+                        <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@( args => SetEditRow(data))">
+                        </RadzenButton>
+                    </Template>
+                    <EditTemplate Context="order">
+                        <RadzenButton Icon="check" ButtonStyle="ButtonStyle.Success" Variant="Variant.Flat" Size="ButtonSize.Medium" Click="@((args) => EditDestino(order))">
+                        </RadzenButton>
+                        <RadzenButton Icon="close" ButtonStyle="ButtonStyle.Danger" Variant="Variant.Flat" Size="ButtonSize.Medium" class="my-1 ms-1" Click="@((args) => CancelEdit(order))">
+                        </RadzenButton>
+                    </EditTemplate>
+                </RadzenDataGridColumn>
+            </AuthorizeView>
+        </Columns>
+    </RadzenDataGrid>
+</div>
+
+@code {
+
+    bool loading { get; set; } = false;
+
+    RadzenDataGrid<Destino> grid { get; set; } = new RadzenDataGrid<Destino>();
+    List<Destino> Destinos { get; set; } = new List<Destino>();
+    Destino Destino { get; set; } = new Destino();
+
+    DataGridSettings _settings;
+    DataGridSettings Settings { get { return _settings; } set { if (_settings != value) { _settings = value; InvokeAsync(SaveStateAsync); } } }
+
+    private short? GrupoSeleccionado = 0;
+    private short GrupoSeleccionadoFiltro = 0;
+    private int ClienteSeleccionado = 0;
+
+    private IEnumerable<Grupo> Grupos { get; set; } = new List<Grupo>();
+    private List<CodDenDTO> Clientes { get; set; } = new List<CodDenDTO>();
+
+    Grupo Grupo { get; set; } = new Grupo();
+    Cliente Cliente { get; set; } = new Cliente();
+
+    protected async override Task OnInitializedAsync()
+    {
+        await GetGrupos();
+    }
+
+    public async Task GetGrupos()
+    {
+        try
+        {
+            var response = await http.Get<IEnumerable<Grupo>>("api/grupo/all");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Grupos = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private async Task SaveStateAsync()
+    {
+        try
+        {
+            await Task.CompletedTask;
+            await js.SetItemLocalStorage("settingsCierre", JsonConvert.SerializeObject(Settings));
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        try
+        {
+            await Task.CompletedTask;
+            var result = await js.GetItemLocalStorage("settingsCierre");
+            if (!string.IsNullOrEmpty(result))
+            {
+                _settings = JsonConvert.DeserializeObject<DataGridSettings>(result)!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetEstaciones()
+    {
+        try
+        {
+            var response = await http.Get<List<Destino>>($"api/estacion/{Cliente.Cod}/all");
+            if (response.Error)
+            {
+                var responseHttp = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", responseHttp, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Destinos = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    public async Task GetClientes()
+    {
+        try
+        {
+            if (Grupo.Cod != null && GrupoSeleccionado != Grupo.Cod)
+            {
+                var response = await http.Get<List<CodDenDTO>>($"api/cliente/{Grupo.Cod}");
+                if (response.Error)
+                {
+                    var message = await response.ObtenerMensajeError();
+                    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    GrupoSeleccionado = Grupo.Cod;
+                    Clientes = response.Response;
+                    StateHasChanged();
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private async Task GetData()
+    {
+        if (Cliente.Cod != null || ClienteSeleccionado != Cliente.Cod)
+        {
+            await GetEstaciones();
+            ClienteSeleccionado = Cliente.Cod;
+            StateHasChanged();
+        }
+
+    }
+
+    private async Task EditDestino(Destino destino)
+    {
+        try
+        {
+            var response = await http.Post<Destino>($"api/estacion", destino);
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await GetEstaciones();
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private async Task SetEditRow(Destino destino)
+    {
+        try
+        {
+            Destino = destino;
+            await grid.EditRow(destino);
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private async Task CancelEdit(Destino destino)
+    {
+        try
+        {
+            grid.CancelEditRow(destino);
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+}

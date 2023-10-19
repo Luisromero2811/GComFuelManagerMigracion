@@ -32,7 +32,7 @@ namespace RazorHtmlEmails.Common
             string body = await razorView.RenderViewToStringAsync("./Views/Emails/ConfirmationAccount/ConfirmaAccount.cshtml", content);
             var message = new MimeMessage();
 
-            message.From.Add(new MailboxAddress("Gcom Fuel Manager", "endpoint@gasamigas.com"));
+            message.From.Add(new MailboxAddress("Gcom Fuel Management", "admon@energasmx.mx"));
             message.To.Add(new MailboxAddress(content.Nombre, content.Email));
             message.Cc.AddRange(content.CC);
             message.Subject = content.Subject;

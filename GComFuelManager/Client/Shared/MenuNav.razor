@@ -2,28 +2,346 @@
 @inject SweetAlertService swal
 @inject NavigationManager navigate
 
-<div class="col-12 py-2 @(close?"gcom-bg-rojo text-white":"gcom-bg-blanco text-black") d-flex">
-    <div class="col">
-        @if (close)
-        {
-            <div class="col-4 mx-4" style="cursor:pointer" @onclick="CloseMenuLateral">
-                <img src="img/bar-de-hamburguesas(1).png" style="width:32px;" class="img-fluid"/>
+<AuthorizeView Context="MenuGeneral">
+    <Authorized>
+        <div class="col-12 @(close?"gcom-bg-rojo text-white":"gcom-bg-blanco text-black") row d-flex m-0">
+            @*menu parte final*@
+            <div class="col-1 d-flex justify-content-center">
+                @if (close)
+                {
+                    <div class="col-4" style="cursor:pointer" @onclick="CloseMenuLateral">
+                        <img src="img/bar-de-hamburguesas(1).png" style="width:32px;" class="img-fluid" />
+                    </div>
+                }
+                else
+                {
+                    <div class="col-6" style="cursor:pointer" @onclick="CloseMenuLateral">
+                        <img src="img/bar-de-hamburguesas.png" style="width:32px;" class="img-fluid" />
+                    </div>
+                }
             </div>
-        }
-        else
-        {
-            <div class="col-4 mx-2" style="cursor:pointer" @onclick="CloseMenuLateral">
-                <img src="img/bar-de-hamburguesas.png" style="width:32px;" class="img-fluid" />
-            </div>
-        }
-    </div>
-    <div class="col-11 d-flex justify-content-end">
-        <div class="col-2 text-center my-auto">
-            <button class="btn" @onclick="@CerrarSesion">Cerrar sesion</button>
-        </div>
-    </div>
-</div>
 
+            @if (close)
+            {
+                <div class="col-8 d-flex">
+                    <RadzenMenu class="gcom-bg-rojo col-12 my-auto" Style="background-color:#BA1C15;--rz-menu-background-color:#BA1C15;--rz-menu-item-background-color:#BA1C15;--rz-menu-item-2nd-level-background-color: #BA1C15;--rz-menu-item-3nd-level-background-color: #BA1C15;width:150px;">
+
+                        <AuthorizeView Roles="Admin, Administrador Sistema, Administrador de Usuarios, Direccion, Gerencia" Context="MenuUsuarios">
+                            <RadzenMenuItem Path="usuarios" class="gcom-bg-rojo col-12">
+                                <Template>
+                                    <div class="text-white">
+                                        <i class="fa fa-solid fa-user" aria-hidden="true"></i> Usuarios
+                                    </div>
+                                </Template>
+                            </RadzenMenuItem>
+
+                        </AuthorizeView>
+
+                        <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Programador, Gestion de Transporte, Correo de Clientes, Analista Credito, Contador, Ejecutivo de Cuenta Comercial" Context="Configs">
+                            <RadzenMenuItem class="gcom-bg-rojo col-12 text-white">
+                                <Template>
+                                    <div class="text-white">
+                                        <i class="fa fa-solid fa-gear" aria-hidden="true"></i> Configuracion
+                                    </div>
+                                </Template>
+                                <ChildContent>
+                                    @*auth*@
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia">
+                                        <RadzenMenuItem>
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa-solid fa-server"></i> Datos
+                                                </div>
+                                            </Template>
+                                            <ChildContent>
+                                                <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia" Context="Toneles">
+                                                    <RadzenMenuItem Path="datos/tonel" class="gcom-bg-rojo col-12">
+                                                        <Template>
+                                                            <div class="text-white">
+                                                                <i class="fa-solid fa-truck-moving"></i> Toneles
+                                                            </div>
+                                                        </Template>
+                                                    </RadzenMenuItem>
+                                                </AuthorizeView>
+                                                <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia" Context="Destinos">
+                                                    <RadzenMenuItem Path="datos/codigos/destino" class="gcom-bg-rojo col-12">
+                                                        <Template>
+                                                            <div class="text-white">
+                                                                <i class="fa-solid fa-location-dot" style="color: #feffff;"></i> Destinos
+                                                            </div>
+                                                        </Template>
+                                                    </RadzenMenuItem>
+                                                </AuthorizeView>
+
+                                            </ChildContent>
+                                        </RadzenMenuItem>
+                                    </AuthorizeView>
+
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Ejecutivo de Cuenta Comercial">
+                                        <RadzenMenuItem>
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa-solid fa-percent"></i> Porcentajes
+                                                </div>
+                                            </Template>
+                                            <ChildContent>
+                                                <AuthorizeView Roles="Admin, Administrador Sistema" Context="Calculo">
+                                                    <RadzenMenuItem Path="porcentaje/cierre" class="gcom-bg-rojo col-12">
+                                                        <Template>
+                                                            <div class="text-white">
+                                                                <i class="fa-solid fa-store-slash"></i> Calculo de cierre
+                                                            </div>
+                                                        </Template>
+                                                    </RadzenMenuItem>
+                                                </AuthorizeView>
+                                                <AuthorizeView Roles="Admin, Administrador Sistema, Ejecutivo de Cuenta Comercial, Direccion, Gerencia" Context="ClientesFormula">
+                                                    <RadzenMenuItem Path="porcentaje/clientes" class="gcom-bg-rojo col-12">
+                                                        <Template>
+                                                            <div class="text-white">
+                                                                <i class="fa-solid fa-business-time"></i> Clientes por formulacion
+                                                            </div>
+                                                        </Template>
+                                                    </RadzenMenuItem>
+                                                </AuthorizeView>
+                                            </ChildContent>
+                                        </RadzenMenuItem>
+                                    </AuthorizeView>
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Contador, Analista Credito, Programador, Gestion de Transporte, Correo de Clientes, Ejecutivo de Cuenta Comercial">
+                                        <RadzenMenuItem class="gcom-bg-rojo col-12 text-white" Selected=false>
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa fa-solid fa-rotate" aria-hidden="true"></i> Actualizacion de registros
+                                                </div>
+                                            </Template>
+                                            <ChildContent>
+                                                <AuthorizeView Roles="Admin, Administrador Sistema, Gestion de Transporte, Programador" Context="Actualizar">
+                                                    <RadzenMenuItem Path="actualizacion" class="gcom-bg-rojo col-12" Style="border:hidden;">
+                                                        <Template>
+                                                            <div class="text-white">
+                                                                <i class="fa fa-solid fa-database" aria-hidden="true"></i> Actualizar datos
+                                                            </div>
+                                                        </Template>
+                                                    </RadzenMenuItem>
+                                                </AuthorizeView>
+
+                                                <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Contador, Correo de Clientes, Ejecutivo de Cuenta Comercial" Context="AsignarCliDest">
+                                                    <RadzenMenuItem Path="asignar-cliente-destino" class="gcom-bg-rojo col-12">
+                                                        <Template>
+                                                            <div class="text-white">
+                                                                <i class="fa fa-solid fa-user-tie" aria-hidden="true"></i> Relacionar datos
+                                                            </div>
+                                                        </Template>
+                                                    </RadzenMenuItem>
+
+                                                </AuthorizeView>
+
+                                            </ChildContent>
+                                        </RadzenMenuItem>
+
+                                    </AuthorizeView>
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial" Context="Correos">
+                                        <RadzenMenuItem Path="configuracion-email" class="gcom-bg-rojo col-12">
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa fa-solid fa-envelope" aria-hidden="true"></i> Correo Interno
+                                                </div>
+                                            </Template>
+                                        </RadzenMenuItem>
+
+                                    </AuthorizeView>
+                                </ChildContent>
+                            </RadzenMenuItem>
+
+                        </AuthorizeView>
+                        <!--Menu de precios-->
+                        <AuthorizeView Roles="Admin, Administrador Sistema, Precios, Direccion, Gerencia, Analista Credito, Contador">
+                            <RadzenMenuItem class="gcom-bg-rojo col-12 text-white">
+                                <Template>
+                                    <div class="text-white">
+                                        <i class="fa fa-solid fa-money-bill-1-wave" aria-hidden="true"></i> Precios
+                                    </div>
+                                </Template>
+                                <ChildContent>
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Precios, Direccion, Gerencia, Analista Credito, Contador" Context="Pricing">
+                                        <RadzenMenuItem Path="precios" class="gcom-bg-rojo col-12">
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa fa-solid fa-money-bill-1-wave" aria-hidden="true"></i> Precios
+                                                </div>
+                                            </Template>
+                                        </RadzenMenuItem>
+                                    </AuthorizeView>
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Precios, Analista Credito, Contador" Context="Correos">
+                                        <RadzenMenuItem Path="historial/precios" class="gcom-bg-rojo col-12">
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa-solid fa-file-invoice-dollar"></i> Historial de Precios
+                                                </div>
+                                            </Template>
+                                        </RadzenMenuItem>
+                                    </AuthorizeView>
+                                </ChildContent>
+                            </RadzenMenuItem>
+                        </AuthorizeView>
+
+                        <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial, Comprador, Lectura de Cierre de Orden, Cierre Pedidos">
+                            <RadzenMenuItem class="gcom-bg-rojo col-12 text-white">
+                                <Template>
+                                    <div class="text-white">
+                                        <i class="fa fa-solid fa-store-slash" aria-hidden="true"></i> Cierres
+                                    </div>
+                                </Template>
+                                <ChildContent>
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial, Comprador, Lectura de Cierre de Orden" Context="CierrePedido">
+                                        <RadzenMenuItem Path="cierre/pedido" class="gcom-bg-rojo">
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa fa-solid fa-store-slash" aria-hidden="true"></i> Cierre de pedidos
+                                                </div>
+                                            </Template>
+                                        </RadzenMenuItem>
+                                    </AuthorizeView>
+
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial, Comprador, Lectura de Cierre de Orden" Context="CierreGrupo">
+                                        <RadzenMenuItem Path="cierre-grupo" class="gcom-bg-rojo">
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa fa-solid fa-store-slash" aria-hidden="true"></i> Cierre por grupo
+                                                </div>
+                                            </Template>
+                                        </RadzenMenuItem>
+                                    </AuthorizeView>
+
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Cierre Pedidos" Context="CierreCerrar">
+                                        <RadzenMenuItem Path="cerrar" class="gcom-bg-rojo">
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa-solid fa-folder-closed"></i> Cerrar pedidos
+                                                </div>
+                                            </Template>
+                                        </RadzenMenuItem>
+                                    </AuthorizeView>
+
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito" Context="CierreStatus">
+                                        <RadzenMenuItem Path="orden" class="gcom-bg-rojo col-12">
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa fa-solid fa-truck-ramp-box" aria-hidden="true"></i> Estado de pedido
+                                                </div>
+                                            </Template>
+                                        </RadzenMenuItem>
+                                    </AuthorizeView>
+
+                                </ChildContent>
+                            </RadzenMenuItem>
+                        </AuthorizeView>
+
+                        <!--Menú de órdenes-->
+                        <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial, Ejecutivo de Cuenta Operativo , Programador, Coordinador, Analista Suministros, Auditor, Capturista Recepcion Producto, Analista Credito, Contador, Auditor , Comprador" Context="Ordenes">
+                            <RadzenMenuItem class="gcom-bg-rojo col-12 text-white">
+                                <Template>
+                                    <div class="text-white">
+                                        <i class="fa fa-solid fa-rectangle-list" aria-hidden="true"></i> Órdenes
+                                    </div>
+                                </Template>
+                                <ChildContent>
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Operativo, Programador">
+                                        <RadzenMenuItem Path="pedidos" class="gcom-bg-rojo col-12">
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa fa-solid fa-rectangle-list" aria-hidden="true"></i> Órdenes
+                                                </div>
+                                            </Template>
+                                        </RadzenMenuItem>
+                                    </AuthorizeView>
+
+
+
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial">
+                                        <RadzenMenuItem Path="confirm-ordenes" class="gcom-bg-rojo col-12">
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa fa-solid fa-rectangle-list" aria-hidden="true"></i> Confirmar ordenes de clientes
+                                                </div>
+                                            </Template>
+                                        </RadzenMenuItem>
+                                    </AuthorizeView>
+
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Programador">
+                                        <RadzenMenuItem Path="asignacion/unidades" class="gcom-bg-rojo col-12">
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa fa-solid fa-truck-droplet" aria-hidden="true"></i> Programación Equipos
+                                                </div>
+                                            </Template>
+                                        </RadzenMenuItem>
+
+                                    </AuthorizeView>
+
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial, Programador, Coordinador, Analista Credito, Contador, Auditor, Ejecutivo de Cuenta Operativo">
+                                        <RadzenMenuItem Path="seguimiento/ordenes" class="gcom-bg-rojo col-12">
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa fa-solid fa-clipboard-list" aria-hidden="true"></i> Seguimiento de órdenes
+                                                </div>
+                                            </Template>
+                                        </RadzenMenuItem>
+
+                                    </AuthorizeView>
+
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial, Programador, Coordinador, Analista Suministros, Auditor, Capturista Recepcion Producto, Ejecutivo de Cuenta Operativo, Comprador">
+                                        <RadzenMenuItem Path="eta" class="gcom-bg-rojo col-12">
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa fa-solid fa-hourglass-half" aria-hidden="true"></i> ETA
+                                                </div>
+                                            </Template>
+                                        </RadzenMenuItem>
+
+                                    </AuthorizeView>
+
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Programador" Context="OrdenHistorial">
+                                        <RadzenMenuItem Path="historial/asignacion" class="gcom-bg-rojo col-12">
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa-solid fa-file-invoice-dollar"></i> Historial de envios a synthesis
+                                                </div>
+                                            </Template>
+                                        </RadzenMenuItem>
+                                    </AuthorizeView>
+
+                                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Programador">
+                                        <RadzenPanelMenuItem Path="actualizar/pedidos" class="gcom-bg-rojo col-12" Style="border:hidden">
+                                            <Template>
+                                                <div class="text-white">
+                                                    <i class="fa fa-solid fa-repeat" aria-hidden="true"></i> Actualizar ordenes
+                                                </div>
+                                            </Template>
+                                        </RadzenPanelMenuItem>
+                                    </AuthorizeView>
+                                </ChildContent>
+                            </RadzenMenuItem>
+                        </AuthorizeView>
+
+                    </RadzenMenu>
+                </div>
+            }
+            else
+            {
+                <div class="col-8" />
+            }
+            <div class="col-3 d-flex">
+                <div class="col-6 text-center my-auto d-flex justify-content-end">
+                    <h6> @MenuGeneral.User.Identity.Name</h6>
+                </div>
+                <div class="col-6 text-center my-auto">
+                    <button class="btn @(close ? "text-white" : "text-black") col-12" @onclick="@CerrarSesion">Cerrar sesion</button>
+                </div>
+            </div>
+        </div>
+
+    </Authorized>
+</AuthorizeView>
 
 @code {
     [Parameter] public bool close { get; set; } = false;

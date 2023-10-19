@@ -4,11 +4,10 @@
 @inject IJSRuntime JS
 @inject HttpClient Http
 @inject NavigationManager navigationManager
-@using System.IO;
-@using System.Text.Json;
-@using GComFuelManager.Client.Helpers;
 @inject TooltipService ts
-@attribute [Authorize(Roles = "Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial, Programador, Coordinador, Analista Suministros, Auditor, Capturista Recepcion Producto, Ejecutivo de Cuenta Operativo")]
+@inject NotificationService ns
+
+@attribute [Authorize(Roles = "Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial, Programador, Coordinador, Analista Suministros, Auditor, Capturista Recepcion Producto, Ejecutivo de Cuenta Operativo, Comprador")]
 
 
 <h4><b>ETA</b></h4>
@@ -16,18 +15,18 @@
 <div class="col-12 card shadow">
     <div class="card-body">
         <EditForm Model="Ordenes" class="row">
-            <AuthorizeView Roles="Admin, Administrador Sistema, Coordinador, Capturista Recepcion Producto" Context="Filter">
+            <AuthorizeView Roles="Admin, Administrador Sistema, Coordinador, Capturista Recepcion Producto, Comprador" Context="Filter">
                 <div class="row d-flex g-3">
                     <div class="row">
-                        <div class="col-6">
+                        <div class="col-3">
                             <label>Número de Bol:</label>
-                            <InputNumber class="form-control" @bind-Value="Ordenes.Bol" />
+                            <RadzenNumeric Change="@GetEta" class="form-control" @bind-value="@Ordenes.Bol" TValue="int?" />
                         </div>
-                        <div class="col-1 mt-4">
-                            <button class="btn gcom-bg-amarillo col-12" @onclick="@GetOrden">
-                                <i class="fa-solid fa-magnifying-glass"></i>
-                            </button>
-                        </div>
+                        @* <div class="col-1 mt-4">
+                        <button class="btn gcom-bg-amarillo col-12">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        </button>
+                        </div> *@
                     </div>
                 </div>
             </AuthorizeView>
@@ -39,10 +38,10 @@
                             <RadzenDatePicker class="col-12" ShowTime="true" Culture="CultureInfo.CurrentCulture" ShowSeconds="true"
                                               @bind-Value="Ordenes.FchDoc"></RadzenDatePicker>
                         </div>
-                        @*<div class="col-4">
+                        <div class="col-4">
                             <label>ETA:</label>
-                            <RadzenDatePicker @bind-Value="time" ShowTime="true" TimeOnly="true" DateFormat="HHmm" class="col-12"/>
-                            </div>*@
+                            <RadzenNumeric Change="@AddTime" class="form-control" @bind-value="@Ordenes.EtaNumber" TValue="int" />
+                        </div>
                         <div class="col-4">
                             <label>Fecha de llegada estimada:</label>
                             <RadzenDatePicker class="col-12" ShowTime="true" Culture="CultureInfo.CurrentCulture" ShowSeconds="true"
@@ -56,16 +55,30 @@
                     <AuthorizeView Roles="Admin, Administrador Sistema, Coordinador" Context="Trayectos">
                         <div class="col-4">
                             <label>En trayecto:</label>
-                            <InputSelect @bind-Value="@Ordenes.Orden!.Codest" class="form-select" TValue="byte?">
-                                <option value="20">NO</option>
-                                <option value="26">SI</option>
+                            <InputSelect @bind-Value="@Ordenes.CodEst" class="form-select" TValue="byte">
+                                <option value=20>NO</option>
+                                <option value=26>SI</option>
                             </InputSelect>
                         </div>
                     </AuthorizeView>
                     <AuthorizeView Roles="Admin, Administrador Sistema, Coordinador, Capturista Recepcion Producto" Context="Equipo">
                         <div class="col-4">
                             <label>Equipo:</label>
-                            <RadzenTextBox class="col-12" Disabled="true" @bind-Value="@Ordenes.Orden!.Tonel!.Tracto"></RadzenTextBox>
+                            <div>
+                                @if (Ordenes.Orden != null)
+                                {
+                                    @if (Ordenes.Orden.Tonel != null)
+                                    {
+                                        <p>
+                                            @Ordenes.Orden.Tonel.Veh
+                                        </p>
+                                    }
+                                    else
+                                    {
+                                        <p>No se encontro una unidad</p>
+                                    }
+                                }
+                            </div>
                         </div>
                     </AuthorizeView>
                 </div>
@@ -73,7 +86,7 @@
 
 
 
-            <AuthorizeView Roles="Admin, Administrador Sistema, Capturista Recepcion Producto" Context="EtaReal">
+            <AuthorizeView Roles="Admin, Administrador Sistema, Capturista Recepcion Producto, Comprador" Context="EtaReal">
                 <!--btn look-->
                 <div class="row d-flex g-3">
                     <div class="row justify-content-end">
@@ -83,25 +96,27 @@
                     <div class="col-6">
                         <label>Fecha real de llegada a destino:</label>
                         <RadzenDatePicker class="col-12" ShowTime="true" Culture="CultureInfo.CurrentCulture" ShowSeconds="true"
-                                          @bind-Value="Ordenes.Fchrealledes"></RadzenDatePicker>
+                        @bind-Value="Ordenes.Fchrealledes"></RadzenDatePicker>
                     </div>
-                    <div class="col-6">
-                        <label>Cantidad de litros recibidos:</label>
-                        <InputNumber class="form-control" @bind-Value="Ordenes.Litent" TValue="double?" />
+                    <div class="col-6" @onmouseenter="@(args => ShowToolTips(infoIcons))" @ref="infoIcons">
+                        <label>Cantidad de litros recibidos:</label><i class="fa-solid fa-circle-info fa-xs"></i>
+                        <RadzenNumeric class="form-control" @bind-Value="Ordenes.Litent" TValue="double?" MaxLenght="30" />
+                        @*<InputNumber @bind-Value="Ordenes.Litent" class="form-control" FormatString="N0"/>*@
+                        <!--Format="#,0.00" Format="n2"-->
                     </div>
                 </div>
                 <div class="row g-3 mt-1 mb-2">
                     <div class="col-6">
                         <label>Observaciones</label>
-                        <InputTextArea class="form-control" @bind-Value="Ordenes.Obs"></InputTextArea>
+                        <InputTextArea class="form-control" @bind-Value="Ordenes.Obs" MaxLenght="260" Placeholder="Máximo de 260 caracteres"></InputTextArea>
                     </div>
                 </div>
             </AuthorizeView>
-            <AuthorizeView Roles="Admin, Administrador Sistema, Capturista Recepcion Producto, Coordinador" Context="Actions">
+            <AuthorizeView Roles="Admin, Administrador Sistema, Capturista Recepcion Producto, Coordinador, Comprador" Context="Actions">
                 <div class="row d-flex g-3">
                     <div class="row justify-content-end">
                         <div class="col-3 mt-3 mb-3" @onmouseenter="@(args => ShowToolTip(infoIcon))" @ref="infoIcon">
-                            <button class="btn gcom-bg-amarillo col-12" @onclick="SendOrdenEta">
+                            <button class="btn gcom-bg-amarillo col-12" @onclick="SendOrdenEta" type="button">
                                 <i class="fa-solid fa-floppy-disk"></i> <b>Guardar</b>
                             </button>
                         </div>
@@ -166,9 +181,12 @@
     //Element References
     ElementReference infossIcon;
     ElementReference infosIcon;
+    ElementReference infoIcons;
+    private ElementReference BOLInput;
     //Tooltips de reportes
     void ShowToolsTip(ElementReference elementReference, TooltipOptions options = null!) => ts.Open(elementReference, "En caso de buscar ordenes de tipo Delivery, seleccione un rango de fechas y escoja una opción de venta", options);
-    void ShowToolsTips(ElementReference elementReference, TooltipService optionss = null!) => ts.Open(elementReference, "En caso de buscar Ordenes con Tipo de Venta RACK, solo filtre entre un rango de fechas");
+    void ShowToolsTips(ElementReference elementReference, TooltipOptions optionss = null!) => ts.Open(elementReference, "En caso de buscar Ordenes con Tipo de Venta RACK, solo filtre entre un rango de fechas", optionss);
+    void ShowToolTips(ElementReference elementReference, TooltipOptions option = null!) => ts.Open(elementReference, "Favor de de utilzar formato de separadores de miles. Ejemplo: 11.000,00 = Once mil", option);
 
     //Obtención de datos de la tabla Orden enlistados
     private Orden ordenEmbarque { get; set; } = new Orden();
@@ -178,41 +196,44 @@
     Cliente cliente { get; set; } = new Cliente();
     //Instancia a modelo de OrdEmbDet
     OrdEmbDet Ordenes { get; set; } = new OrdEmbDet()
-    {
-        Orden = new Orden()
         {
-            Estado = new Estado(),
-            Tonel = new Tonel()
-        }
-    };
+            Orden = new Orden()
+            {
+                Estado = new Estado(),
+                Tonel = new Tonel()
+            }
+        };
     //Instancia a DTO
     FechasF fechas = new FechasF();
     EtaDTO etaDto = new EtaDTO();
 
     ElementReference infoIcon;
 
-    TimeOnly time;
+    int time;
 
     void ShowToolTip(ElementReference elementReference, TooltipOptions options = null!) => ts.Open(elementReference, "Este boton funciona simultaneamente para Editar como para Guardar el ETA Real", options);
+
+    private void Message(NotificationMessage message)
+    {
+        ns.Notify(message);
+    }
 
     public async Task GetOrden()
     {
         try
         {
             //Tiempo Estimado de Arribo
-            etaDto.Bol = Ordenes.Bol;   
+            etaDto.Bol = Ordenes.Bol;
             var responseHttp = await repositorio.Post<EtaDTO, OrdEmbDet>($"api/Eta/Filtro", etaDto);
             if (responseHttp.Error)
             {
-                Ordenes = null!;
-                Ordenes = new OrdEmbDet() { Orden = new Orden() { Estado = new Estado(), Tonel = new Tonel() } };
                 var respuestaHttp = await responseHttp.ObtenerMensajeError();
-
-                await swal.FireAsync("Error", respuestaHttp + " " + "Debe ingresar un BOL Valido", SweetAlertIcon.Error);
+                await swal.FireAsync("Error", respuestaHttp, SweetAlertIcon.Error);
             }
             else
             {
                 Ordenes = responseHttp.Response;
+                StateHasChanged();
             }
         }
         catch (Exception e)
@@ -240,8 +261,14 @@
                     }
                     else
                     {
-                        await GetOrden();
-                        await swal.FireAsync("Exito", "La orden ha sido registrada con exito", SweetAlertIcon.Success);
+                        Message(new NotificationMessage
+                            {
+                                Severity = NotificationSeverity.Success,
+                                Summary = "Eta registrado",
+                                Detail = $"Se ha registrado el eta correctamente",
+                                Duration = 5000
+                            });
+                        Ordenes = responseHttp.Response;
                     }
                 }
                 else
@@ -282,7 +309,7 @@
                   , true);
                 tablebody.Style.Font.Bold = true;
                 tablebody.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                var header = worksheet.Cells["A1:S1"];
+                var header = worksheet.Cells["A1:T1"];
                 header.Style.Fill.PatternType = ExcelFillStyle.Solid;
                 header.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
                 //Guardar Excell
@@ -295,5 +322,57 @@
         }
     }
 
+    public async Task GetEta()
+    {
+        try
+        {
+            Console.WriteLine(Ordenes.Bol);
+            if (Ordenes.Bol != 0)
+            {
+                var responseHttp = await repositorio.Get<OrdEmbDet>($"api/Eta/{Ordenes.Bol}");
+                if (responseHttp.Error)
+                {
+                    var respuestaHttp = await responseHttp.ObtenerMensajeError();
+                    await swal.FireAsync("Error", respuestaHttp, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    Message(new NotificationMessage
+                        {
+                            Severity = NotificationSeverity.Success,
+                            Summary = "Buscando...",
+                            Detail = $"Buscando orden con bol {Ordenes.Bol}",
+                            Duration = 5000
+                        });
+                    if (Ordenes.Cod != 0)
+                    {
+                        if (responseHttp.Response.Cod != 0)
+                            Ordenes = responseHttp.Response ?? new OrdEmbDet();
+                        else
+                        {
+                            Ordenes.Cod = 0;
+                            Ordenes.Bol = responseHttp.Response.Bol;
+                            Ordenes.Orden = responseHttp.Response.Orden;
+                        }
+                    }
+                    else
+                        Ordenes = responseHttp.Response ?? new OrdEmbDet();
+
+                    StateHasChanged();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private void AddTime()
+    {
+        if (Ordenes.EtaNumber >= 0)
+            Ordenes.Fchlleest = Ordenes.FchDoc?.AddHours(Ordenes.EtaNumber);
+    }
 }
 

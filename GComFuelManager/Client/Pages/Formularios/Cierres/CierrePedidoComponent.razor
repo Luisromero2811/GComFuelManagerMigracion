@@ -8,7 +8,7 @@
 
 @attribute [Authorize(Roles = "Admin, Administrador Sistema, Ejecutivo de Cuenta Comercial, Comprador, Direccion, Gerencia, Cierre Pedidos")]
 
-<h3>Cerrar Pedidos</h3>
+<h3>Cierre de Pedidos</h3>
 
 <div class="col-12 card shadow-sm">
     <div class="card-body">
@@ -16,7 +16,7 @@
         <div class="col-12 row">
             <div class="col-4 mb-3">
                 <label>Del:</label>
-                <InputDate class="form-control col-12" Type="InputDateType.Date" @bind-Value:format="yyyy-MM-dd" @bind-Value="@fechas.FchInicio"/>
+                <InputDate class="form-control col-12" Type="InputDateType.Date" @bind-Value:format="yyyy-MM-dd" @bind-Value="@fechas.FchInicio" />
             </div>
             <div class="col-4 mb-3">
                 <label>A:</label>
@@ -24,7 +24,7 @@
             </div>
             <div class="col-4 d-flex mt-1">
                 <button class="btn gcom-bg-amarillo col-12 my-auto" @onclick="@MostrarOrdenFecha">
-                    <i class="fa fa-solid fa-eye"></i> <b>Mostrar ordenes</b>
+                    <i class="fa fa-solid fa-eye"></i> <b>Mostrar Pedidos</b>
                 </button>
             </div>
         </div>
@@ -32,23 +32,38 @@
         <div class="col-12">
             <div class="col-12">
                 <label>Filtro clientes:</label>
-                <RadzenDropDown @bind-Value="ClienteSeleccionado" Data="Clientes" Change="@ChangeCliente" />
-                </div>
+                <RadzenDropDown @bind-Value="ClienteSeleccionado" Data="Clientes" Change="@ChangeCliente" AllowClear="true"/>
+            </div>
             <RadzenDataList Data="@Cierres" Style="height:500px;overflow-y:scroll;" TItem="OrdenCierre">
                 <Template Context="cierre">
                     <div class="col-12 row">
                         <div class="col-8">
-                            <p><b>Folio: @cierre.Folio</b></p>
-                            <p><b>Cliente: @cierre.Cliente.Den</b></p>
-                            <p><b>Producto: @cierre.Producto?.Den</b></p>
-                            @if (cierre.VolumenDisponible?.Productos.Count > 0)
+                            <p><b>Folio: @cierre?.Folio</b></p>
+                            @if (cierre.CodCte == null)
+                            {
+
+                            }
+                            else
+                            {
+                                <p><b>Cliente: @cierre?.Cliente?.Den</b></p>
+                            }
+                            <p><b>Producto: @cierre?.Producto?.Den</b></p>
+                            @if (cierre?.VolumenDisponible?.Productos.Count > 0)
                             {
                                 <div class="col-12">
-                                    <p><b>Total:</b> @cierre.VolumenDisponible?.Productos?.FirstOrDefault()?.Total?.ToString("N2")</p>
-                                    <p><b class="text-success">Disponible:</b> @cierre.VolumenDisponible?.Productos?.FirstOrDefault()?.Disponible?.ToString("N2")</p>
-                                    <p><b class="text-primary">En espera de carga:</b> @cierre.VolumenDisponible?.Productos?.FirstOrDefault()?.Congelado?.ToString("N2")</p>
-                                    <p><b class="text-warning">Cargado:</b> @cierre.VolumenDisponible?.Productos?.FirstOrDefault()?.Consumido?.ToString("N2")</p>
-                                    <p><b class="text-danger">Promedio de carga:</b> @cierre.VolumenDisponible?.Productos?.FirstOrDefault()?.PromedioCarga?.ToString("N2")</p>
+                                    <p><b>Total:</b> @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @cierre.VolumenDisponible?.Productos?.FirstOrDefault()?.Total)</p>
+                                    <p><b class="text-success">Disponible:</b>@string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @cierre.VolumenDisponible?.Productos?.FirstOrDefault()?.Disponible)</p>
+                                    <p><b class="text-secondary">Solicitado:</b>@string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @cierre.VolumenDisponible?.Productos?.FirstOrDefault()?.Solicitud)</p>
+                                    <p><b class="text-secondary">Programado:</b>@string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @cierre.VolumenDisponible?.Productos?.FirstOrDefault()?.Programado)</p>
+                                    <p><b class="text-primary">En espera de carga:</b>@string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @cierre.VolumenDisponible?.Productos?.FirstOrDefault()?.Congelado)</p>
+                                    <p><b class="text-warning">Cargado:</b>@string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @cierre.VolumenDisponible?.Productos?.FirstOrDefault()?.Consumido)</p>
+                                    <p><b class="text-danger">Promedio de carga:</b>@string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @cierre.VolumenDisponible?.Productos?.FirstOrDefault()?.PromedioCarga)</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div>
+                                    <p><b>Total:</b> @cierre?.Volumenes</p>
                                 </div>
                             }
                         </div>
@@ -62,7 +77,7 @@
                             </AuthorizeView>
                             <div class="col-6 my-auto">
                                 <button class="col-12 btn gcom-bg-amarillo" type="button" @onclick="@(()=>OpenModal(cierre.Folio))">
-                                    <i class="fa-solid fa-eye"></i> Ver Cargas de Orden
+                                    <i class="fa-solid fa-eye"></i> Ver órdenes de Cargas 
                                 </button>
                             </div>
                         </div>
@@ -86,7 +101,7 @@
     {
         try
         {
-            var response = await http.Post<CierreFiltroDTO,List<OrdenCierre>>("api/cierre/disponibles",fechas);
+            var response = await http.Post<CierreFiltroDTO, List<OrdenCierre>>("api/cierre/disponibles", fechas);
             if (response.Error)
             {
                 var message = await response.ObtenerMensajeError();
@@ -95,9 +110,9 @@
             {
                 Cierres = response.Response;
                 CierresCompleta = response.Response;
-                if(Cierres.Count > 0)
+                if (Cierres.Count > 0)
                 {
-                    Clientes = Cierres.DistinctBy(x => x.Cliente.Den).Select(x => x.Cliente.Den);
+                    Clientes = Cierres.Where(x => x.Cliente != null).DistinctBy(x => x.Cliente.Den).Select(x => x.Cliente.Den);
                 }
             }
         }
@@ -112,11 +127,13 @@
     {
         try
         {
-            Console.WriteLine(ClienteSeleccionado);
             if (string.IsNullOrEmpty(ClienteSeleccionado))
                 Cierres = CierresCompleta;
             else
-                Cierres = CierresCompleta.Where(x => x.Cliente.Den == ClienteSeleccionado).ToList();
+            {
+                var CierresSinClienteNull = CierresCompleta.Where(x => x.Cliente != null).ToList();
+                Cierres = CierresSinClienteNull.Where(x => x.Cliente.Den == ClienteSeleccionado).ToList();
+            }
             StateHasChanged();
         }
         catch (Exception e)

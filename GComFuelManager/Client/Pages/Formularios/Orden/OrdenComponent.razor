@@ -4,10 +4,11 @@
 @inject IRepositorio http
 @inject SweetAlertService Swal
 @inject IJSRuntime js
+@inject DialogService ds
 
-@attribute [Authorize(Roles = "Admin, Administrador Sistema, Cliente Lectura, Direccion, Gerencia")]
+@attribute [Authorize(Roles = "Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Ejecutivo de Cuenta Comercial")]
 
-<AuthorizeView Roles="Admin, Administrador Sistema, Cliente Lectura">
+<AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Ejecutivo de Cuenta Comercial">
     <Authorized>
         <RadzenStack Gap="1rem" Orientation="Orientation.Vertical">
 
@@ -15,118 +16,91 @@
                 <div class="col-12">
                     <div class="col-12 card">
                         <div class="col-12 card-body">
-                            <div class="col-12 row">
+                            <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Ejecutivo de Cuenta Comercial" Context="Filtros">
                                 <div class="col-12 row">
-                                    <div class="col-8">
-                                        <label><b>Filtro de folios</b></label>
-                                    </div>
-                                </div>
-                                <div class="col-12 row">
-                                    <div class="col-3 mb-2">
-                                        <div class="col-12">
-                                            <label class="form-label">Grupo</label>
-                                            <RadzenDropDown Data="Grupos" class="col-12" TextProperty="Den" ValueProperty="Cod" @bind-Value="GrupoSeleccionadoFiltro"
-                                                            AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                                            AllowVirtualization="true" Change="@GetClientesFiltro" />
+                                    <div class="col-12 row">
+                                        <div class="col-8">
+                                            <label><b>Filtro de folios</b></label>
                                         </div>
                                     </div>
+
+                                    @*<div class="col-12 row">
                                     <div class="col-3 mb-2">
-                                        <div class="col-12">
-                                            <label class="form-label">Cliente</label>
-                                            <RadzenDropDown Data="@ClientesFiltro" class="col-12" TextProperty="Den" ValueProperty="Cod" @bind-Value="ClienteSeleccionadoFiltro"
-                                                            AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                                            AllowVirtualization="true" />
-                                        </div>
+                                    <div class="col-12">
+                                    <label class="form-label">Grupo</label>
+                                    <RadzenDropDown Data="Grupos" class="col-12" TextProperty="Den" ValueProperty="Cod" @bind-Value="GrupoSeleccionadoFiltro"
+                                    AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    AllowVirtualization="true" Change="@GetClientesFiltro" />
+                                    </div>
                                     </div>
                                     <div class="col-3 mb-2">
-                                        <label class="form-label">Del:</label>
-                                        <InputDate class="form-control col-12" Type="InputDateType.DateTimeLocal" @bind-Value:format="yyyy-MM-dd hh:mm:ss" @bind-Value="@fechas.FchInicio" />
+                                    <div class="col-12">
+                                    <label class="form-label">Cliente</label>
+                                    <RadzenDropDown Data="@ClientesFiltro" class="col-12" TextProperty="Den" ValueProperty="Cod" @bind-Value="ClienteSeleccionadoFiltro"
+                                    AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    AllowVirtualization="true" />
+                                    </div>
                                     </div>
                                     <div class="col-3 mb-2">
-                                        <label class="form-label">A:</label>
-                                        <InputDate class="form-control col-12" Type="InputDateType.DateTimeLocal" @bind-Value:format="yyyy-MM-dd hh:mm:ss" @bind-Value="@fechas.FchFin" />
+                                    <label class="form-label">Del:</label>
+                                    <InputDate class="form-control col-12" Type="InputDateType.DateTimeLocal" @bind-Value:format="yyyy-MM-dd hh:mm:ss" @bind-Value="@fechas.FchInicio" />
+                                    </div>
+                                    <div class="col-3 mb-2">
+                                    <label class="form-label">A:</label>
+                                    <InputDate class="form-control col-12" Type="InputDateType.DateTimeLocal" @bind-Value:format="yyyy-MM-dd hh:mm:ss" @bind-Value="@fechas.FchFin" />
+                                    </div>
+                                    <div class="col-2">
+                                    <button class="col-12 btn gcom-bg-amarillo" @onclick="@GetFoliosFiltro">
+                                    <i class="fa fa-solid fa-magnifying-glass"></i> Buscar folios
+                                    </button>
+                                    </div>
+                                    </div>
+                                    <div class="col-3 mb-2">
+                                    <label class="form-label">Del:</label>
+                                    <InputDate class="form-control col-12" Type="InputDateType.DateTimeLocal" @bind-Value:format="yyyy-MM-dd hh:mm:ss" @bind-Value="@fechas.FchInicio" />
+                                    </div>
+                                    <div class="col-3 mb-2">
+                                    <label class="form-label">A:</label>
+                                    <InputDate class="form-control col-12" Type="InputDateType.DateTimeLocal" @bind-Value:format="yyyy-MM-dd hh:mm:ss" @bind-Value="@fechas.FchFin" />
                                     </div>
                                     <div class="col-3">
-                                        <button class="col-12 btn gcom-bg-amarillo" @onclick="@GetFoliosFiltro">
-                                            <i class="fa fa-solid fa-magnifying-glass"></i> Buscar folios
+                                    <button class="col-12 btn gcom-bg-amarillo" @onclick="@GetFoliosFiltro">
+                                    <i class="fa fa-solid fa-magnifying-glass"></i> Buscar folios
+                                    </button>
+                                    </div>*@
+                                </div>
+                            </AuthorizeView>
+                            <div class="col-12 row">
+                                <div class="col-3">
+                                    <label class="form-label">Folio</label>
+                                    <InputText class="form-control col-12" @bind-Value="filtro.Folio" MaxLenght="30"/>
+                                    @*<RadzenDropDown Data="Folios" class="col-12" @bind-Value="@filtro.Folio" Style="height:50px"
+                                                    AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                    AllowVirtualization="true">
+                                        <ValueTemplate Context="data">
+                                            <InputText class="form-control col-12" @bind-Value="@filtro.Folio" MaxLenght="30" />
+                                        </ValueTemplate>
+                                    </RadzenDropDown>*@
+                                </div>
+                                <div class="col-3 d-flex">
+                                    <div class="col-12 mt-auto">
+                                        <button class="col-12 btn gcom-bg-amarillo px-0" @onclick="@(()=>GetFiltroCierres(true))" disabled="@loadingBuscar">
+                                            <i class="fa fa-solid fa-magnifying-glass"></i> Buscar pedido
+                                            @if (loadingBuscar)
+                                            {
+                                                <SpinnerLoading />
+                                            }
                                         </button>
                                     </div>
                                 </div>
-                                <div class="col-12 row">
-                                    <div class="col-3">
-                                        <label class="form-label">Folio</label>
-                                        @*<InputText class="form-control col-12" @bind-Value="filtro.Folio" />*@
-                                        <RadzenDropDown Data="Folios" class="col-12" @bind-Value="@filtro.Folio" Style="height:50px"
-                                                        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                                        AllowVirtualization="true">
-                                            <ValueTemplate Context="data">
-                                                <InputText class="form-control col-12" @bind-Value="@filtro.Folio" />
-                                            </ValueTemplate>
-                                        </RadzenDropDown>
-                                    </div>
-                                    <div class="col-3 d-flex">
-                                        <div class="col-12 mt-auto">
-                                            <button class="col-12 btn gcom-bg-amarillo px-0" @onclick="@(()=>GetFiltroCierres(true))">
-                                                <i class="fa fa-solid fa-magnifying-glass"></i> Buscar pedido
-                                            </button>
-                                        </div>
+                                <div class="col-6 d-flex">
+                                    <div class="col-6 mt-auto">
+                                        <button class="col-12 btn gcom-bg-amarillo" @onclick="@OpenModal">
+                                            <i class="fa fa-solid fa-magnifying-glass"></i>
+                                            Ver Folios de pedidos
+                                        </button>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-12 row">
-                                <AuthorizeView Context="MonthFilter" Roles="Cliente Lectura">
-                                    <Authorized>
-                                        <div class="col-3">
-                                            <label class="form-label">Año</label>
-                                            <InputSelect @bind-Value="añoSeleccionado" class="form-select">
-                                                <option>-- Selecciona una opcion --</option>
-                                                @if (años is null)
-                                                {
-                                                    <option disabled> Cargando ...</option>
-                                                }
-                                                else if (años.Count == 0)
-                                                {
-                                                    <option disabled> No hay capacidades</option>
-                                                }
-                                                else
-                                                {
-                                                    foreach (var item in años)
-                                                    {
-                                                        <option value="@item">@item</option>
-                                                    }
-                                                }
-                                            </InputSelect>
-                                        </div>
-                                        <div class="col-3">
-                                            <label class="form-label">Mes</label>
-                                            <InputSelect @bind-Value="mesSeleccionado" class="form-select">
-                                                <option>-- Selecciona una opcion --</option>
-                                                @if (meses is null)
-                                                {
-                                                    <option disabled> Cargando ...</option>
-                                                }
-                                                else if (meses.Count == 0)
-                                                {
-                                                    <option disabled> No hay capacidades</option>
-                                                }
-                                                else
-                                                {
-                                                    foreach (var item in meses)
-                                                    {
-                                                        <option value="@item.Cod">@item.Den.ToUpper()</option>
-                                                    }
-                                                }
-                                            </InputSelect>
-                                        </div>
-                                        <div class="col-3 d-flex ">
-                                            <div class="col-12 mt-auto">
-                                                <button class="col-12 btn gcom-bg-amarillo" @onclick="@(()=>GetFiltroCierres(false))">
-                                                    <i class="fa fa-solid fa-magnifying-glass"></i> Buscar pedidos
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </Authorized>
-                                </AuthorizeView>
                             </div>
                         </div>
                     </div>
@@ -143,7 +117,7 @@
                                 <div class="col-12 row">
                                     @foreach (var item in volumenDisponible.Productos)
                                     {
-                                        <p>@(item.Nombre) | Total : @(item.Total?.ToString("N")) | Disponible : @(item.Disponible?.ToString("N")) | Espera Carga : @(item.Congelado?.ToString("N")) | Consumido : @(item.Consumido?.ToString("N"))</p>
+                                        <p>@(item.Nombre) | Total : @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @item.Total) | Disponible : @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @item.Disponible) | Solicitado :@string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @item.Solicitud) | Programado : @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @item.Programado) | Espera Carga : @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @item.Congelado) | Consumido : @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @item.Consumido)</p>
                                     }
                                 </div>
                             }
@@ -163,16 +137,20 @@
                                 }
                             </button>
                         </div>
-                        <RadzenDataGrid TItem="OrdenCierre" Data="@cierres" AllowColumnResize="true" AllowVirtualization="true" AllowPickAllColumns="true" 
+                        <RadzenDataGrid TItem="OrdenCierre" Data="@cierres" AllowColumnResize="true" AllowVirtualization="true" AllowPickAllColumns="true"
                                         GridLines="DataGridGridLines.Both" class="rz-my-12 ancho" Style="height:500px;" ColumnResized="@(()=>grid.Reset())" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                         IsLoading="loading" Density="Density.Default" @ref="@grid" AllowColumnPicking="true" AllowSorting="true" AllowFiltering="true" Culture="CultureInfo.CurrentCulture">
                             <Columns>
-                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Folio" Property="Folio" Frozen="true" Filterable="false" Width="80px"/>
-                                <RadzenDataGridColumn TItem="OrdenCierre" Title="BOL" Property="OrdenEmbarque.Orden.BatchId" Filterable="false" Width="100px" Frozen="true"/>
-                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Folio de referencia" Property="OrdenEmbarque.Folio" Filterable="false" Width="130px"/>
+                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Folio" Property="Folio" Frozen="true" Filterable="false" Width="80px" />
+                                <RadzenDataGridColumn TItem="OrdenCierre" Title="BOL" Property="OrdenEmbarque.Orden.BatchId" Filterable="false" Width="100px" Frozen="true" />
+                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Folio de referencia" Property="OrdenEmbarque.Folio" Filterable="false" Width="130px" />
                                 <RadzenDataGridColumn TItem="OrdenCierre" Title="Destino" Property="Destino.Den" FilterValue="DestinoSeleccionado" Width="240px">
                                     <FilterTemplate Context="Destinos">
-                                        <RadzenDropDown Data="DestinoList" @bind-Value="DestinoSeleccionado" AllowClear="true"></RadzenDropDown>
+                                        <RadzenDropDown Data="DestinoList" @bind-Value="DestinoSeleccionado" AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                                            <ValueTemplate Context="data">
+                                                <InputText class="form-control col-12" @bind-Value="DestinoSeleccionado" MaxLength="190" />
+                                            </ValueTemplate>
+                                        </RadzenDropDown>
                                     </FilterTemplate>
                                     <Template Context="data">
                                         <div>
@@ -180,10 +158,14 @@
                                         </div>
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Unidad" Property="OrdenEmbarque.Tonel.Placatracto" Filterable="false" Width="140px"/>
+                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Unidad" Property="OrdenEmbarque.Tonel.Placatracto" Filterable="false" Width="140px" />
                                 <RadzenDataGridColumn TItem="OrdenCierre" Title="Producto" FilterValue="ProductoSeleccionado" Property="Producto.Den" Width="260px">
                                     <FilterTemplate Context="filter">
-                                        <RadzenDropDown Data="ProductList" @bind-Value="ProductoSeleccionado" AllowClear="true"></RadzenDropDown>
+                                        <RadzenDropDown Data="ProductList" AllowFiltering="true" @bind-Value="ProductoSeleccionado" AllowClear="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                                            <ValueTemplate Context="data">
+                                                <InputText class="form-control col-12" @bind-Value="ProductoSeleccionado" MaxLength="190" />
+                                            </ValueTemplate>
+                                        </RadzenDropDown>
                                     </FilterTemplate>
                                     <Template Context="data">
                                         <div class="col-12 row">
@@ -211,15 +193,22 @@
                                         </div>
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Precio" Property="Precio" Filterable="false" Width="80px"/>
-                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Volumen" Property="Volumen" Filterable="false" FormatString="{0:N2}" Width="130px"/>
+                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Precio" Property="Precio" Filterable="false" Width="80px" />
+                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Volumen" Property="Volumen" Filterable="false" FormatString="{0:N2}" Width="130px">
+                                    <Template Context="data">
+                                        <div class="col-12">
+                                            @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @data.Volumen)
+                                        </div>
+                                    </Template>
+                                </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="OrdenCierre" Title="Estado" Filterable="false" Width="130px">
                                     <Template Context="item">
-                                        @(item.OrdenEmbarque?.Orden != null ? item.OrdenEmbarque?.Orden?.Estado?.den : item?.OrdenEmbarque?.Estado?.den)
+                                        @(item.Activa == false ? "Cerrada" : item.OrdenEmbarque?.Orden != null ? item.OrdenEmbarque?.Orden?.Estado?.den
+                                            : item?.OrdenEmbarque?.Estado != null ? item?.OrdenEmbarque?.Estado?.den : "Activa")
                                     </Template>
                                 </RadzenDataGridColumn>
                                 <RadzenDataGridColumn TItem="OrdenCierre" Title="Fecha de entrega" Property="FchLlegada" FormatString="{0:d}" Width="170px" Filterable="false" />
-                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Observaciones" Property="Observaciones" Filterable="false"  Width="260px"/>
+                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Observaciones" Property="Observaciones" Filterable="false" Width="260px" />
                             </Columns>
                         </RadzenDataGrid>
                     </RadzenTabsItem>
@@ -237,12 +226,16 @@
                                         GridLines="DataGridGridLines.Both" class="ancho" Style="height:500px;" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                         IsLoading="loading" @ref="@grid" AllowSorting="true" AllowFiltering="true" AllowColumnPicking="true">
                             <Columns>
-                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Folio" Property="Folio" Frozen="true" Filterable="false" Width="80px"/>
-                                <RadzenDataGridColumn TItem="OrdenCierre" Title="BOL" Property="OrdenEmbarque.Orden.BatchId" Filterable="false" Width="100px"/>
-                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Folio de referencia" Property="OrdenEmbarque.Folio" Filterable="false" Width="130px"/>
+                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Folio" Property="Folio" Frozen="true" Filterable="false" Width="80px" />
+                                <RadzenDataGridColumn TItem="OrdenCierre" Title="BOL" Property="OrdenEmbarque.Orden.BatchId" Filterable="false" Width="100px" />
+                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Folio de referencia" Property="OrdenEmbarque.Folio" Filterable="false" Width="130px" />
                                 <RadzenDataGridColumn TItem="OrdenCierre" Title="Destino" Property="Destino.Den" FilterValue="DestinoSeleccionado" Width="240px">
                                     <FilterTemplate Context="Destinos">
-                                        <RadzenDropDown Data="DestinoList" @bind-Value="DestinoSeleccionado" AllowClear="true"></RadzenDropDown>
+                                        <RadzenDropDown Data="DestinoList" @bind-Value="DestinoSeleccionado" AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                                            <ValueTemplate Context="data">
+                                                <InputText class="form-control col-12" @bind-Value="DestinoSeleccionado" MaxLength="180" />
+                                            </ValueTemplate>
+                                        </RadzenDropDown>
                                     </FilterTemplate>
                                     <Template Context="data">
                                         <div>
@@ -250,10 +243,14 @@
                                         </div>
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Unidad" Property="OrdenEmbarque.Tonel.Placatracto" Filterable="false" Width="140px"/>
+                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Unidad" Property="OrdenEmbarque.Tonel.Placatracto" Filterable="false" Width="140px" />
                                 <RadzenDataGridColumn TItem="OrdenCierre" Title="Producto" FilterValue="ProductoSeleccionado" Property="Producto.Den" Width="260px">
                                     <FilterTemplate Context="filter">
-                                        <RadzenDropDown Data="ProductList" @bind-Value="ProductoSeleccionado" AllowClear="true"></RadzenDropDown>
+                                        <RadzenDropDown Data="ProductList" @bind-Value="ProductoSeleccionado" AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                                            <ValueTemplate Context="data">
+                                                <InputText class="form-control col-12" @bind-Value="ProductoSeleccionado" MaxLength="190" />
+                                            </ValueTemplate>
+                                        </RadzenDropDown>
                                     </FilterTemplate>
                                     <Template Context="data">
                                         <div class="col-12 row">
@@ -281,11 +278,11 @@
                                         </div>
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Precio" Property="Precio" Filterable="false" Width="80px"/>
-                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Volumen" Width="130px" FormatString="{0:N2}" Filterable="false" >
+                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Precio" Property="Precio" Filterable="false" Width="80px" />
+                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Volumen" Width="130px" FormatString="{0:N2}" Filterable="false">
                                     <Template Context="item">
                                         <div class="col-12">
-                                            @string.Format("{0:N2}",
+                                            @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}",
                                             item?.OrdenEmbarque?.Orden is not null ? item?.OrdenEmbarque?.Orden?.Vol :
                                             item?.OrdenEmbarque?.Compartment == 1 && item.OrdenEmbarque?.Tonel is not null ? item?.OrdenEmbarque?.Tonel?.Capcom
                                             : item?.OrdenEmbarque?.Compartment == 2 && item.OrdenEmbarque?.Tonel is not null ? item?.OrdenEmbarque?.Tonel?.Capcom2
@@ -301,8 +298,8 @@
                                         @(item.OrdenEmbarque?.Orden != null ? item.OrdenEmbarque?.Orden?.Estado?.den : item?.OrdenEmbarque?.Estado?.den)
                                     </Template>
                                 </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Fecha de entrega" Property="FchLlegada" FormatString="{0:d}" Filterable="false" Width="170px"/>
-                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Observaciones" Property="Observaciones" Filterable="false" Width="260px"/>
+                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Fecha de entrega" Property="FchLlegada" FormatString="{0:d}" Filterable="false" Width="170px" />
+                                <RadzenDataGridColumn TItem="OrdenCierre" Title="Observaciones" Property="Observaciones" Filterable="false" Width="260px" />
                             </Columns>
                         </RadzenDataGrid>
                     </RadzenTabsItem>
@@ -343,6 +340,7 @@
 
     bool loadingExport = false;
     bool loading = false;
+    bool loadingBuscar = false;
     bool isDetail = false;
     bool monthFilter = false;
 
@@ -368,10 +366,19 @@
 
     int width = 0;
     string TotalWidth = string.Empty;
+    bool isClose = false;
 
     protected async override Task OnInitializedAsync()
     {
-        width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 360;
+        var cm = await js.GetItemLocalStorage("CloseMenu");
+        if (!string.IsNullOrEmpty(cm))
+            isClose = bool.Parse(cm);
+
+        if (isClose)
+            width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 110;
+        else
+            width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 360;
+
         if (width < 0)
             width = 500;
         TotalWidth = $"{width}px";
@@ -426,7 +433,7 @@
         {
             filtro.forFolio = forFolio;
             monthFilter = false;
-
+            loadingBuscar = true;
             if (!forFolio)
             {
                 if (mesSeleccionado != 0 && añoSeleccionado != 0)
@@ -453,6 +460,7 @@
                     {
                         var message = await response.ObtenerMensajeError();
                         await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                        loadingBuscar = false;
                     }
                     else
                     {
@@ -470,6 +478,7 @@
                             {
                                 var message = await responseD.ObtenerMensajeError();
                                 await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                                loadingBuscar = false;
                             }
                             else
                             {
@@ -482,6 +491,7 @@
                         {
                             var message = await response.ObtenerMensajeError();
                             await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                            loadingBuscar = false;
                         }
                         else
                         {
@@ -493,6 +503,7 @@
                     }
                 }
             }
+            loadingBuscar = false;
         }
         catch (Exception e)
         {
@@ -527,14 +538,14 @@
                                 BOL = item?.OrdenEmbarque?.Orden?.BatchId.ToString(),
                                 FolioReferencia = item?.OrdenEmbarque?.Folio.ToString(),
                                 Observaciones = item?.Observaciones,
-                                Precio = item?.Precio?.ToString("N"),
-                                Volumen =    item?.OrdenEmbarque?.Orden is not null ? item?.OrdenEmbarque?.Orden?.Vol
-                                           : item?.OrdenEmbarque?.Compartment == 1 && item.OrdenEmbarque?.Tonel is not null ? double.Parse(item?.OrdenEmbarque?.Tonel?.Capcom.ToString())
-                                           : item?.OrdenEmbarque?.Compartment == 2 && item.OrdenEmbarque?.Tonel is not null ? double.Parse(item?.OrdenEmbarque?.Tonel?.Capcom2.ToString())
-                                           : item?.OrdenEmbarque?.Compartment == 3 && item.OrdenEmbarque?.Tonel is not null ? double.Parse(item?.OrdenEmbarque?.Tonel?.Capcom3.ToString())
-                                           : item?.OrdenEmbarque?.Compartment == 4 && item.OrdenEmbarque?.Tonel is not null ? double.Parse(item?.OrdenEmbarque?.Tonel?.Capcom4.ToString())
-                                           : item?.Volumen
-                                                    ,
+                                Precio = item?.Precio.ToString("N"),
+                                Volumen = item?.OrdenEmbarque?.Orden is not null ? item?.OrdenEmbarque?.Orden?.Vol
+                                                               : item?.OrdenEmbarque?.Compartment == 1 && item.OrdenEmbarque?.Tonel is not null ? double.Parse(item?.OrdenEmbarque?.Tonel?.Capcom.ToString())
+                                                               : item?.OrdenEmbarque?.Compartment == 2 && item.OrdenEmbarque?.Tonel is not null ? double.Parse(item?.OrdenEmbarque?.Tonel?.Capcom2.ToString())
+                                                               : item?.OrdenEmbarque?.Compartment == 3 && item.OrdenEmbarque?.Tonel is not null ? double.Parse(item?.OrdenEmbarque?.Tonel?.Capcom3.ToString())
+                                                               : item?.OrdenEmbarque?.Compartment == 4 && item.OrdenEmbarque?.Tonel is not null ? double.Parse(item?.OrdenEmbarque?.Tonel?.Capcom4.ToString())
+                                                               : item?.Volumen
+                                                                        ,
                                 Unidad = item?.OrdenEmbarque?.Tonel?.Veh,
                                 Estatus = item?.OrdenEmbarque?.Orden != null ? item.OrdenEmbarque?.Orden?.Estado?.den : item?.OrdenEmbarque?.Estado?.den,
                                 FchLlegada = item?.FechaLlegada
@@ -643,6 +654,27 @@
             {
                 Grupos = response.Response;
             }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private async Task OpenModal()
+    {
+        try
+        {
+            await ds.OpenAsync<ViewFoliosPedidosComponent>("Folios de pedidos",
+            new Dictionary<string, object>() { { "isStatus", true } },
+            new DialogOptions()
+                {
+                    Width = "90%",
+                    Height = "600px",
+                    Resizable = true,
+                    Draggable = false
+                });
         }
         catch (Exception e)
         {

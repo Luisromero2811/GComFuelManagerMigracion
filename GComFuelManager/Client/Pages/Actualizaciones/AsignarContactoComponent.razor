@@ -5,49 +5,60 @@
 @inject IJSRuntime js
 @inject NotificationService ms
 @inject AsignarContactoValidation validation
+@inject AsignarContactoClienteValidation validationCliente
+@inject AuthenticationStateProvider auth
 
-@attribute [Authorize(Roles = "Admin, Administrador Sistema, Direccion, Gerencia, Correo de Clientes")]
+@attribute [Authorize(Roles = "Admin, Administrador Sistema, Direccion, Gerencia, Correo de Clientes, Ejecutivo de Cuenta Comercial")]
 
 <h4><b>Asignar Contacto</b></h4>
 <div class="col-12 d-flex justify-content-center">
-    <AuthorizeView Roles="Admin, Administrador Sistema, Gerencia, Direccion, Correo de Clientes">
+    <AuthorizeView Roles="Admin, Administrador Sistema, Gerencia, Direccion, Correo de Clientes, Ejecutivo de Cuenta Comercial">
         <div class="col-10 card shadow-sm">
             <div class="col-12 row card-body">
-                <EditForm Model="@AsignarContactoDTO" class="form col-12" OnValidSubmit="@PostContacto" Context="validations">
-                    <FluentValidationValidator Validator="validation" />
+                <EditForm Model="@Contacto" class="form col-12" OnValidSubmit="@PostContacto" Context="validations">
+                    <AuthorizeView Roles="Admin, Administrador Sistema, Gerencia, Direccion" Context="Validacion">
+                        <Authorized>
+                            <FluentValidationValidator Validator="validation" />
+                        </Authorized>
+                    </AuthorizeView>
+                    <AuthorizeView Roles="Correo de Clientes" Context="Validacion">
+                        <Authorized>
+                            <FluentValidationValidator Validator="validationCliente" />
+                        </Authorized>
+                    </AuthorizeView>
                     <ValidationSummary />
-                    @*<AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia" Context="BuscarContactos">*@
-                    <div class="col-12 mb-4 row">
-                        <div class="col-10">
-                            <label>Cliente:</label>
-                            <RadzenDropDown @bind-Value="AsignarContactoDTO.cliente" Data="Clientes" TValue="Cliente" TextProperty="Den"
-                                            AllowVirtualization="true" AllowFiltering="true"
-                                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
-                                @*<Template>
+                    <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial" Context="BuscarContactos">
+                        <div class="col-12 mb-4 row">
+                            <div class="col-10">
+                                <label>Cliente:</label>
+                                <RadzenDropDown @bind-Value="Contacto.CodCte" Data="Clientes" TextProperty="Den"
+                                                AllowVirtualization="true" AllowFiltering="true" ValueProperty="Cod"
+                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                                    @*<Template>
                                     @((context as Cliente)?.Den)
                                     </Template>
                                     <ValueTemplate>
-                                    @((context as Cliente)?.Den)
+                                    @((context as Cliente)?.Den)º12
                                     </ValueTemplate>*@
-                            </RadzenDropDown>
+                                </RadzenDropDown>
+                            </div>
+                            <div class="col-2 d-flex mt-auto">
+                                <button class="col-12 mx-auto btn gcom-bg-amarillo" @onclick="@GetContactos" type="button">
+                                    <i class="fa fa-solid fa-magnifying-glass"></i> Buscar contactos
+                                </button>
+                            </div>
                         </div>
-                        <div class="col-2 d-flex mt-auto">
-                            <button class="col-12 mx-auto btn gcom-bg-amarillo" @onclick="@GetContactos" type="button">
-                                <i class="fa fa-solid fa-magnifying-glass"></i> Buscar contactos
-                            </button>
-                        </div>
-                    </div>
-                    @*</AuthorizeView>*@
+                    </AuthorizeView>
 
-                    <AuthorizeView Roles="Admin, Administrador Sistema, Correo de Clientes" Context="AddContact">
+                    <AuthorizeView Roles="Admin, Administrador Sistema, Correo de Clientes, Ejecutivo de Cuenta Comercial" Context="AddContact">
                         <div class="col-12 mb-3 row">
                             <div class="col-5">
                                 <label class="form-label">Nombre</label>
-                                <InputText class="form-control" @bind-Value="AsignarContactoDTO.Nombre" />
+                                <InputText class="form-control" @bind-Value="Contacto.Nombre" MaxLenght="60"/>
                             </div>
                             <div class="col-5">
                                 <label class="form-label">Correo</label>
-                                <InputText class="form-control" @bind-Value="AsignarContactoDTO.Correo" />
+                                <InputText class="form-control" @bind-Value="Contacto.Correo" />
                             </div>
                             <div class="col-2 d-flex mt-auto">
                                 @if (!isEdit)
@@ -58,7 +69,7 @@
                                 }
                                 else
                                 {
-                                    <button class="col mx-2 btn gcom-bg-amarillo" @onclick="@PutContacto" type="button">
+                                    <button class="col mx-2 btn gcom-bg-amarillo" type="submit">
                                         <i class="fa fa-solid fa-check"></i>
                                     </button>
                                     <button class="col mx-2 btn gcom-bg-amarillo" @onclick="@cancelEdit" type="button">
@@ -71,7 +82,7 @@
                             <div class="col-12">
                                 <label>Acciones:</label>
                                 <!--Selector multiple de Radzen-->
-                                <RadzenDropDown @bind-Value="AsignarContactoDTO.accione" Data="Acciones" TextProperty="Nombre"
+                                <RadzenDropDown @bind-Value="Contacto.Accions" Data="Acciones" TextProperty="Nombre"
                                                 Multiple=true AllowClear=true Placeholder="Seleccione las acciones" Chips=true class="col-12">
                                 </RadzenDropDown>
                             </div>
@@ -82,7 +93,7 @@
         </div>
     </AuthorizeView>
 </div>
-<AuthorizeView Roles="Admin, Administrador Sistema, Gerencia, Direccion, Correo de Clientes">
+<AuthorizeView Roles="Admin, Administrador Sistema, Gerencia, Direccion, Correo de Clientes, Ejecutivo de Cuenta Comercial">
     <div class="col-12 d-flex justify-content-center">
         <RadzenDataGrid TItem="Contacto" Data="@Contactos" AllowColumnResize="true" AllowVirtualization="true" AllowPickAllColumns="true"
                         GridLines="DataGridGridLines.Both" class="rz-my-12 ancho" Style="height:500px;" ColumnResized="@(()=>grid!.Reset())"
@@ -102,7 +113,7 @@
                         </div>
                     </Template>
                 </RadzenDataGridColumn>
-                <AuthorizeView Roles="Admin, Administrador Sistema, Correo de Clientes" Context="Acciones">
+                <AuthorizeView Roles="Admin, Administrador Sistema, Correo de Clientes, Ejecutivo de Cuenta Comercial" Context="Acciones">
                     <RadzenDataGridColumn TItem="Contacto" Title="Editar" Width="200px" OrderIndex="4">
                         <Template Context="item">
                             <div class="col-12 ">
@@ -117,7 +128,7 @@
                             <div class="col-12">
                                 <div class="form-check form-switch m-2">
                                     <input class="form-check-input" type="checkbox" role="switch" id="@data.Cod" checked="@data.Estado"
-                                           @onchange="@((ChangeEventArgs e) => HabilitarDesabilitar(data, e))">
+                                    @onchange="@((ChangeEventArgs e) => HabilitarDesabilitar(data, e))">
                                 </div>
                             </div>
                         </Template>
@@ -147,6 +158,7 @@
 
     bool loading = false;
     bool isEdit = false;
+    bool IsClient = false;
 
     protected async override Task OnInitializedAsync()
     {
@@ -158,6 +170,7 @@
     {
         isEdit = false;
         Contacto = new Contacto();
+        AsignarContactoDTO = new AsignarContactoDTO();
     }
 
     private async void setEdit(Contacto contacto)
@@ -171,6 +184,7 @@
             {
                 AccionesSeleccionadas.Add(item.Accion);
             }
+            Contacto.Accions = AccionesSeleccionadas;
         }
         catch (Exception e)
         {
@@ -203,14 +217,14 @@
     {
         try
         {
-            if (AsignarContactoDTO.cliente == null)
+            if (Contacto.CodCte is null || Contacto.CodCte == 0)
             {
                 await Swal.FireAsync("Error", "Seleccione un Cliente para buscar", SweetAlertIcon.Warning);
             }
             else
             {
                 loading = true;
-                var response = await http.Get<IEnumerable<Contacto>>($"api/contacto/cliente/{AsignarContactoDTO.cliente!.Cod}");
+                var response = await http.Get<IEnumerable<Contacto>>($"api/contacto/cliente/{Contacto.CodCte}");
                 if (response.Error)
                 {
                     loading = false;
@@ -221,7 +235,6 @@
                 {
                     loading = false;
                     Contactos = response.Response;
-                    Console.WriteLine(JsonConvert.SerializeObject(Contactos));
                 }
             }
         }
@@ -236,38 +249,39 @@
     {
         try
         {
-
-            if (AsignarContactoDTO.cliente == null)
+            if (Contacto.Cod == null || Contacto.Cod == 0)
             {
-                await Swal.FireAsync("Error", "Seleccione un cliente para registrar un contacto.", SweetAlertIcon.Warning);
-            }
-            else
-            {
-                Contacto.Nombre = AsignarContactoDTO.Nombre;
-                Contacto.Correo = AsignarContactoDTO.Correo;
-                Contacto.CodCte = AsignarContactoDTO.cliente.Cod;
-                Contacto.Accions = AsignarContactoDTO.accione;
-                var response = await http.Post<Contacto>($"api/contacto", Contacto);
-                if (response.Error)
+                if (Contacto.CodCte is null || Contacto.CodCte == 0)
                 {
-                    var message = await response.ObtenerMensajeError();
-                    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                    await Swal.FireAsync("Error", "Seleccione un cliente para registrar un contacto.", SweetAlertIcon.Warning);
                 }
                 else
                 {
-                    await GetContactos();
-
-                    await Swal.Mixin(new SweetAlertOptions
+                    Contacto.Cliente = null!;
+                    var response = await http.Post<Contacto>($"api/contacto", Contacto);
+                    if (response.Error)
                     {
-                        Position = "top-end",
-                        ShowConfirmButton = false,
-                        Timer = 1500,
-                        TimerProgressBar = true,
-                        Toast = true,
-                    }).FireAsync(new SweetAlertOptions { Icon = SweetAlertIcon.Success, Text = $"Contacto Registrado en {AsignarContactoDTO.cliente!.Den}." });
+                        var message = await response.ObtenerMensajeError();
+                        await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                    }
+                    else
+                    {
+                        await GetContactos();
 
+                        await Swal.Mixin(new SweetAlertOptions
+                            {
+                                Position = "top-end",
+                                ShowConfirmButton = false,
+                                Timer = 1500,
+                                TimerProgressBar = true,
+                                Toast = true,
+                            }).FireAsync(new SweetAlertOptions { Icon = SweetAlertIcon.Success, Text = $"Contacto Registrado." });
+
+                    }
                 }
             }
+            else
+                await PutContacto();
         }
         catch (Exception e)
         {
@@ -279,12 +293,7 @@
     {
         try
         {
-            Contacto.Nombre = AsignarContactoDTO.Nombre;
-            Contacto.Correo = AsignarContactoDTO.Correo;
-            Contacto.CodCte = AsignarContactoDTO.cliente.Cod;
-            Contacto.Accions = AsignarContactoDTO.accione;
-            //Contacto.CodCte = AsignarContactoDTO.cliente!.Cod;
-            //Contacto.Accions = AsignarContactoDTO.acciones;
+            Contacto.Cliente = null!;
             var response = await http.Put<Contacto>($"api/contacto", Contacto);
             if (response.Error)
             {
@@ -296,13 +305,13 @@
                 await GetContactos();
 
                 await Swal.Mixin(new SweetAlertOptions
-                {
-                    Position = "top-end",
-                    ShowConfirmButton = false,
-                    Timer = 1500,
-                    TimerProgressBar = true,
-                    Toast = true,
-                }).FireAsync(new SweetAlertOptions { Icon = SweetAlertIcon.Info, Text = $"Contacto Editado." });
+                    {
+                        Position = "top-end",
+                        ShowConfirmButton = false,
+                        Timer = 1500,
+                        TimerProgressBar = true,
+                        Toast = true,
+                    }).FireAsync(new SweetAlertOptions { Icon = SweetAlertIcon.Info, Text = $"Contacto Editado." });
             }
         }
         catch (Exception e)
@@ -326,13 +335,13 @@
                 await GetContactos();
 
                 await Swal.Mixin(new SweetAlertOptions
-                {
-                    Position = "top-end",
-                    ShowConfirmButton = false,
-                    Timer = 1500,
-                    TimerProgressBar = true,
-                    Toast = true,
-                }).FireAsync(new SweetAlertOptions { Icon = SweetAlertIcon.Info, Text = $"Contacto Habilitado / Deshabilitado en {ClienteSeleccionado.Den}." });
+                    {
+                        Position = "top-end",
+                        ShowConfirmButton = false,
+                        Timer = 1500,
+                        TimerProgressBar = true,
+                        Toast = true,
+                    }).FireAsync(new SweetAlertOptions { Icon = SweetAlertIcon.Info, Text = $"Contacto Habilitado / Deshabilitado en {ClienteSeleccionado.Den}." });
             }
         }
         catch (Exception e)
@@ -371,13 +380,13 @@
     private async Task Message(string message, SweetAlertIcon icon)
     {
         await Swal.Mixin(new SweetAlertOptions
-        {
-            Position = "top-end",
-            ShowConfirmButton = false,
-            Timer = 1500,
-            TimerProgressBar = true,
-            Toast = true,
-        }).FireAsync(new SweetAlertOptions { Icon = icon, Text = message });
+            {
+                Position = "top-end",
+                ShowConfirmButton = false,
+                Timer = 1500,
+                TimerProgressBar = true,
+                Toast = true,
+            }).FireAsync(new SweetAlertOptions { Icon = icon, Text = message });
     }
 
     private async Task GetAcciones()

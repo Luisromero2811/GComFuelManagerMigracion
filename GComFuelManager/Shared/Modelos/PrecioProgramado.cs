@@ -19,7 +19,7 @@ namespace GComFuelManager.Shared.Modelos
         [JsonProperty("codCte"), EpplusIgnore] public int? codCte { get; set; } = 0;
         [JsonProperty("codGru"), EpplusIgnore] public Int16? codGru { get; set; } = 0;
         [JsonProperty("codPrd"), EpplusIgnore] public byte? codPrd { get; set; } = 0;
-        [JsonProperty("pre")] public double? Pre { get; set; } = 0;
+        [JsonProperty("pre")] public double Pre { get; set; } = 0;
         [JsonProperty("fchActualizacion"), EpplusIgnore] public DateTime FchActualizacion { get; set; } = DateTime.Now;
         [JsonProperty("fchDia"), EpplusIgnore] public DateTime FchDia { get; set; } = DateTime.Now;
         [JsonProperty("Activo"), EpplusIgnore] public bool Activo { get; set; } = true;
@@ -27,5 +27,33 @@ namespace GComFuelManager.Shared.Modelos
         [NotMapped, EpplusIgnore] public Cliente? Cliente { get; set; } = null!;
         [NotMapped, EpplusIgnore] public Producto? Producto { get; set; } = null!;
         [NotMapped, EpplusIgnore] public Destino? Destino { get; set; } = null!;
+        
+        public Precio ToPrecio()
+        {
+            try
+            {
+                Precio precio = new Precio();
+
+                precio.FchDia = FchDia;
+                precio.FchActualizacion = FchActualizacion;
+                precio.codPrd = codPrd;
+                precio.codCte = codCte;
+                precio.codGru = codGru;
+                precio.codDes = codDes;
+                precio.codZona = codZona;
+                precio.Cliente = Cliente;
+                precio.Destino = Destino;
+                precio.Zona = Zona;
+                precio.Producto = Producto;
+                precio.Activo = Activo;
+                precio.Pre = Pre;
+
+                return precio;
+            }
+            catch (Exception e)
+            {
+                return new Precio();
+            }
+        }
     }
 }

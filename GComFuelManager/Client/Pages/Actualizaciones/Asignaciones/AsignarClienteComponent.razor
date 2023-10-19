@@ -12,18 +12,39 @@
     <div class="col-12 d-flex justify-content-center">
         <div class="col-10 card shadow-sm">
             <div class="col-12 row card-body">
-                <AuthorizeView Roles="Admin, Administrador Sistema" Context="Admin">
+                <AuthorizeView Roles="Admin, Administrador Sistema, Analista Credito" Context="Admin">
                     <h5>Agregar grupo</h5>
                     <EditForm Model="@Grupo" class="form col-12" OnValidSubmit="@CreateGrupos" Context="validations">
                         <FluentValidationValidator Validator="validation" />
                         <ValidationSummary />
                         <div class="col-12 row mb-3">
 
-                            <div class="col-md-6 col">
+                            <div class="col-4">
                                 <label>Nombre:</label>
-                                <InputText @bind-Value="@Grupo.Den" class="form-control" />
+                                <InputText @bind-Value="@Grupo.Den" class="form-control" MaxLenght="90" />
                             </div>
-                            <div class="col-md-5 col">
+                            <div class="col-3">
+                                <label class="">Modelo de Venta</label>
+                                <InputSelect @bind-Value="Grupo.MdVenta" class="form-select">
+                                    <option>-- Selecciona una opcion --</option>
+                                    @if (MdVenta is null)
+                                    {
+                                        <option disabled> Cargando ...</option>
+                                    }
+                                    else if (MdVenta.Count == 0)
+                                    {
+                                        <option disabled> No hay capacidades</option>
+                                    }
+                                    else
+                                    {
+                                        foreach (var item in MdVenta)
+                                        {
+                                            <option value="@item">@item</option>
+                                        }
+                                    }
+                                </InputSelect>
+                            </div>
+                            <div class="col-3">
                                 <label class="">Tipo de Venta</label>
                                 <InputSelect @bind-Value="Grupo.Tipven" class="form-select">
                                     <option>-- Selecciona una opcion --</option>
@@ -44,7 +65,7 @@
                                     }
                                 </InputSelect>
                             </div>
-                            <div class="col d-flex mt-auto">
+                            <div class="col-2 d-flex mt-auto">
                                 <button class="col-12 btn gcom-bg-amarillo" type="submit">
                                     <i class="fa fa-solid fa-plus"></i>
                                 </button>
@@ -64,31 +85,65 @@
                                 <RadzenDropDown @bind-Value="CliGru.grupo" TValue="Grupo" Data="Grupos" TextProperty="Den"
                                                 AllowVirtualization="true" AllowFiltering="true"
                                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
-                                    @*<Template>
-                                        @((context as Grupo)?.Den)
-                                        </Template>
-                                        <ValueTemplate>
-                                        @((context as Grupo)?.Den)
-                                        </ValueTemplate>*@
                                 </RadzenDropDown>
                             </div>
                         </AuthorizeView>
-                        <AuthorizeView Roles="Admin, Administrador Sistema" Context="Cli">
+                        <AuthorizeView Roles="Admin, Administrador Sistema, Analista Credito" Context="Cli">
                             <div class="col">
                                 <label>Cliente:</label>
                                 <RadzenDropDown @bind-Value="CliGru.cliente" Data="ClientesGrupo" TValue="Cliente" TextProperty="Den"
                                                 AllowVirtualization="true" AllowFiltering="true"
                                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
-                                    @*<Template>
-                                        @((context as Cliente)?.Den)
-                                        </Template>
-                                        <ValueTemplate>
-                                        @((context as Cliente)?.Den)
-                                        </ValueTemplate>*@
                                 </RadzenDropDown>
+                            </div>
+                            <!--Modelo de Venta-->
+                            <div class="col">
+                                <label class="">Modelo de Venta</label>
+                                <InputSelect @bind-Value="CliGru.Mdpven" class="form-select">
+                                    <option>-- Selecciona una opcion --</option>
+                                    @if (MdVenta is null)
+                                    {
+                                        <option disabled> Cargando ...</option>
+                                    }
+                                    else if (MdVenta.Count == 0)
+                                    {
+                                        <option disabled> No hay capacidades</option>
+                                    }
+                                    else
+                                    {
+                                        foreach (var item in MdVenta)
+                                        {
+                                            <option value="@item">@item</option>
+                                        }
+                                    }
+                                </InputSelect>
+                            </div>
+                            <!--Tipo de Venta-->
+                            <div class="col">
+                                <label class="">Tipo de Venta</label>
+                                <InputSelect @bind-Value="CliGru.Tipven" class="form-select">
+                                    <option>-- Selecciona una opcion --</option>
+                                    @if (TpVenta is null)
+                                    {
+                                        <option disabled> Cargando ...</option>
+                                    }
+                                    else if (TpVenta.Count == 0)
+                                    {
+                                        <option disabled> No hay capacidades</option>
+                                    }
+                                    else
+                                    {
+                                        foreach (var item in TpVenta)
+                                        {
+                                            <option value="@item">@item</option>
+                                        }
+                                    }
+                                </InputSelect>
                             </div>
                         </AuthorizeView>
                     </div>
+
+                    <!--Botones de funciones-->
                     <div class="col-12 mb-3 d-flex justify-content-center">
                         <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Contador" Context="BuscarClientes">
                             <div class="col d-flex mt-auto">
@@ -97,10 +152,10 @@
                                 </button>
                             </div>
                         </AuthorizeView>
-                        <AuthorizeView Roles="Admin, Administrador Sistema" Context="BotonCli">
+                        <AuthorizeView Roles="Admin, Administrador Sistema, Analista Credito" Context="BotonCli">
                             <div class="col d-flex mt-auto">
                                 <button class="col-6 mx-auto btn gcom-bg-amarillo" type="submit">
-                                    <i class="fa fa-solid fa-plus"></i> Agregar Cliente
+                                    <i class="fa fa-solid fa-plus"></i> Guardar
                                 </button>
                             </div>
                         </AuthorizeView>
@@ -119,15 +174,27 @@
                         GridLines="DataGridGridLines.Both" class="rz-my-12 ancho" Style="height:500px;"
                         IsLoading="loading" @ref="@grid" AllowSorting="true">
             <Columns>
-                <RadzenDataGridColumn TItem="Cliente" Title="Nombre de cliente" Property="Den" OrderIndex="1" />
-                <RadzenDataGridColumn TItem="Cliente" Title="Tipo de venta" Property="Tipven" Width="200px" OrderIndex="2" />
-                <AuthorizeView Roles="Admin, Administrador Sistema" Context="Action">
-                    <RadzenDataGridColumn TItem="Cliente" Title="Habilitar / Deshabilitar" Width="200px" OrderIndex="3">
+                <AuthorizeView Roles="Admin, Administrador Sistema, Analista Credito" Context="Action">
+                    <RadzenDataGridColumn TItem="Cliente" Title="Habilitar / Deshabilitar" Width="200px" OrderIndex="1">
+                        <Template Context="data">
+                            <div class="col-12">
+                                <button class="btn gcom-bg-amarillo col-12" @onclick="@(()=>@SetCliente(data))">
+                                    Editar
+                                </button>
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumn>
+                </AuthorizeView>
+                <RadzenDataGridColumn TItem="Cliente" Title="Nombre de cliente" Property="Den" OrderIndex="2" />
+                <RadzenDataGridColumn TItem="Cliente" Title="Modelo de venta" Property="MdVenta" Width="200px" OrderIndex="3" />
+                <RadzenDataGridColumn TItem="Cliente" Title="Tipo de venta" Property="Tipven" Width="200px" OrderIndex="4" />
+                <AuthorizeView Roles="Admin, Administrador Sistema, Analista Credito" Context="Action">
+                    <RadzenDataGridColumn TItem="Cliente" Title="Habilitar / Deshabilitar" Width="200px" OrderIndex="5">
                         <Template Context="data">
                             <div class="col-12">
                                 <div class="form-check form-switch m-2">
                                     <input class="form-check-input" type="checkbox" role="switch" id="@data.Cod" checked="@data.Activo"
-                                           @onchange="@((ChangeEventArgs e) => HabilitarDeshabilitar(data, e))">
+                                    @onchange="@((ChangeEventArgs e) => HabilitarDeshabilitar(data, e))">
                                 </div>
                             </div>
                         </Template>
@@ -138,7 +205,8 @@
     </div>
 </AuthorizeView>
 @code {
-    private List<string> TpVenta { get; set; } = new List<string> { "Interno", "Externo", "Rack" };
+    private List<string> TpVenta { get; set; } = new List<string> { "INTERNO", "EXTERNO", "RACK" };
+    private List<string> MdVenta { get; set; } = new List<string> { "DELIVERY", "RACK" };
 
     public IEnumerable<Cliente> ClientesGrupo { get; set; } = new List<Cliente>();
     public Grupo GrupoSeleccionado { get; set; } = null!;
@@ -151,6 +219,10 @@
     IList<Grupo> Grupos { get; set; } = new List<Grupo>();
 
     GrupoClienteDTO CliGru { get; set; } = new GrupoClienteDTO();
+
+    public Cliente cliente { get; set; } = new Cliente();
+
+    public IEnumerable<GrupoClienteDTO> ClientesGrupos { get; set; } = new List<GrupoClienteDTO>();
 
     protected async override Task OnInitializedAsync()
     {
@@ -170,6 +242,8 @@
             {
                 //Console.WriteLine(JsonConvert.SerializeObject(CliGru));
                 CliGru.cliente!.codgru = CliGru.grupo!.Cod;
+                CliGru.cliente!.Tipven = CliGru.Tipven;
+                CliGru.cliente!.MdVenta = CliGru.Mdpven;
                 var response = await http.Post<Cliente>($"api/grupo/cliente", CliGru.cliente);
                 if (response.Error)
                 {
@@ -178,7 +252,7 @@
                 }
                 else
                 {
-                    await Swal.FireAsync("Exito", $"Cliente Asignado a {CliGru.cliente.Den}", SweetAlertIcon.Success);
+                    await Swal.FireAsync("Exito", $"Cliente {CliGru.cliente.Den} asignado al grupo seleccionado", SweetAlertIcon.Success);
                 }
             }
         }
@@ -252,6 +326,7 @@
                 else
                 {
                     Clientes = response.Response;
+                    CliGru.cliente = new Cliente();
                 }
             }
         }
@@ -317,13 +392,25 @@
     private async Task Message(string message, SweetAlertIcon icon)
     {
         await Swal.Mixin(new SweetAlertOptions
-        {
-            Position = "top-end",
-            ShowConfirmButton = false,
-            Timer = 1700,
-            TimerProgressBar = true,
-            Toast = true,
-        }).FireAsync(new SweetAlertOptions { Icon = icon, Text = message });
+            {
+                Position = "top-end",
+                ShowConfirmButton = false,
+                Timer = 1700,
+                TimerProgressBar = true,
+                Toast = true,
+            }).FireAsync(new SweetAlertOptions { Icon = icon, Text = message });
     }
 
+    private void SetCliente(Cliente cliente)
+    {
+        try
+        {
+            CliGru.cliente = cliente;
+        }
+        catch (Exception e)
+        {
+
+            throw e;
+        }
+    }
 }

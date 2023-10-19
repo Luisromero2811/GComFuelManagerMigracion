@@ -35,7 +35,7 @@ namespace RazorHtmlEmails.Common
             //linkedResource.ContentId = "logo";
             //alternateView.LinkedResources.Add(linkedResource);
 
-            message.From.Add(new MailboxAddress("Gcom Fuel Manager", "endpoint@gasamigas.com"));
+            message.From.Add(new MailboxAddress("Gcom Fuel Management", "admon@energasmx.mx"));
             message.To.Add(new MailboxAddress(content.Nombre, content.Email));
             message.Cc.AddRange(content.CC);
             message.Subject = content.Subject;

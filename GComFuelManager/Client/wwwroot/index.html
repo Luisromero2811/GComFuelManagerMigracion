@@ -4,7 +4,21 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>GComFuelManager</title>
+    <meta http-equiv="Content-Security-Policy"
+          content="base-uri 'self';
+               default-src 'self';
+               img-src data: https:
+                             data:
+                             'self'
+                             blob:;
+               object-src 'none';
+               script-src 'self'
+                          'unsafe-eval'
+                          'unsafe-inline';
+               style-src 'self'
+                         'unsafe-inline';
+               upgrade-insecure-requests;">
+    <title>GComFuelManagement</title>
     <base href="/" />
     <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
@@ -36,6 +50,7 @@
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
     <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
     <script src="js/SaveAsFile.js"></script>
+    <script src="js/Utilidades.js"></script>
 </body>
 
 </html>

@@ -63,10 +63,10 @@
                                                 AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                                 AllowVirtualization="true">
                                     <Template Context="data">
-                                        @((data as Chofer).Dricod) | @((data as Chofer).Den)
+                                        @((data as Chofer).Dricod)  | @((data as Chofer).Den) |  @((data as Chofer).Shortden)
                                     </Template>
                                     <ValueTemplate Context="data">
-                                        @((data as Chofer).Dricod) | @((data as Chofer).Den)
+                                        @((data as Chofer).Dricod) | @((data as Chofer).Den) | @((data as Chofer).Shortden)
                                     </ValueTemplate>
                                 </RadzenDropDown>
                             </div>
@@ -74,7 +74,9 @@
                                 <label>Vehiculo:</label>
                                 <RadzenDropDown Data="Vehiculos" class="col-12" TextProperty="Den" ValueProperty="Cod" @bind-Value="asignacion.CodTon"
                                                 AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                                AllowVirtualization="true" />
+                                                AllowVirtualization="true">
+                                </RadzenDropDown>
+
                             </div>
                         </div>
                         <div class="col-12">
@@ -85,7 +87,9 @@
                                         @if (Vehiculos.Count > 0 && asignacion.CodTon != null)
                                         {
                                             @if (asignacion.CodTon != 0)
+
                                             {
+
                                                 <InputRadioGroup @bind-Value="asignacion.Compartimiento">
                                                     @for (int i = 1; i <= Vehiculos.FirstOrDefault(x => x.Cod == asignacion.CodTon)!.CapDisponible; i++)
                                                     {
@@ -97,14 +101,19 @@
                                                         </div>
                                                     }
                                                 </InputRadioGroup>
+
                                             }
                                         }
                                     }
                                 </div>
                                 <div class="col-4">
-                                    <button class="btn gcom-bg-amarillo col-12" type="submit" @onclick="@AsignarUnidad" disabled="@(ordenEmbarque is null)">
+                                    <button class="btn gcom-bg-amarillo col-12" type="submit" @onclick="@AsignarUnidad" disabled="@(ordenEmbarque is null || SendAsignacion)">
                                         <i class="fa fa-solid fa-truck-front"></i>
                                         <b>Asignar</b>
+                                        @if (SendAsignacion)
+                                        {
+                                            <SpinnerLoading />
+                                        }
                                     </button>
                                 </div>
                             </div>
@@ -123,7 +132,7 @@
                         @bind-Settings="@Settings">
             <Columns>
                 <AuthorizeView Roles="Admin, Administrador Usuario, Programador" Context="EdicionUnidades">
-                    <RadzenDataGridColumn TItem="OrdenEmbarque" Width="60px" Sortable="false" Filterable="false" OrderIndex="1" Frozen="true">
+                    <RadzenDataGridColumn TItem="OrdenEmbarque" Width="60px" Sortable="false" Filterable="false" Frozen="true" OrderIndex="1">
                         <HeaderTemplate>
                             <RadzenCheckBox TriState="false" TValue="bool" Value="@(ordenes.Any(i => ordenesSeleccionada != null && ordenesSeleccionada.Contains(i)))"
                                             Change="@(args => ordenesSeleccionada = args ? ordenes.ToList() : new List<OrdenEmbarque>())" />
@@ -133,21 +142,34 @@
                                             TValue="bool" Change="@((bool args) => ToggleCheck(args, data))" />
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Asignar" Filterable="false" Width="80px" Sortable="false" OrderIndex="2" Frozen="true">
+                    <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Asignar" Filterable="false" Width="80px" Sortable="false" Frozen="true" OrderIndex="2">
                         <Template Context="data">
                             <div class="col-12">
-                                <button class="btn btn-primary col-12" @onclick="@(()=>SetOrden(data))">
+                                <button class="btn btn-primary col-12" @onclick="@(() => SetOrden(data))">
                                     <i class="fa fa-solid fa-pen-to-square"></i>
                                 </button>
                             </div>
                         </Template>
                     </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Cancelar" Width="90px" Frozen="true" OrderIndex="3" Filterable="false" Sortable="false">
+                        <Template Context="data">
+                            <div class="col-12">
+                                <button class="btn btn-danger col-12" @onclick="@(()=>CancelOrden(data))">
+                                    <i class="fa fa-solid fa-cancel"></i>
+                                </button>
+                            </div>
+                        </Template>
+                    </RadzenDataGridColumn>
                 </AuthorizeView>
-                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Orden de compra" Property="OrdenEmbarque.OrdenCompra.den" Width="200px" Filterable="false" OrderIndex="3" Frozen="true"/>
-                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Folio" Property="OrdenCierre.Folio" Width="80px"  Filterable="false" OrderIndex="4" Frozen="true"/>
-                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Cliente" Property="Destino.Cliente.Den" Width="200px" FilterValue="ClienteSeleccionado" OrderIndex="5" Frozen="true">
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Orden de compra" Property="OrdenCompra.den" Width="200px" Filterable="false" OrderIndex="4" Frozen="false" />
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Folio" Property="OrdenCierre.Folio" MinWidth="120px" Filterable="false" OrderIndex="5" Frozen="false" />
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Cliente" Property="Destino.Cliente.Den" Width="200px" FilterValue="ClienteSeleccionado" OrderIndex="6" Frozen="false">
                     <FilterTemplate Context="filter">
-                        <RadzenDropDown Data="ClienteList" @bind-Value="ClienteSeleccionado" AllowClear="true"></RadzenDropDown>
+                        <RadzenDropDown Data="ClienteList" @bind-Value="ClienteSeleccionado" AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                            <ValueTemplate Context="data">
+                                <InputText class="form-control col-12" @bind-Value="ClienteSeleccionado" MaxLength="190" />
+                            </ValueTemplate>
+                        </RadzenDropDown>
                     </FilterTemplate>
                     <Template Context="data">
                         <div>
@@ -155,9 +177,13 @@
                         </div>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Destino" Property="Destino.Den" Width="220px" FilterValue="DestinosSeleccionado" OrderIndex="6">
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Destino" Property="Destino.Den" Width="220px" FilterValue="DestinosSeleccionado" OrderIndex="7">
                     <FilterTemplate Context="Destinos">
-                        <RadzenDropDown Data="DestinoList" @bind-Value="DestinosSeleccionado" AllowClear="true"></RadzenDropDown>
+                        <RadzenDropDown Data="DestinoList" @bind-Value="DestinosSeleccionado" AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                            <ValueTemplate Context="data">
+                                <InputText class="form-control col-12" @bind-Value="DestinosSeleccionado" MaxLength="190" />
+                            </ValueTemplate>
+                        </RadzenDropDown>
                     </FilterTemplate>
                     <Template Context="data">
                         <div>
@@ -165,9 +191,13 @@
                         </div>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Producto" Property="Producto.Den" Width="200px" FilterValue="ProductosSeleccionado" OrderIndex="7">
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Producto" Property="Producto.Den" Width="200px" FilterValue="ProductosSeleccionado" OrderIndex="8">
                     <FilterTemplate Context="Productos">
-                        <RadzenDropDown Data="ProductList" @bind-Value="ProductosSeleccionado" AllowClear="true"></RadzenDropDown>
+                        <RadzenDropDown Data="ProductList" @bind-Value="ProductosSeleccionado" AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                            <ValueTemplate Context="data">
+                                <InputText class="form-control col-12" @bind-Value="ProductosSeleccionado" MaxLength="190" />
+                            </ValueTemplate>
+                        </RadzenDropDown>
                     </FilterTemplate>
                     <Template Context="data">
                         <div>
@@ -175,10 +205,11 @@
                         </div>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Volumen" Width="100px" FormatString="{0:N2}" Filterable="false" OrderIndex="8">
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Volumen" Width="100px" FormatString="{0:N2}" Filterable="false" OrderIndex="9">
                     <Template Context="data">
                         <div class="col-12">
-                            @string.Format("{0:N2}",
+                            @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}",
+                            data?.Orden is not null ? data?.Orden?.Vol :
                             data?.Compartment == 1 && data.Tonel is not null ? data?.Tonel?.Capcom
                             : data?.Compartment == 2 && data.Tonel is not null ? data?.Tonel?.Capcom2
                             : data?.Compartment == 3 && data.Tonel is not null ? data?.Tonel?.Capcom3
@@ -188,34 +219,43 @@
                         </div>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Fecha de carga" Property="Fchcar" FormatString="{0:d}" Filterable="false" Width="160px" OrderIndex="9" Sortable="false" />
-                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Transportista" Property="Tonel.Transportista.Den" Width="200px" Filterable="false" OrderIndex="10" />
-                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Unidad" Width="170px" Filterable="false" OrderIndex="11">
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Fecha de carga" Property="Fchcar" FormatString="{0:d}" Filterable="false" Width="160px" OrderIndex="10" Sortable="false" />
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Transportista" Property="Tonel.Transportista.Den" Width="200px" Filterable="false" OrderIndex="11" />
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Unidad" Width="170px" Filterable="false" OrderIndex="12">
                     <Template Context="data">
                         <div class="col-12">
                             @data?.Tonel?.Tracto @data?.Tonel?.Placa
                         </div>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Compartimiento" Property="Compartment" Filterable="false" Width="160px" OrderIndex="12" />
-                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Operador" Width="200px" Filterable="false" OrderIndex="13">
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Compartimiento" Property="Compartment" Filterable="false" Width="160px" OrderIndex="13" />
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Operador" Width="200px" Filterable="false" OrderIndex="14">
                     <Template Context="data">
                         <div class="col-12">
-                            @data?.Chofer?.Den
+                            @data?.Chofer?.Den @data?.Chofer?.Shortden
                             @*@data?.Chofer?.Shortden*@
                         </div>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Bin" Property="Bin" Filterable="false" Width="110px" OrderIndex="14" />
-                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Estatus" Property="Estado.den" Filterable="false" Width="120px" OrderIndex="15" />
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Bin" Property="Bin" Filterable="false" Width="110px" OrderIndex="15" />
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Estatus" Property="Estado.den" Filterable="false" Width="120px" OrderIndex="16" />
+                <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Desasignar" Filterable="false" Width="100px" Sortable="false" OrderIndex="17">
+                    <Template Context="data">
+                        <div class="col-12">
+                            <button class="btn btn-primary col-12" @onclick="@(()=>DesasignarUnidad(data))">
+                                <i class="fa-solid fa-broom"></i>
+                            </button>
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
                 @*<FilterTemplate Context="Estatus">
-                            <RadzenDropDown Data="EstatusList" @bind-Value="EstatusSeleccionado" AllowClear="true"></RadzenDropDown>
-                        </FilterTemplate>
-                        <Template Context="data">
-                            <div>
-                                @data.Estado?.den
-                            </div>
-                        </Template>
+                    <RadzenDropDown Data="EstatusList" @bind-Value="EstatusSeleccionado" AllowClear="true"></RadzenDropDown>
+                    </FilterTemplate>
+                    <Template Context="data">
+                    <div>
+                    @data.Estado?.den
+                    </div>
+                    </Template>
                     </RadzenDataGridColumn>*@
             </Columns>
         </RadzenDataGrid>
@@ -238,7 +278,16 @@
                     {
                         <div class="col-4">
                             <AuthorizeView Roles="Admin, Administrador Sistema, Programador">
-                                <button class="btn gcom-bg-amarillo col-12" @onclick="@SendToSynthesis" type="reset"><i class="fa fa-solid fa-paper-plane"></i> <b>Enviar a Syntesis</b></button>
+                                @*<button class="btn gcom-bg-amarillo col-12" @onclick="@SendToSynthesis" type="reset"><i class="fa fa-solid fa-paper-plane"></i> <b>Enviar a Syntesis</b></button>*@
+                                <div class="gcom-bg-amarillo">
+
+                                    <RadzenButton class="gcom-bg-amarillo col-12" Variant="Variant.Text" Click="@SendToSynthesis" Disabled="updateData">
+                                        <div class="col-12">
+                                            <i class="fa fa-solid fa-paper-plane"></i><b>Enviar a Synthesis</b>
+                                        </div>
+                                    </RadzenButton>
+
+                                </div>
                             </AuthorizeView>
                         </div>
                     }
@@ -260,12 +309,29 @@
 </style>
 
 @code {
-    public bool Synthesis { get; set; } = false;
+    //string searchText = "";
+    //List<string> filteredOptions
+    //{
+    //    get
+    //    {
+    //        if (string.IsNullOrWhiteSpace(searchText))
+    //        {
+    //            return Vehiculos; // Si no hay texto de búsqueda, mostrar todas las opciones
+    //        }
+    //        else
+    //        {
+    //            return Vehiculos.Where(Vehiculos => Vehiculos.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList(); // Filtrar las opciones basado en el texto de búsqueda
+    //        }
+    //    }
+    //}
 
+
+    public bool Synthesis { get; set; } = false;
+    bool isClose = false;
     //grid
     private RadzenDataGrid<OrdenEmbarque>? grid = new RadzenDataGrid<OrdenEmbarque>();
     private ElementReference dpT;
-
+    private List<int> Cantidades { get; set; } = null!;
     private OrdenEmbarque ordenEmbarque { get; set; } = null!;
     private IList<OrdenEmbarque> ordenes { get; set; } = new List<OrdenEmbarque>();
     private IList<OrdenEmbarque> ordenesSeleccionada { get; set; } = new List<OrdenEmbarque>();
@@ -314,6 +380,7 @@
     bool loadginAsignar = false;
     bool loadingAgregar = false;
     bool loadingSend = false;
+    bool SendAsignacion = false;
     //
     CheckChofer checkChofer = new CheckChofer();
     AsignacionDTO asignacion { get; set; } = new AsignacionDTO();
@@ -321,13 +388,23 @@
 
     int width = 0;
     string TotalWidth = string.Empty;
+    //bool isClose = false;
+    bool updateData = false;
 
     DataGridSettings _settings;
     DataGridSettings Settings { get { return _settings; } set { if (_settings != value) { _settings = value; InvokeAsync(SaveStateAsync); } } }
 
     protected override async Task OnInitializedAsync()
     {
-        width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 360;
+        var cm = await js.GetItemLocalStorage("CloseMenu");
+        if (!string.IsNullOrEmpty(cm))
+            isClose = bool.Parse(cm);
+
+        if (isClose)
+            width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 110;
+        else
+            width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 360;
+
         if (width < 0)
             width = 500;
         TotalWidth = $"{width}px";
@@ -336,6 +413,7 @@
         //await GetProductos();
         await GetTransportista();
     }
+
 
     protected override async Task OnAfterRenderAsync(bool first)
     {
@@ -495,6 +573,7 @@
     {
         try
         {
+            SendAsignacion = true;
             if (asignacion.CodTon == null || asignacion.CodTra == null || asignacion.CodChf == null)
                 return;
 
@@ -509,10 +588,10 @@
                     Chofer = asignacion.CodChf,
                     Tonel = asignacion.CodTon,
                     Compartimento = Vehiculos?.Count == null ? 0 :
-                                                (asignacion.Compartimiento == 1) ? Vehiculos.FirstOrDefault(x => x.Cod == asignacion.CodTon && asignacion.CodTon != 0)?.Idcom
-                                            : (asignacion.Compartimiento == 2) ? Vehiculos.FirstOrDefault(x => x.Cod == asignacion.CodTon && asignacion.CodTon != 0)?.Idcom2
-                                            : (asignacion.Compartimiento == 3) ? Vehiculos.FirstOrDefault(x => x.Cod == asignacion.CodTon && asignacion.CodTon != 0)?.Idcom3
-                                            : Vehiculos.FirstOrDefault(x => x.Cod == asignacion.CodTon && asignacion.CodTon != 0)?.Idcom4,
+                                                                    (asignacion.Compartimiento == 1) ? Vehiculos.FirstOrDefault(x => x.Cod == asignacion.CodTon && asignacion.CodTon != 0)?.Idcom
+                                                                : (asignacion.Compartimiento == 2) ? Vehiculos.FirstOrDefault(x => x.Cod == asignacion.CodTon && asignacion.CodTon != 0)?.Idcom2
+                                                                : (asignacion.Compartimiento == 3) ? Vehiculos.FirstOrDefault(x => x.Cod == asignacion.CodTon && asignacion.CodTon != 0)?.Idcom3
+                                                                : Vehiculos.FirstOrDefault(x => x.Cod == asignacion.CodTon && asignacion.CodTon != 0)?.Idcom4,
                     //: (VehiculoSeleccionado == 4) ? Vehiculos.FirstOrDefault(x => x.Cod == VehiculoSeleccionado).Idcom4,
                     FechaCarga = ordenesSeleccionada.FirstOrDefault()?.Fchcar
                 };
@@ -527,6 +606,7 @@
                 {
                     var message = await response.ObtenerMensajeError();
                     await swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                    SendAsignacion = false;
                 }
                 else
                 {
@@ -536,21 +616,27 @@
                     {
                         var respuestaHttp = await responseHttp.ObtenerMensajeError();
                         await swal.FireAsync("Error", respuestaHttp, SweetAlertIcon.Error);
+                        SendAsignacion = false;
                     }
                     else
                     {
                         if (responseHttp.Response == 0)
+                        {
+
                             await UpdateOrden();
+                            asignacion.Compartimiento = 1;
+
+                        }
                         else
                         {
                             var confirm = await swal.FireAsync(new SweetAlertOptions
-                                {
-                                    Icon = SweetAlertIcon.Warning,
-                                    ShowCancelButton = true,
-                                    ConfirmButtonText = "Aceptar",
-                                    CancelButtonText = "Cancelar",
-                                    Text = "Este chofer y esta unidad ya estan asignados a una orden. ¿Desea asignarlos a esta orden?"
-                                });
+                            {
+                                Icon = SweetAlertIcon.Warning,
+                                ShowCancelButton = true,
+                                ConfirmButtonText = "Aceptar",
+                                CancelButtonText = "Cancelar",
+                                Text = "Este chofer y esta unidad ya estan asignados a una orden. ¿Desea asignarlos a esta orden?"
+                            });
 
                             if (!string.IsNullOrEmpty(confirm.Value))
                             {
@@ -560,14 +646,68 @@
                                 {
                                     var message = await responseDes.ObtenerMensajeError();
                                     await swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                                    SendAsignacion = false;
                                 }
                                 else
+                                {
                                     await UpdateOrden();
+                                    await MostrarOrdenFecha();
+                                    asignacion.Compartimiento = 1;
+                                    SendAsignacion = false;
+                                    //ordenesSeleccionada = new List<OrdenEmbarque>();
+                                }
                             }
                         }
+                        SendAsignacion = false;
+
                     }
                 }
             }
+            SendAsignacion = false;
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    public async Task DesasignarUnidad(OrdenEmbarque orden)
+    {
+        try
+        {
+            var confirm = await swal.FireAsync(new SweetAlertOptions
+            {
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Aceptar",
+                CancelButtonText = "Cancelar",
+                Text = "¿Realmente desea desasignar de unidad y chofer a esta orden?"
+            });
+            ordenEmbarque = orden;
+            if (!string.IsNullOrEmpty(confirm.Value))
+            {
+                var responseDes = await repositorio.Put<OrdenEmbarque>($"api/pedido/desasignar/{ordenEmbarque.Cod}", ordenEmbarque);
+
+                if (responseDes.Error)
+                {
+                    var message = await responseDes.ObtenerMensajeError();
+                    await swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    ns.Notify(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Actualizacion", Detail = $"Datos removidos.", Duration = 2000 });
+                    ordenEmbarque = orden;
+                    //await UpdateOrden();
+                    //grid!.Reload();
+                    //StateHasChanged();
+                    await MostrarOrdenFecha();
+                    asignacion.Compartimiento = 1;
+
+                    //ordenesSeleccionada = new List<OrdenEmbarque>();
+                }
+            }
+
         }
         catch (Exception e)
         {
@@ -625,26 +765,33 @@
         {
             if (ordenes.Count != 0)
             {
-                foreach (var item in ordenes!)
+                foreach (var item in ordenes)
                 {
                     //Console.WriteLine(JsonConvert.SerializeObject(item));
-                    if ((item.Destino!.Cliente!.Den == ClienteSeleccionado || string.IsNullOrEmpty(ClienteSeleccionado))
-                       && (item.Destino!.Den == DestinosSeleccionado || string.IsNullOrEmpty(DestinosSeleccionado))
-                       && (item.Producto!.Den == ProductosSeleccionado || string.IsNullOrEmpty(ProductosSeleccionado)))
+                    if ((item.Destino?.Cliente?.Den == ClienteSeleccionado || string.IsNullOrEmpty(ClienteSeleccionado))
+                       && (item.Destino?.Den == DestinosSeleccionado || string.IsNullOrEmpty(DestinosSeleccionado))
+                       && (item.Producto?.Den == ProductosSeleccionado || string.IsNullOrEmpty(ProductosSeleccionado)))
                         asignacionUnidadesDTO.Add(new TablaAsignacionUnidadesDTO
                         {
-                            OrdenCompra = item?.OrdenCompra?.den,
-                            Referencia = item?.OrdenCierre?.Folio,
-                            Cliente = item?.Destino?.Cliente?.Den,
-                            Destino = item?.Destino?.Den,
-                            Producto = item?.Producto?.Den,
-                            Volumen = item?.Vol,
-                            FechaCarga = item?.Fchcar!.Value.ToString("dd/MM/yyyy"),
-                            Transportista = item?.Tonel?.Transportista?.Den,
-                            Unidad = item?.Tonel?.Veh,
+                            OrdenCompra = item?.OrdenCompra?.den ?? "",
+                            Referencia = item?.OrdenCierre?.Folio ?? "",
+                            Cliente = item?.Destino?.Cliente?.Den ?? "",
+                            Destino = item?.Destino?.Den ?? "",
+                            Producto = item?.Producto?.Den ?? "",
+                            //Volumen = item?.Vol,
+                            Volumen = item?.Compartment == 1 && item.Tonel is not null ?
+                                                Convert.ToDouble(item?.Tonel?.Capcom) : item?.Compartment == 2 && item.Tonel is not null ?
+                                                Convert.ToDouble(item?.Tonel?.Capcom2) : item?.Compartment == 3 && item.Tonel is not null ?
+                                                Convert.ToDouble(item?.Tonel?.Capcom3) : item?.Compartment == 4 && item.Tonel is not null ?
+                                                Convert.ToDouble(item?.Tonel?.Capcom4) : item?.Vol,
+                            FechaCarga = item?.Fchcar?.ToString("dd/MM/yyyy") ?? "",
+                            Transportista = item?.Tonel?.Transportista?.Den ?? "",
+                            Unidad = item?.Tonel?.Veh ?? "",
                             Compartimento = item?.Compartment,
-                            Operador = item?.Chofer?.Den,
+                            Operador = item?.Chofer?.Den + " " + item?.Chofer?.Shortden ?? "",
                             Bin = item?.Bin,
+                            Fecha = item?.OrdenCierre?.FechaLlegada ?? "",
+                            Turno = item?.OrdenCierre?.Turno ?? ""
                             //Status = item?.Estado?.den
                         });
                 }
@@ -656,7 +803,7 @@
 
                 //Formación de Excel
 
-                var header = worksheet.Cells["A1:L1"];
+                var header = worksheet.Cells["A1:N1"];
                 var tablebody = worksheet.Cells["A1:A1"].LoadFromCollection<TablaAsignacionUnidadesDTO>(asignacionUnidadesDTO, true);
                 tablebody.Style.Font.Bold = true;
                 tablebody.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
@@ -666,7 +813,7 @@
                 header.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
 
                 //Guardado de Excel
-                await js.GuardarComo($"AsignacionUnidades_{DateTime.Today.ToString("dd/MM/yyyy")}.xlsx", excel.GetAsByteArray());
+                await js.GuardarComo($"AsignacionUnidades_{DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss")}.xlsx", excel.GetAsByteArray());
                 asignacionUnidadesDTO.Clear();
             }
             else
@@ -744,17 +891,30 @@
                     });
 
                     loadingSend = true;
+                    List<OrdenEmbarque> NewOrdens = new List<OrdenEmbarque>();
+                    var ordens = ordenesSeleccionada.Where(x => x!.Tonel != null)
+                    .OrderBy(x => x.Fchpet)
+                    .ThenBy(x => x!.Tonel!.Tracto)
+                    // .ThenBy(x => x.Bin)
+                    .ToList();
+                    // Console.WriteLine(JsonConvert.SerializeObject(ordens));
+                    // return;
 
-                    var ordens = ordenesSeleccionada.Where(x => x!.Tonel != null).ToList();
+                    foreach (var item in ordens)
+                        if (!NewOrdens.Contains(item))
+                            NewOrdens.Add(item);
 
-                    var response = await repositorio.Post<List<OrdenEmbarque>, bool>($"api/services/send", ordens);
+                    updateData = true;
+                    var response = await repositorio.Post<List<OrdenEmbarque>, bool>($"api/services/send", NewOrdens);
                     //var response = await repositorio.Post<List<OrdenEmbarque>>($"api/services/simulacion/synthesis", ordens);
 
                     if (response.Error)
                     {
+                        updateData = false;
                         loadingSend = false;
                         var message = await response.ObtenerMensajeError();
                         await swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                        ordenesSeleccionada = new List<OrdenEmbarque>();
                     }
                     else
                     {
@@ -763,18 +923,22 @@
                         ordenes = ordenes.Where(x => x.Tonel is null && x.Chofer is null).ToList();
                         ordenesSeleccionada = new List<OrdenEmbarque>();
                         Synthesis = false;
+                        updateData = false;
                         //ordenes = new List<OrdenEmbarque>();
                     }
                 }
             }
             else
             {
+                updateData = false;
                 loadingSend = false;
+                ordenesSeleccionada = new List<OrdenEmbarque>();
                 await swal.FireAsync("Alerta", "Debe de tener ordenes seleccionadas para poder enviar a synthesis", SweetAlertIcon.Warning);
             }
         }
         catch (Exception e)
         {
+            updateData = false;
             await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
             throw e;
         }
@@ -802,11 +966,8 @@
         try
         {
             ordenEmbarque = orden;
-            if (ordenEmbarque.Tonel != null && ordenEmbarque.Chofer != null)
-            {
-                //asignacion.CodTra = Transportistas.FirstOrDefault(x=>x.CarrId == ordenEmbarque.Chofer.bu)
-            }
-            //await grid!.SelectRow(orden);
+
+            await grid!.SelectRow(orden);
             //await dpT.FocusAsync();
         }
         catch (Exception e)
@@ -843,6 +1004,49 @@
         catch (Exception e)
         {
             await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task CancelOrden(OrdenEmbarque orden)
+    {
+        try
+        {
+            var confirm = await swal.FireAsync(new SweetAlertOptions
+            {
+                Icon = SweetAlertIcon.Info,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Aceptar",
+                CancelButtonText = "Cancelar",
+                Text = "¿Desea cancelar la orden?"
+            });
+
+            if (!string.IsNullOrEmpty(confirm.Value))
+            {
+                var response = await repositorio.Delete($"api/pedido/cancel/{orden.Cod}");
+                if (response.Error)
+                {
+                    var message = await response.ObtenerMensajeError();
+                    await swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    // if (ordenes.Contains(orden))
+                    var index = ordenes.IndexOf(orden);
+
+                    ordenes.RemoveAt(index);
+
+                    if (ordenesSeleccionada.Contains(orden))
+                        ordenesSeleccionada.Remove(orden);
+
+                    grid!.Reload();
+                    StateHasChanged();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
         }
     }
 }

@@ -1,0 +1,135 @@
+﻿@using GComFuelManager.Shared.DTOs;
+@using GComFuelManager.Shared.Modelos;
+@using RazorHtmlEmails.GComFuelManagerMigracion.Views.Emails.ConfirmationAccount
+@using RazorHtmlEmails.GComFuelManagerMigracion.Views.Shared
+@using System.Diagnostics;
+@model EmailContent<OrdenEmbarque>
+
+<div style="width:100%;margin-bottom:15px;display: flex;flex-direction:row;">
+    <div style="width:50%;text-align:start;display: inline;">
+    </div>
+    <div style="width:50%;text-align:end;display: inline;">
+        <b>
+            Fecha: @DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")
+        </b>
+    </div>
+</div>
+@{
+    ViewData["EmailTitle"] = "Orden autorizada!";
+}
+<p>
+    @Model.Lista?.FirstOrDefault()?.OrdenCierre?.Cliente?.Den, se han autorizado las siguientes ordenes.
+</p>
+
+<br />
+
+@{
+    if (Model.Lista != null)
+    {
+        <table cellspacing="0" cellpadding="0" border="0" width="100%">
+            <thead>
+                <tr>
+                    <th width="50%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 800; line-height: 24px; padding: 10px;">
+                        Producto
+                    </th>
+                    <th width="20%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 800; line-height: 24px; padding: 10px;">
+                        Folio
+                    </th>
+                    <th width="20%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 800; line-height: 24px; padding: 10px;">
+                        Destino
+                    </th>
+                    <th width="20%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 800; line-height: 24px; padding: 10px;">
+                        Fecha de carga
+                    </th>
+                    <th width="10%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 800; line-height: 24px; padding: 10px;">
+                        Litros
+                    </th>
+                    <th width="10%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 800; line-height: 24px; padding: 10px;">
+                        Precio por litro
+                    </th>
+                    <th width="10%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 800; line-height: 24px; padding: 10px;">
+                        Subtotal
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Lista)
+                {
+                    <tr>
+                        <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 24px; padding: 15px 10px 5px 10px;">
+                            @if (item.Producto.Cod == 25 || item.Producto.Cod == 26 || item.Producto.Cod == 27)
+                            {
+                                <div style="background-color:#528234; border-radius:50%;display:inline;width:15px;height:15px;">&nbsp;&nbsp;&nbsp;</div>
+                            }
+                            else if (item.Producto.Cod == 11 || item.Producto.Cod == 12 || item.Producto.Cod == 116)
+                            {
+                                <div style="background-color:#8FD154; border-radius:50%;display:inline;width:15px;height:15px;">&nbsp;&nbsp;&nbsp;</div>
+                            }
+                            else if (item.Producto.Cod == 19 || item.Producto.Cod == 20 || item.Producto.Cod == 21)
+                            {
+                                <div style="background-color:#AC0608; border-radius:50%;display:inline;width:15px;height:15px;">&nbsp;&nbsp;&nbsp;</div>
+                            }
+                            else
+                            {
+                                <div style="background-color:#AEAAA9; border-radius:50%;display:inline;width:15px;height:15px;">&nbsp;&nbsp;&nbsp;</div>
+                            }
+                            @item.Producto!.Den
+                        </td>
+                        <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 300; line-height: 24px; padding: 15px 10px 5px 10px;">
+                            @item.OrdenCierre?.Folio
+                        </td>
+                        <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 300; line-height: 24px; padding: 15px 10px 5px 10px;">
+                            @item.Destino?.Den
+                        </td>
+                        <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 300; line-height: 24px; padding: 15px 10px 5px 10px;">
+                            @item.Fchcar?.ToString("dd/MM/yyyy")
+                        </td>
+                        <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 300; line-height: 24px; padding: 15px 10px 5px 10px;">
+                            @(Convert.ToDouble(item.Vol).ToString("N"))
+                        </td>
+                        <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 300; line-height: 24px; padding: 15px 10px 5px 10px;">
+                            @(Convert.ToDouble(item.Pre).ToString("N4"))
+                        </td>
+                        <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 300; line-height: 24px; padding: 15px 10px 5px 10px;">
+                            @((Convert.ToDouble(item.Vol) * item.Pre)?.ToString("N"))
+                        </td>
+                    </tr>
+                }
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        <b>Total</b>
+                    </td>
+                    <td>
+                        @GetTotal()?.ToString("N")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div style=" margin-top:120px;display:flex;">
+                            <img src="https://i.postimg.cc/Z57T1QGJ/Triptico-Energas-EDITABLE-03.png" style="width:160px;height:140px;" />
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    }
+}
+<br />
+
+@functions {
+    public double? GetTotal()
+    {
+        double? total = 0;
+        foreach (var item in Model.Lista!)
+        {
+            total += (Convert.ToDouble(item.Vol) * item.Pre);
+        }
+
+        return total;
+    }
+}

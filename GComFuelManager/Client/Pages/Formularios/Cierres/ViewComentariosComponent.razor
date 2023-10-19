@@ -1,0 +1,13 @@
+﻿<h3>Comentarios</h3>
+@if (string.IsNullOrEmpty(Comentarios))
+{
+    <p>Sin comentarios</p>
+}
+else
+{
+    @Comentarios
+}
+
+@code {
+    [Parameter] public string? Comentarios { get; set; } = string.Empty;
+}

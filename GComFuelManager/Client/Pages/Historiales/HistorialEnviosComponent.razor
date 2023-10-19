@@ -35,9 +35,9 @@
 </div>
 
 <div class="col-12 d-flex justify-content-center">
-    <RadzenDataGrid TItem="OrdenEmbarque" Data="@orden" AllowColumnResize="true" AllowVirtualization="true" SelectionMode="DataGridSelectionMode.Multiple"
-                    GridLines="DataGridGridLines.Both" class="rz-my-2 ancho shadow-sm" Style="height:600px;" @bind-Value="ordenesSeleccionada" AllowRowSelectOnRowClick="false"
-                    IsLoading="loadingFiltro" Density="Density.Default" @ref="@grid" AllowSorting="true" AllowFiltering="true">
+    <RadzenDataGrid TItem="OrdenEmbarque" Data="@orden" AllowColumnResize="true" AllowVirtualization="true" SelectionMode="DataGridSelectionMode.Multiple" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    GridLines="DataGridGridLines.Both" class="rz-my-2 ancho shadow-sm" Style="height:600px;" @bind-Value="ordenesSeleccionada" AllowRowSelectOnRowClick="false" AllowPickAllColumns="true"
+                    IsLoading="loadingFiltro" Density="Density.Default" @ref="@grid" AllowSorting="true" AllowFiltering="true" AllowColumnPicking="true" Culture="CultureInfo.CurrentCulture"> 
         <Columns>
             <AuthorizeView Roles="Admin, Administrador Sistema, Programador">
                 <RadzenDataGridColumn TItem="OrdenEmbarque" Width="60px" Sortable="false" Filterable="false" Frozen="true" OrderIndex="1">
@@ -54,7 +54,11 @@
             <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Orden de compra" Property="OrdenCompra.den" Width="200px" Frozen="true" MinWidth="200px" Filterable="false" OrderIndex="2" />
             <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Cliente" Property="Destino.Cliente.Den" Width="200px" Frozen="true" MinWidth="200px" FilterValue="ClienteSeleccionado" OrderIndex="3">
                 <FilterTemplate Context="Cliente">
-                    <RadzenDropDown Data="ClienteList" @bind-Value="ClienteSeleccionado" AllowClear="true"></RadzenDropDown>
+                    <RadzenDropDown Data="ClienteList" AllowFiltering="true" @bind-Value="ClienteSeleccionado" AllowClear="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                        <ValueTemplate Context="data">
+                            <InputText class="form-control col-12" @bind-Value="ClienteSeleccionado" MaxLength="180" />
+                        </ValueTemplate>
+                    </RadzenDropDown>
                 </FilterTemplate>
                 <Template Context="data">
                     <div>
@@ -64,7 +68,11 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Destino" Property="Destino.Den" Width="200px" MinWidth="200px" FilterValue="DestinosSeleccionado" OrderIndex="4">
                 <FilterTemplate Context="Destinos">
-                    <RadzenDropDown Data="DestinoList" @bind-Value="DestinosSeleccionado" AllowClear="true"></RadzenDropDown>
+                    <RadzenDropDown Data="DestinoList" AllowFiltering="true" @bind-Value="DestinosSeleccionado" AllowClear="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                        <ValueTemplate Context="data">
+                            <InputText class="form-control col-12" @bind-Value="DestinosSeleccionado" MaxLength="190"/>
+                        </ValueTemplate>
+                    </RadzenDropDown>
                 </FilterTemplate>
                 <Template Context="data">
                     <div>
@@ -74,7 +82,11 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Producto" Property="Producto.Den" Width="200px" MinWidth="200px" FilterValue="ProductosSeleccionado">
                 <FilterTemplate Context="Productos">
-                    <RadzenDropDown Data="ProductoList" @bind-Value="ProductosSeleccionado" AllowClear="true"></RadzenDropDown>
+                    <RadzenDropDown Data="ProductoList" @bind-Value="ProductosSeleccionado" AllowFiltering="true" AllowClear="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                        <ValueTemplate Context="data">
+                            <InputText class="form-control col-12" @bind-Value="ProductosSeleccionado" MaxLength="190"/>
+                        </ValueTemplate>
+                    </RadzenDropDown>
                 </FilterTemplate>
                 <Template Context="data">
                     <div>
@@ -85,7 +97,7 @@
             <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Volumen" Width="200px" MinWidth="200px" FormatString="{0:N2}" Filterable="false">
                 <Template Context="data">
                     <div class="col-12">
-                        @string.Format("{0:N2}",
+                        @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}",
                         data?.Compartment == 1 ? data?.Tonel?.Capcom
                         : data?.Compartment == 2 ? data?.Tonel?.Capcom2
                         : data?.Compartment == 3 ? data?.Tonel?.Capcom3
@@ -109,7 +121,7 @@
             <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Operador" Width="200px" MinWidth="200px" Filterable="false">
                 <Template Context="data">
                     <div class="col-12">
-                        @data?.Chofer?.Den @data?.Chofer?.Shortden
+                        @data?.Chofer?.Den 
                     </div>
                 </Template>
             </RadzenDataGridColumn>
@@ -198,10 +210,18 @@
 
     int width = 0;
     string TotalWidth = string.Empty;
+    bool isClose = false;
 
     protected override async Task OnInitializedAsync()
     {
-        width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 360;
+        var cm = await js.GetItemLocalStorage("CloseMenu");
+        if (!string.IsNullOrEmpty(cm))
+            isClose = bool.Parse(cm);
+
+        if (isClose)
+            width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 110;
+        else
+            width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 360;
         if (width < 0)
             width = 500;
         TotalWidth = $"{width}px";
@@ -267,7 +287,8 @@
                             Unidad = item!.Tonel?.Veh,
                             Compartimento = item!.Compartment,
                             Operador = item!.Chofer?.Den,
-                            Bin = item!.Bin
+                            Bin = item!.Bin,
+                            Estado = item!.Estado?.den
                         });
                 }
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -276,7 +297,7 @@
                 worksheet.Columns.Width = 60;
                 worksheet.Columns.AutoFit();
 
-                var header = worksheet.Cells["A1:K1"];
+                var header = worksheet.Cells["A1:L1"];
                 //Formación del Excel
 
                 var tablebody = worksheet.Cells["A1:A1"].LoadFromCollection<HistorialOrdenDTO>(historialOrdens, true);

@@ -41,6 +41,9 @@
                                     <th width="50%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 800; line-height: 24px; padding: 10px;">
                                         Producto
                                     </th>
+                                    <th width="40%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 800; line-height: 24px; padding: 10px;">
+                                        Fecha vigente
+                                    </th>
                                     <th width="10%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 800; line-height: 24px; padding: 10px;">
                                         Precio por litro
                                     </th>
@@ -70,7 +73,10 @@
                                         @item.Producto!.Den
                                     </td>
                                     <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 300; line-height: 24px; padding: 15px 10px 5px 10px;">
-                                        @item.Pre?.ToString("N")
+                                        @item.FchDia.ToString("yyyy-MM-dd")
+                                    </td>
+                                    <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 300; line-height: 24px; padding: 15px 10px 5px 10px;">
+                                        @item.Pre.ToString("N4")
                                     </td>
                                 </tr>
                                 }
@@ -105,7 +111,7 @@
     {
         IEnumerable<Precio?> precios = new List<Precio>();
 
-        precios = Model.Lista!.Where(x => x.NombreDestino!.Equals(destino));
+        precios = Model.Lista!.Where(x => x.NombreDestino!.Equals(destino) && x.Pre != 0 && x.Pre != null);
 
         return precios!;
     }

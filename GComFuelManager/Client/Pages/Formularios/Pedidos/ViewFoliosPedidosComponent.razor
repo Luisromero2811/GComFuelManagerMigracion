@@ -1,0 +1,259 @@
+﻿@inject IRepositorio http
+@inject SweetAlertService Swal
+@inject DialogService ds
+
+<div class="col-12 row">
+    <div class="col-8">
+        <label><b>Filtro de folios</b></label>
+    </div>
+</div>
+<div class="col-12 row">
+    <div class="col-3 mb-2">
+        <div class="col-12">
+            <label>Grupo</label>
+            <RadzenDropDown Data="Grupos" class="col-12" TextProperty="Den" ValueProperty="Cod" @bind-Value="fechas.codGru"
+                            AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            AllowVirtualization="true" Change="@GetClientesFiltro" AllowClear="true" />
+        </div>
+    </div>
+    <div class="col-3 mb-2">
+        <div class="col-12">
+            <label>Cliente</label>
+            <RadzenDropDown Data="ClientesFiltro" class="col-12" TextProperty="Den" ValueProperty="Cod" @bind-Value="fechas.codCte"
+                            AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            AllowVirtualization="true" AllowClear="true" />
+        </div>
+    </div>
+    <div class="col-2 mb-2">
+        <label>Del:</label>
+        <InputDate class="form-control col-12" Type="InputDateType.DateTimeLocal" @bind-Value:format="yyyy-MM-dd hh:mm:ss" @bind-Value="@fechas.FchInicio" />
+    </div>
+    <div class="col-2 mb-2">
+        <label>A:</label>
+        <InputDate class="form-control col-12" Type="InputDateType.DateTimeLocal" @bind-Value:format="yyyy-MM-dd hh:mm:ss" @bind-Value="@fechas.FchFin" />
+    </div>
+    <div class="col-2 mt-2">
+        <label></label>
+        <button class="col-12 btn gcom-bg-amarillo" @onclick="@(() => GetFoliosPedidoActivos(true))">
+            <i class="fa fa-solid fa-magnifying-glass"></i> Buscar
+        </button>
+    </div>
+</div>
+
+<RadzenDataGrid TItem="FolioDetalleDTO" Data="@Folios" AllowColumnResize="true" AllowVirtualization="true" AllowPickAllColumns="true"
+                GridLines="DataGridGridLines.Both" Style="height:600px;" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                IsLoading="loading" @ref="@grid" AllowSorting="true" AllowFiltering="true" AllowColumnPicking="true">
+    <Columns>
+        <RadzenDataGridColumn TItem="FolioDetalleDTO" Title="Fecha de cierre" Property="FchCierre" FormatString="{0:d}" Filterable="false" Width="140px" />
+        <RadzenDataGridColumn TItem="FolioDetalleDTO" Title="Folio de pedido" Property="Folio" Filterable="false" Width="200px" />
+        <RadzenDataGridColumn TItem="FolioDetalleDTO" Title="Cliente" Filterable="false">
+            <Template Context="data">
+                @(data.Cliente is not null ? data.Cliente.Den : "Sin cliente asignado")
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="FolioDetalleDTO" Title="Destino" Filterable="false">
+            <Template Context="data">
+                @(data.Destino is not null ? data.Destino.Den : "Sin destino asignado")
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="FolioDetalleDTO" Title="Producto" FilterValue="ProductoSeleccionado" Property="Producto.Den">
+            <FilterTemplate Context="filter">
+                <RadzenDropDown Data="ProductList" @bind-Value="ProductoSeleccionado" AllowFiltering="true" AllowClear="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                    <ValueTemplate Context="data">
+                        <InputText class="form-control col-12" @bind-Value="ProductoSeleccionado" MaxLength="190" />
+                    </ValueTemplate>
+                </RadzenDropDown>
+            </FilterTemplate>
+            <Template Context="data">
+                <div class="col-12 row">
+                    <div class="col-1">
+                        @if (data.Producto.Cod == 25 || data.Producto.Cod == 26 || data.Producto.Cod == 27)
+                        {
+                            <div class="badge rounded-pill regular">&nbsp;</div>
+                        }
+                        else if (data.Producto.Cod == 11 || data.Producto.Cod == 12 || data.Producto.Cod == 116)
+                        {
+                            <div class="badge rounded-pill regular-vdm">&nbsp;</div>
+                        }
+                        else if (data.Producto.Cod == 19 || data.Producto.Cod == 20 || data.Producto.Cod == 21)
+                        {
+                            <div class="badge rounded-pill premium">&nbsp;</div>
+                        }
+                        else
+                        {
+                            <div class="badge rounded-pill diesel">&nbsp;</div>
+                        }
+                    </div>
+                    <div class="col-11">
+                        @data.Producto?.Den
+                    </div>
+                </div>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="FolioDetalleDTO" Title="Acciones" Filterable="false" Width="130px">
+            <Template Context="data">
+                <div class="col-12">
+                    <button class="btn gcom-bg-amarillo" @onclick="@(()=>ViewOrdens(data.Folio, data?.Producto?.Den))">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                    <button class="btn gcom-bg-amarillo" @onclick="@(()=>ViewComments(data?.Folio, data?.Comentarios))">
+                        <i class="fa-solid fa-comments"></i>
+                    </button>
+                </div>
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    [Parameter] public bool isStatus { get; set; } = false;
+
+    CierreFiltroDTO fechas { get; set; } = new CierreFiltroDTO();
+    private List<CodDenDTO> ClientesFiltro { get; set; } = null!;
+    private IEnumerable<Grupo> Grupos { get; set; } = null!;
+    private short? GrupoSeleccionadoFiltroB = 0;
+    private List<FolioDetalleDTO> Folios { get; set; } = new List<FolioDetalleDTO>();
+    RadzenDataGrid<FolioDetalleDTO> grid { get; set; } = new RadzenDataGrid<FolioDetalleDTO>();
+
+    private string ProductoSeleccionado = string.Empty;
+    private IEnumerable<string> ProductList { get; set; } = new List<string>();
+
+    private string DestinoSeleccionado = string.Empty;
+    private IEnumerable<string> DestinoList { get; set; } = new List<string>();
+
+    bool loading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!isStatus)
+            await GetFoliosPedidoActivos();
+        await GetGrupos();
+    }
+
+    private async Task GetGrupos()
+    {
+        try
+        {
+            var response = await http.Get<IEnumerable<Grupo>>("api/grupo/all");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Grupos = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private async Task GetClientesFiltro()
+    {
+        try
+        {
+            if (fechas.codGru != null && GrupoSeleccionadoFiltroB != fechas.codGru)
+            {
+                var response = await http.Get<List<CodDenDTO>>($"api/cliente/{fechas.codGru}");
+                if (response.Error)
+                {
+                    var message = await response.ObtenerMensajeError();
+                    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    GrupoSeleccionadoFiltroB = fechas.codGru;
+                    ClientesFiltro = response.Response;
+                    StateHasChanged();
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private async Task GetFoliosPedidoActivos(bool forFolio = false)
+    {
+        try
+        {
+            loading = true;
+            fechas.forFolio = forFolio;
+            if (!isStatus)
+            {
+                var response = await http.Post<CierreFiltroDTO, List<FolioDetalleDTO>>("api/cierre/folios/detalle", fechas);
+                if (response.Error)
+                {
+                    loading = false;
+                    var message = await response.ObtenerMensajeError();
+                    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    Folios = response.Response;
+                    loading = false;
+                }
+            }
+            else if (isStatus)
+            {
+                var response = await http.Post<CierreFiltroDTO, List<FolioDetalleDTO>>("api/cierre/folios/detalle/status", fechas);
+                if (response.Error)
+                {
+                    loading = false;
+                    var message = await response.ObtenerMensajeError();
+                    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    Folios = response.Response;
+                    loading = false;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+    //NA
+    private async Task ViewOrdens(string? folio, string? producto)
+    {
+        try
+        {
+            await ds.OpenAsync<DetalleCierreDialog>($"Pedido {folio}",
+                new Dictionary<string, object>() { { "folio", folio }, { "producto", producto } },
+                new DialogOptions() { Height = "auto", Width = "85%", Resizable = true, Draggable = false, CloseDialogOnOverlayClick = true });
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+    //NA
+    private async Task ViewComments(string? folio, string? comment)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(comment))
+                comment = string.Empty;
+
+            await ds.OpenAsync<ViewComentariosComponent>($"Comentarios pedido {folio}",
+                new Dictionary<string, object>() { { "comentarios", comment } },
+                new DialogOptions() { Height = "auto", Width = "85%", Resizable = true, Draggable = false, CloseDialogOnOverlayClick = true });
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+}

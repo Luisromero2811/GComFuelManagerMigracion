@@ -1,0 +1,633 @@
+{
+  "BillOfLading": {
+    "ExternalBolNumber": null,
+    "HeaderId": {
+      "Value": 50383
+    },
+    "ExternalBolAlternativeId": null,
+    "BolGuidId": null,
+    "StartLoadTime": {
+      "Value": "2023-08-23T00:00:00",
+      "FirstDayOfWeek": 0
+    },
+    "EndLoadTime": {
+      "Value": "2023-08-25T00:00:00",
+      "FirstDayOfWeek": 0
+    },
+    "Terminal": {
+      "LocationId": {
+        "Id": {
+          "Value": 1100
+        },
+        "ExternalId": null
+      },
+      "LocationName": null,
+      "LocationDescription": null,
+      "LocationType": null,
+      "LocationCode": null,
+      "System": null,
+      "Address": null,
+      "Phone": null,
+      "EpaRegistrationNumber": null,
+      "LocationCustodyOwner": null,
+      "LocationOperatorId": null,
+      "ExternalLocationId": null,
+      "ExstarsFilingCompanyCode": null,
+      "UtcOffset": null,
+      "TerminalControlNumber": null,
+      "ParentLocation": null,
+      "BookInventoryUnitInd": null,
+      "LeftIndex": null,
+      "RightIndex": null,
+      "ExternalIdentifiers": null,
+      "SequenceNumber": null,
+      "LocationAttribute": null,
+      "ActiveIndicator": null,
+      "DisplayValue": null,
+      "SchedulingQty": null,
+      "SchedulingMaxRate": null,
+      "SchedulingMinRate": null,
+      "SchedulingDefaultActivity": null,
+      "SchedulingBatchLabel": null,
+      "DefaultHeadSafety": null,
+      "DefaultTailSafety": null,
+      "ShowTankAlarms": null,
+      "SchedulingCustomField1": null,
+      "SchedulingCustomField2": null,
+      "SchedulingCustomField3": null,
+      "CustomFieldInstances": null,
+      "EffectiveDate": null,
+      "CapabilityQty": null,
+      "AliasLocationId": null,
+      "ConnectingCarrierId": null,
+      "CreatedBy": null,
+      "CreatedDate": null,
+      "LastUpdatedBy": null,
+      "LastUpdatedDate": null
+    },
+    "Shipper": {
+      "BusinessEntityId": {
+        "Id": {
+          "Value": 51004
+        },
+        "ExternalId": null
+      },
+      "BusinessEntityName": null,
+      "BusinessEntityShortName": null,
+      "BusinessEntityCode": null,
+      "BusinessEntityType": null,
+      "Ein": null,
+      "ExternalBusinessEntityId": null,
+      "Address": null,
+      "Contact": null,
+      "Notes": null,
+      "DunsNumber": null,
+      "RequestedBy": null,
+      "BusinessEntityLocations": null,
+      "BusinessEntityAssociations": null,
+      "BusinessEntityCredits": null,
+      "Destinations": null,
+      "ExternalIdentifiers": null,
+      "SequenceNumber": null,
+      "ActiveIndicator": null,
+      "DisplayValue": null,
+      "CustomFieldInstances": null,
+      "IsTaxExempt": null,
+      "CreatedBy": null,
+      "CreatedDate": null,
+      "LastUpdatedBy": null,
+      "LastUpdatedDate": null
+    },
+    "Stockholder": {
+      "BusinessEntityId": {
+        "Id": {
+          "Value": 51004
+        },
+        "ExternalId": null
+      },
+      "BusinessEntityName": null,
+      "BusinessEntityShortName": null,
+      "BusinessEntityCode": null,
+      "BusinessEntityType": null,
+      "Ein": null,
+      "ExternalBusinessEntityId": null,
+      "Address": null,
+      "Contact": null,
+      "Notes": null,
+      "DunsNumber": null,
+      "RequestedBy": null,
+      "BusinessEntityLocations": null,
+      "BusinessEntityAssociations": null,
+      "BusinessEntityCredits": null,
+      "Destinations": null,
+      "ExternalIdentifiers": null,
+      "SequenceNumber": null,
+      "ActiveIndicator": null,
+      "DisplayValue": null,
+      "CustomFieldInstances": null,
+      "IsTaxExempt": null,
+      "CreatedBy": null,
+      "CreatedDate": null,
+      "LastUpdatedBy": null,
+      "LastUpdatedDate": null
+    },
+    "Customer": {
+      "BusinessEntityId": {
+        "Id": {
+          "Value": 51947
+        },
+        "ExternalId": null
+      },
+      "BusinessEntityName": null,
+      "BusinessEntityShortName": null,
+      "BusinessEntityCode": null,
+      "BusinessEntityType": null,
+      "Ein": null,
+      "ExternalBusinessEntityId": null,
+      "Address": null,
+      "Contact": null,
+      "Notes": null,
+      "DunsNumber": null,
+      "RequestedBy": null,
+      "BusinessEntityLocations": null,
+      "BusinessEntityAssociations": null,
+      "BusinessEntityCredits": null,
+      "Destinations": null,
+      "ExternalIdentifiers": null,
+      "SequenceNumber": null,
+      "ActiveIndicator": null,
+      "DisplayValue": null,
+      "CustomFieldInstances": null,
+      "IsTaxExempt": null,
+      "CreatedBy": null,
+      "CreatedDate": null,
+      "LastUpdatedBy": null,
+      "LastUpdatedDate": null
+    },
+    "RevisionNumber": {
+      "Value": 1
+    },
+    "LineItems": [
+      {
+        "BolLineItemId": null,
+        "BaseProduct": {
+          "ProductId": {
+            "Id": {
+              "Value": 10130
+            },
+            "ExternalId": null
+          },
+          "ProductName": null,
+          "ProductCode": null,
+          "ProductDescription": null,
+          "ProductType": null,
+          "ExternalProductId": null,
+          "ProductGroup": null,
+          "ProductGrade": null,
+          "GsvCorrectionMethod": null,
+          "GovermentProductCode": null,
+          "StandardGravity": null,
+          "ProductMessage": null,
+          "Color": null,
+          "ExternalIdentifiers": null,
+          "SequenceNumber": null,
+          "ActiveIndicator": null,
+          "ProductSpecifications": null,
+          "DisplayValue": null,
+          "CustomFieldInstances": null,
+          "Image": null,
+          "RequireVaporRecovery": null,
+          "VaporRecoveryDetails": null,
+          "CreatedBy": null,
+          "CreatedDate": null,
+          "LastUpdatedBy": null,
+          "LastUpdatedDate": null
+        },
+        "OrderedProduct": {
+          "ProductId": {
+            "Id": {
+              "Value": 10130
+            },
+            "ExternalId": null
+          },
+          "ProductName": null,
+          "ProductCode": null,
+          "ProductDescription": null,
+          "ProductType": null,
+          "ExternalProductId": null,
+          "ProductGroup": null,
+          "ProductGrade": null,
+          "GsvCorrectionMethod": null,
+          "GovermentProductCode": null,
+          "StandardGravity": null,
+          "ProductMessage": null,
+          "Color": null,
+          "ExternalIdentifiers": null,
+          "SequenceNumber": null,
+          "ActiveIndicator": null,
+          "ProductSpecifications": null,
+          "DisplayValue": null,
+          "CustomFieldInstances": null,
+          "Image": null,
+          "RequireVaporRecovery": null,
+          "VaporRecoveryDetails": null,
+          "CreatedBy": null,
+          "CreatedDate": null,
+          "LastUpdatedBy": null,
+          "LastUpdatedDate": null
+        },
+        "Supplier": {
+          "BusinessEntityId": {
+            "Id": {
+              "Value": 51004
+            },
+            "ExternalId": null
+          },
+          "BusinessEntityName": null,
+          "BusinessEntityShortName": null,
+          "BusinessEntityCode": null,
+          "BusinessEntityType": null,
+          "Ein": null,
+          "ExternalBusinessEntityId": null,
+          "Address": null,
+          "Contact": null,
+          "Notes": null,
+          "DunsNumber": null,
+          "RequestedBy": null,
+          "BusinessEntityLocations": null,
+          "BusinessEntityAssociations": null,
+          "BusinessEntityCredits": null,
+          "Destinations": null,
+          "ExternalIdentifiers": null,
+          "SequenceNumber": null,
+          "ActiveIndicator": null,
+          "DisplayValue": null,
+          "CustomFieldInstances": null,
+          "IsTaxExempt": null,
+          "CreatedBy": null,
+          "CreatedDate": null,
+          "LastUpdatedBy": null,
+          "LastUpdatedDate": null
+        },
+        "BaseNetQuantity": {
+          "Value": 0.0
+        },
+        "BaseGrossQuantity": null,
+        "OrderedNetQuantity": null,
+        "OrderedGrossQuantity": null,
+        "NetTenderAmount": null,
+        "GrossTenderAmount": null,
+        "NetMass": null,
+        "Temperature": null,
+        "Density": null,
+        "SpecificGravity": null,
+        "BaseGravity": null,
+        "Vcf": null,
+        "TrailerId": "15424",
+        "Vehicle": null,
+        "CompartmentId": {
+          "Value": 6237
+        },
+        "BolMessage": null,
+        "Tank": {
+          "DeviceId": {
+            "Id": {
+              "Value": 16023
+            },
+            "ExternalId": null
+          },
+          "DeviceType": null,
+          "DeviceName": null,
+          "DeviceCode": null,
+          "DeviceDescription": null,
+          "ExternalDeviceId": null,
+          "Location": null,
+          "Lease": null,
+          "ManufacturerName": null,
+          "ModelName": null,
+          "SerialNumber": null,
+          "IsTemperatureCompensating": null,
+          "IsPressureCompensating": null,
+          "Notes": null,
+          "ExternalIdentifiers": null,
+          "FmpNum": null,
+          "Size": null,
+          "MeterType": null,
+          "RepairDate": null,
+          "PulsePerUom": null,
+          "SequenceNumber": null,
+          "ActiveIndicator": null,
+          "IsMasterMeter": null,
+          "DisplayValue": null,
+          "InternalId": null,
+          "SampleGravityBy": null,
+          "MeterFactorMethod": null,
+          "ProverDeviceId": null,
+          "StorageUnitId": null,
+          "Rtu": null,
+          "IsShared": null,
+          "SwitchbarMaterialType": null,
+          "LinearCoefficientThermalExpansion": null,
+          "CreatedBy": null,
+          "CreatedDate": null,
+          "LastUpdatedBy": null,
+          "LastUpdatedDate": null
+        },
+        "SupplierEpaRegistrationNumber": null,
+        "EndLoadTime": {
+          "Value": "2023-08-25T00:00:00",
+          "FirstDayOfWeek": 0
+        },
+        "BolLineItemAssociations": null,
+        "ActivitySteps": null,
+        "Customer": {
+          "BusinessEntityId": {
+            "Id": {
+              "Value": 51947
+            },
+            "ExternalId": null
+          },
+          "BusinessEntityName": null,
+          "BusinessEntityShortName": null,
+          "BusinessEntityCode": null,
+          "BusinessEntityType": null,
+          "Ein": null,
+          "ExternalBusinessEntityId": null,
+          "Address": null,
+          "Contact": null,
+          "Notes": null,
+          "DunsNumber": null,
+          "RequestedBy": null,
+          "BusinessEntityLocations": null,
+          "BusinessEntityAssociations": null,
+          "BusinessEntityCredits": null,
+          "Destinations": null,
+          "ExternalIdentifiers": null,
+          "SequenceNumber": null,
+          "ActiveIndicator": null,
+          "DisplayValue": null,
+          "CustomFieldInstances": null,
+          "IsTaxExempt": null,
+          "CreatedBy": null,
+          "CreatedDate": null,
+          "LastUpdatedBy": null,
+          "LastUpdatedDate": null
+        },
+        "Destination": {
+          "DestinationId": {
+            "Id": {
+              "Value": 635
+            },
+            "ExternalId": null
+          },
+          "DestinationName": null,
+          "DestinationCode": null,
+          "DestinationType": null,
+          "Ein": null,
+          "EinType": null,
+          "ExternalDestinationId": null,
+          "Address": null,
+          "Contact": null,
+          "Notes": null,
+          "DunsNumber": null,
+          "RequestedBy": null,
+          "DestinationDescription": null,
+          "SpecialInstructions": null,
+          "PidxNumber": null,
+          "ExternalIdentifiers": null,
+          "SequenceNumber": null,
+          "ActiveIndicator": null,
+          "CreatedBy": null,
+          "CreatedDate": null,
+          "LastUpdatedBy": null,
+          "LastUpdatedDate": null,
+          "PerformTransform": null
+        },
+        "Brand": null,
+        "OrderedQuantity": null,
+        "BswPct": null,
+        "GrossWeight": null,
+        "TareWeight": null,
+        "CustomerOrderQuantity": {
+          "Value": 10000.0
+        },
+        "SpecialInstructions": null,
+        "TankShellCapacity": null,
+        "LoadingIncrement": null,
+        "OrderId": null,
+        "TerminalLaneId": null,
+        "OrderRecipeNoticeAssociations": null,
+        "CustomerOrderUOM": null,
+        "ReferenceTemperature": null,
+        "CustomFieldInstances": [
+          {
+            "CustomFieldInstanceId": null,
+            "EntityId": null,
+            "FieldStringValue": "ENER-90490_1",
+            "FieldNumericValue": null,
+            "FieldDateTimeValue": null,
+            "CustomFieldMetaData": {
+              "CustomFieldMetaDataId": {
+                "Value": 46
+              },
+              "Name": "96966",
+              "DataType": null,
+              "EntityName": "BILL_OF_LADING_LINE_ITEM",
+              "EntityKey": "96966",
+              "DisplayKey": null,
+              "DefaultValue": null,
+              "HasMultipleValues": null,
+              "IsRequired": null,
+              "DisplayControl": null,
+              "SeqNum": null,
+              "RuleClassId": null,
+              "ActiveIndicator": null,
+              "CreatedBy": null,
+              "CreatedDate": null,
+              "LastUpdatedBy": null,
+              "LastUpdatedDate": null
+            }
+          }
+        ],
+        "CreatedBy": null,
+        "CreatedDate": null,
+        "LastUpdatedBy": null,
+        "LastUpdatedDate": null
+      }
+    ],
+    "LoadSystem": {
+      "Value": 0
+    },
+    "FolioNumber": null,
+    "PdxbNumber": null,
+    "ExternalTransactionType": null,
+    "PurchaseOrderRef": "ENER-90490",
+    "Destination": {
+      "DestinationId": {
+        "Id": {
+          "Value": 635
+        },
+        "ExternalId": null
+      },
+      "DestinationName": null,
+      "DestinationCode": null,
+      "DestinationType": null,
+      "Ein": null,
+      "EinType": null,
+      "ExternalDestinationId": null,
+      "Address": null,
+      "Contact": null,
+      "Notes": null,
+      "DunsNumber": null,
+      "RequestedBy": null,
+      "DestinationDescription": null,
+      "SpecialInstructions": null,
+      "PidxNumber": null,
+      "ExternalIdentifiers": null,
+      "SequenceNumber": null,
+      "ActiveIndicator": null,
+      "CreatedBy": null,
+      "CreatedDate": null,
+      "LastUpdatedBy": null,
+      "LastUpdatedDate": null,
+      "PerformTransform": null
+    },
+    "TruckCarrier": {
+      "CarrierId": null,
+      "ScacCode": null,
+      "ExternalCarrierId": null,
+      "LoadSystemType": null,
+      "InsuranceExpiryDate": null,
+      "CarrierType": null,
+      "InsuranceCompanyName": null,
+      "InsurancePolicyId": null,
+      "InsuranceLiabilityAmount": null,
+      "InterstatePermitId": null,
+      "InterstatePermitExpiryDate": null,
+      "TabsCarrierId": null,
+      "EpaRegistrationNumber": null,
+      "VehicleLiabilityExpiryDate": null,
+      "VehicleLiabilityAmount": null,
+      "VehicleExcessLiabilityExpiryDate": null,
+      "VehicleExcessLiabilityAmount": null,
+      "WorkersCompensationExpiryDate": null,
+      "WorkersCompensationAmount": null,
+      "CarrierDrivers": null,
+      "BusinessEntityId": {
+        "Id": {
+          "Value": 21
+        },
+        "ExternalId": null
+      },
+      "BusinessEntityName": null,
+      "BusinessEntityShortName": null,
+      "BusinessEntityCode": null,
+      "BusinessEntityType": null,
+      "Ein": null,
+      "ExternalBusinessEntityId": null,
+      "Address": null,
+      "Contact": null,
+      "Notes": null,
+      "DunsNumber": null,
+      "RequestedBy": null,
+      "BusinessEntityLocations": null,
+      "BusinessEntityAssociations": null,
+      "BusinessEntityCredits": null,
+      "Destinations": null,
+      "ExternalIdentifiers": null,
+      "SequenceNumber": null,
+      "ActiveIndicator": null,
+      "DisplayValue": null,
+      "CustomFieldInstances": null,
+      "IsTaxExempt": null,
+      "CreatedBy": null,
+      "CreatedDate": null,
+      "LastUpdatedBy": null,
+      "LastUpdatedDate": null
+    },
+    "TruckDriver": null,
+    "Driver": {
+      "DriverId": {
+        "Id": {
+          "Value": 52397
+        },
+        "ExternalId": null
+      },
+      "Name": null
+    },
+    "DeliveryReceiptIndicator": {
+      "Value": 1
+    },
+    "ModeOfTransport": {
+      "Value": 8
+    },
+    "UnitOfMeasure": {
+      "Value": 512
+    },
+    "Comments": [
+      {
+        "CommentId": null,
+        "EntityName": null,
+        "EntityIdentifier": null,
+        "EntityItemIdentifier": null,
+        "CommentKey": null,
+        "CommentText": "Synthesis Web Service Innovacion",
+        "SequenceNumber": null,
+        "ActiveIndicator": null,
+        "CreatedBy": null,
+        "CreatedDate": null,
+        "LastUpdatedBy": null,
+        "LastUpdatedDate": null
+      }
+    ],
+    "ChargeCount": null,
+    "BolStatus": {
+      "Value": 34
+    },
+    "LoadType": {
+      "Value": 1
+    },
+    "IsNonMeteredLoad": null,
+    "SeqNum": {
+      "Value": 10
+    },
+    "Tractor": null,
+    "ExcludeInThroughput": null,
+    "VehicleNumber": null,
+    "VisualDate": null,
+    "InternalDate": null,
+    "LeakageDate": null,
+    "SealNumber": null,
+    "FDTransaction": null,
+    "NumCompartments": null,
+    "ShipDate": null,
+    "TestDate": null,
+    "OrderId": null,
+    "ContractScheduleId": null,
+    "ActivityId": {
+      "Value": 1009
+    },
+    "Attributes": null,
+    "ContractNumber": null,
+    "ContractId": null,
+    "CustomFieldInstances": null,
+    "CreatedBy": "energasws Sistemas",
+    "CreatedDate": null,
+    "LastUpdatedBy": null,
+    "LastUpdatedDate": null,
+    "CustomerReference": "ENER-90490"
+  },
+  "saveXML": false,
+  "GenerateBolFromOrder": {
+    "Value": false
+  },
+  "EnableExplicitRevisioning": {
+    "Value": true
+  },
+  "ReferenceTemperature": null,
+  "isAsynchronousSpecified": false,
+  "AddressInfo": null,
+  "Properties": null,
+  "Extensions": null,
+  "IncludeChildObjects": null
+}

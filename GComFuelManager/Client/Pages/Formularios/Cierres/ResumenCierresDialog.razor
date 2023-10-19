@@ -44,7 +44,7 @@
                         <tr>
                             <th scope="row">Volumen Aprox. Litros: </th>
                             <td>
-                                @cierre.Volumen?.ToString("N2") Litros
+                               @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @cierre.Volumen ) Litros
                             </td>
                         </tr>
                         <tr>

@@ -25,7 +25,7 @@ namespace RazorHtmlEmails.Common
             string body = await razorView.RenderViewToStringAsync("./Views/Emails/Precios/PreciosEmail.cshtml", content);
             var message = new MimeMessage();
 
-            message.From.Add(new MailboxAddress("Gcom Fuel Manager", "endpoint@gasamigas.com"));
+            message.From.Add(new MailboxAddress("Gcom Fuel Management", "admon@energasmx.mx"));
             message.To.AddRange(content.ToList);
             message.Cc.AddRange(content.CC);
             message.Subject = content.Subject;

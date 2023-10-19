@@ -403,3 +403,6 @@ ASALocalRun/
 
 # Local History for Visual Studio
 .localhistory/
+
+#logs request to synthesis
+/GComFuelManager/Server/Files

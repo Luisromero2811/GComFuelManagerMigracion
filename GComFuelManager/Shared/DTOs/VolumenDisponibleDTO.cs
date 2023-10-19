@@ -21,5 +21,7 @@ namespace GComFuelManager.Shared.DTOs
         public double? Consumido { get; set; } = 0;
         public double? Remanente { get; set; } = 0;
         public double? PromedioCarga { get; set; } = 0;
+        public double? Programado { get; set; } = 0;
+        public double? Solicitud { get; set; } = 0;
     }
 }

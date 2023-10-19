@@ -147,7 +147,7 @@ namespace GComFuelManager.Server.Controllers.Auth
             }
         }
 
-        [HttpGet("check/cliente"), Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("check"), Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult> GetClient()
         {
             try

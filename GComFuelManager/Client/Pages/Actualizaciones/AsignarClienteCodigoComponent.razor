@@ -1,0 +1,108 @@
+@inject IJSRuntime js
+@inject IRepositorio repositorio
+@inject SweetAlertService swal
+@inject NotificationService ns
+@inject CodigoClienteValidation validation
+
+<AuthorizeView Roles="Admin, Administrador Sistema, Ejecutivo de Cuenta Comercial, Direccion, Gerencia">
+    <Authorized>
+        <h4><b>Codigo de folio de cliente</b></h4>
+        <div class="col-12 d-flex justify-content-center my-2">
+            <div class="col-9 card shadow ">
+                <div class="card-body">
+                    <EditForm Model="@codCte" class="form col-12" OnValidSubmit="@PutClientes" Context="validations">
+                        <FluentValidationValidator Validator="validation" />
+                        <ValidationSummary />
+                        <div class="col-12 row">
+                            <AuthorizeView Roles="Admin, Administrador Sistema, Ejecutivo de Cuenta Comercial, Direccion, Gerencia" Context="cod">
+                                <Authorized>
+                                    <div class="col-8 d-flex mt-auto">
+
+                                        <RadzenDropDown TValue="Cliente" Data="Clientes" @bind-Value="codCte.cliente" class="col-12" AllowFiltering="true" TextProperty="Den"
+                                                        AllowVirtualization="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.Contains">
+                                            <Template Context="data">
+                                                @((data as Cliente)!.Den) | @((data as Cliente)!.CodCte)
+                                            </Template>
+                                            <ValueTemplate Context="data">
+                                                @((data as Cliente)!.Den) | @((data as Cliente)!.CodCte)
+                                            </ValueTemplate>
+                                        </RadzenDropDown>
+                                    </div>
+                                </Authorized>
+                            </AuthorizeView>
+                            <AuthorizeView Roles="Admin, Administrador Sistema, Ejecutivo de Cuenta Comercial" Context="actions">
+                                <Authorized>
+                                    <div class="col-2">
+                                        <label class="form-label">Codigo de identificacion:</label>
+                                        <InputText @bind-Value="codCte.CodCte" class="col-12 form-control" MaxLenght="6" />
+                                    </div>
+                                    <div class="col-2 d-flex mt-auto">
+                                        <button class="btn gcom-bg-amarillo col-12" type="submit">
+                                            <i class="fa fa-solid fa-check"></i>
+                                        </button>
+                                    </div>
+                                </Authorized>
+                            </AuthorizeView>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    CodCteDTO codCte { get; set; } = new CodCteDTO();
+
+    IEnumerable<Cliente> Clientes { get; set; } = new List<Cliente>();
+    Cliente Cliente { get; set; } = new Cliente();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetClientes();
+    }
+
+    private async Task GetClientes()
+    {
+        try
+        {
+            var response = await repositorio.Get<IEnumerable<Cliente>>("api/clientes/all");
+            if (response.Error)
+            {
+                var responseHttp = await response.ObtenerMensajeError();
+                await swal.FireAsync("Error", responseHttp, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Clientes = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task PutClientes()
+    {
+        try
+        {
+            codCte.cliente.CodCte = codCte.CodCte;
+            var response = await repositorio.Put<Cliente>("api/clientes", codCte.cliente);
+            if (response.Error)
+            {
+                var responseHttp = await response.ObtenerMensajeError();
+                await swal.FireAsync("Error", responseHttp, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await swal.FireAsync("Exito", "Cliente modificado.", SweetAlertIcon.Success);
+
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+}

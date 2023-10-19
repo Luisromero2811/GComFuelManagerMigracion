@@ -1,0 +1,16 @@
+﻿@page "/logout"
+@using GComFuelManager.Client.Auth;
+@inject ILoginService loginService
+@inject NavigationManager navigationManager
+
+<p>Deslogueando...</p>
+
+@code {
+    //Al correr la funcion de deslogueo, lo aplicamos de forma directa con el ciclo de vida OnInitialized
+    protected override async Task OnInitializedAsync()
+    {
+        await loginService.Logoute();
+        navigationManager.NavigateTo("/login");
+    }
+}
+

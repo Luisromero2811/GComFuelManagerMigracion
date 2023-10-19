@@ -6,10 +6,10 @@
 @inject NotificationService ms
 @inject ContactoInternoValidation validator
 
-@attribute [Authorize(Roles = "Admin, Administrador Sistema, Administrador de Usuarios, Direccion, Gerencia")]
+@attribute [Authorize(Roles = "Admin, Administrador Sistema, Administrador de Usuarios, Direccion, Gerencia, Ejecutivo de Cuenta Comercial")]
 
 <h4><b>Configurar Correo</b></h4>
-<AuthorizeView Roles="Admin, Administrador Sistema, Administrador de Usuarios">
+<AuthorizeView Roles="Admin, Administrador Sistema, Administrador de Usuarios, Ejecutivo de Cuenta Comercial">
     <div class="col-12 d-flex justify-content-center">
         <EditForm Model="@Contacto" class="form col-12" OnValidSubmit="@PostContacto" Context="validation">
             <FluentValidationValidator Validator="validator" />
@@ -20,7 +20,7 @@
                     <div class="col-12 mb-3 row">
                         <div class="col-5">
                             <label class="form-label">Nombre</label>
-                            <InputText class="form-control" @bind-Value="Contacto.Nombre" />
+                            <InputText class="form-control" @bind-Value="Contacto.Nombre" MaxLenght="260"/>
                         </div>
                         <div class="col-5">
                             <label class="form-label">Correo</label>
@@ -48,7 +48,7 @@
                         <div class="col-12">
                             <label>Acciones:</label>
                             <!--Selector Multiple de Radzen-->
-                            <RadzenDropDown @bind-Value="Contacto.accione" Data="Acciones" TextProperty="Nombre"
+                            <RadzenDropDown @bind-Value="Contacto.Accions" Data="Acciones" TextProperty="Nombre"
                                             Multiple=true AllowClear=true Placeholder="Seleccione las acciones" Chips=true class="col-12"></RadzenDropDown>
                         </div>
                     </div>
@@ -58,7 +58,7 @@
         </EditForm>
     </div>
 </AuthorizeView>
-<AuthorizeView Roles="Admin, Administrador Sistema, Administrador de Usuarios, Direccion, Gerencia" Context="Contacts">
+<AuthorizeView Roles="Admin, Administrador Sistema, Administrador de Usuarios, Direccion, Gerencia, Ejecutivo de Cuenta Comercial" Context="Contacts">
     <div class="col-12 d-flex justify-content-center">
         <RadzenDataGrid TItem="Contacto" Data="@Contactos" AllowColumnResize="true" AllowVirtualization="true" AllowPickAllColumns="true"
                         GridLines="DataGridGridLines.Both" class="rz-my-12 ancho" Style="height:500px;" ColumnResized="@(()=>grid!.Reset())"
@@ -78,7 +78,7 @@
                         </div>
                     </Template>
                 </RadzenDataGridColumn>
-                <AuthorizeView Roles="Admin, Administrador Sistema, Administrador de Usuarios">
+                <AuthorizeView Roles="Admin, Administrador Sistema, Administrador de Usuarios, Ejecutivo de Cuenta Comercial">
                     <RadzenDataGridColumn TItem="Contacto" Title="Editar" Width="200px" OrderIndex="4">
                         <Template Context="item">
                             <div class="col-12 ">
@@ -141,7 +141,7 @@
             Contacto = contacto;
             foreach (var item in contacto.AccionCorreos)
             {
-                AccionesSeleccionadas.Add(item.Accion);
+                Contacto.Accions.Add(item.Accion);
             }
         }
         catch (Exception e)

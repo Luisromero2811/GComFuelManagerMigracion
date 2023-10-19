@@ -7,11 +7,15 @@
             <NotAuthorized>
                 @if (!context.User.Identity!.IsAuthenticated)
                 {
-                    <Login/>
+                    <Login />
                 }
                 else
                 {
-                    <p>No estas autorizado</p>
+                    <LayoutView Layout="@typeof(FullPageComponent)">
+                        <NotAuthorizedPage />
+                    </LayoutView>
+                    @*<p>No estas autorizado</p>*@
+
                 }
             </NotAuthorized>
         </AuthorizeRouteView>
@@ -21,29 +25,8 @@
         <CascadingAuthenticationState>
             <PageTitle>Not found</PageTitle>
             <LayoutView Layout="@typeof(FullPageComponent)">
-                <p role="alert">Sorry, there's nothing at this address.</p>
-                @*<head>
-                    <meta charset="utf-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1">
-                    <title>Simple Pure CSS3 404 Error Page</title>
-                    <link rel="stylesheet" media="all" href="./wwwroot/css/404-401.css" />
-                </head>
-                <body>
-                    <body>
-                        <section id="not-found">
-                            <div id="title">Simple Pure CSS3 &bull; 404 Error Page</div>
-                            <div class="circles">
-                                <p>
-                                    404<br>
-                                    <small>PAGE NOT FOUND</small>
-                                </p>
-                                <span class="circle big"></span>
-                                <span class="circle med"></span>
-                                <span class="circle small"></span>
-                            </div>
-                        </section>
-                    </body>
-                </body>*@
+                @*<p role="alert">Sorry, there's nothing at this address.</p> <NotFoundPage/>*@
+                <NotFoundPage />
             </LayoutView>
         </CascadingAuthenticationState>
     </NotFound>

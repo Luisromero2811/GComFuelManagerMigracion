@@ -1,0 +1,319 @@
+﻿@page "/confirm-cierre"
+@inject IRepositorio http
+@inject SweetAlertService Swal
+@inject IJSRuntime js
+@inject NotificationService ns
+
+@attribute [Authorize(Roles = "Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial")]
+
+<h3>Confirmar pedido de clientes</h3>
+
+<div class="col-12 d-flex justify-content-center">
+    <div class="col-10 shadow-sm card">
+        <div class="col-12 card-body">
+            <div class="col-12">
+                <label><b>Filtro entre fechas:</b></label>
+                <div class="col-12 row">
+                    <div class="col-4 mb-3">
+                        <label>Del:</label>
+                        <InputDate class="form-control col-12" Type="InputDateType.DateTimeLocal" @bind-Value:format="yyyy-MM-dd hh:mm:ss" @bind-Value="@fechas.DateInicio" />
+                    </div>
+                    <div class="col-4 mb-3">
+                        <label>A:</label>
+                        <InputDate class="form-control col-12" Type="InputDateType.DateTimeLocal" @bind-Value:format="yyyy-MM-dd hh:mm:ss" @bind-Value="@fechas.DateFin" />
+                    </div>
+                    <div class="col-4 d-flex mt-1">
+                        <button class="btn gcom-bg-amarillo col-12 my-auto" @onclick="@MostrarOrdenFecha">
+                            <i class="fa fa-solid fa-eye"></i> <b>Mostrar ordenes</b>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<RadzenDataGrid TItem="OrdenCierre" Data="@OrdenCierres" AllowColumnResize="true" AllowVirtualization="false" SelectionMode="DataGridSelectionMode.Multiple" AllowPickAllColumns="true"
+                GridLines="DataGridGridLines.Both" class="rz-my-6 ancho" Style="height:600px;" @bind-Value="OrdenesSeleccionadas" AllowRowSelectOnRowClick="false" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                IsLoading="loading" Density="Density.Default" @ref="@grid" AllowSorting="true" AllowColumnPicking="true" AllowFiltering="true" Culture="CultureInfo.CurrentCulture"
+                @bind-Settings="@Settings" AllowGrouping="true" HideGroupedColumn="true">
+    <Columns>
+        <AuthorizeView Roles="Admin, Administrador Usuario, Ejecutivo de Cuenta Comercial" Context="EdicionUnidades">
+            <RadzenDataGridColumn TItem="OrdenCierre" Width="60px" Sortable="false" Filterable="false" OrderIndex="1">
+                <HeaderTemplate>
+                    <RadzenCheckBox TriState="false" TValue="bool" Value="@(OrdenCierres.Any(i => OrdenesSeleccionadas!= null && OrdenesSeleccionadas.Contains(i)))"
+                                    Change="@(args => OrdenesSeleccionadas = args ? OrdenCierres.ToList() : new List<OrdenCierre>())" />
+                </HeaderTemplate>
+                <Template Context="data">
+                    <RadzenCheckBox TriState="false" Value="@(OrdenesSeleccionadas.Contains(data))"
+                                    TValue="bool" Change="@((bool args) => ToggleCheck(args, data))" />
+                </Template>
+            </RadzenDataGridColumn>
+        </AuthorizeView>
+        <RadzenDataGridColumn TItem="OrdenCierre" Title="Fecha de cierre" Property="FchCierre" FormatString="{0:d}" Filterable="false" Width="140px" OrderIndex="2" />
+        <RadzenDataGridColumn TItem="OrdenCierre" Title="Folio de pedido" Property="Folio" Width="150px" Filterable="false" OrderIndex="3"/>
+        <RadzenDataGridColumn TItem="OrdenCierre" Title="Grupo" Property="Grupo.Den" Width="150px" OrderIndex="3" />
+        <RadzenDataGridColumn TItem="OrdenCierre" Title="Cliente" FilterValue="ClienteSeleccionado" Property="Destino.Cliente.Den" Width="200px" OrderIndex="4" >
+            <FilterTemplate Context="Cliente">
+                <RadzenDropDown Data="ClienteList" @bind-Value="ClienteSeleccionado" AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                    <ValueTemplate Context="data">
+                        <InputText class="form-control col-12" @bind-Value="ClienteSeleccionado" MaxLength="190" />
+                    </ValueTemplate>
+                </RadzenDropDown>
+            </FilterTemplate>
+            <Template Context="data">
+                <div>
+                    @data?.Cliente?.Den
+                </div>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="OrdenCierre" Title="Destino" Property="Destino.Den" Width="220px" FilterValue="DestinosSeleccionados" OrderIndex="5">
+            <FilterTemplate Context="Destinos">
+                <RadzenDropDown Data="DestinoList" @bind-Value="DestinosSeleccionados" AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                    <ValueTemplate Context="data">
+                        <InputText class="form-control col-12" @bind-Value="DestinosSeleccionados" MaxLength="190" />
+                    </ValueTemplate>
+                </RadzenDropDown>
+            </FilterTemplate>
+            <Template Context="data">
+                <div>
+                    @data?.Destino?.Den
+                </div>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="OrdenCierre" Title="Producto" Property="Producto.Den" Width="200px" OrderIndex="6" FilterValue="ProductoSeleccionado">
+            <FilterTemplate Context="Productos">
+                <RadzenDropDown Data="ProductoList" @bind-Value="ProductoSeleccionado" AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                    <ValueTemplate Context="data">
+                        <InputText class="form-control col-12" @bind-Value="ProductoSeleccionado" MaxLength="190" />
+                    </ValueTemplate>
+                </RadzenDropDown>
+            </FilterTemplate>
+            <Template Context="data">
+                <div>
+                    @data?.Producto?.Den
+                </div>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="OrdenCierre" Title="Volumen" Width="100px" FormatString="{0:N2}" Filterable="false" OrderIndex="7">
+            <Template Context="data">
+                <div class="col-12">
+                    @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", @data.Volumen)
+                </div>
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+<AuthorizeView Roles="Admin, Administrador Usuario, Ejecutivo de Cuenta Comercial" Context="AccionConfirm">
+    <div class="card col-12 shadow-sm">
+        <div class="col-12 row card-body">
+            <div class="col-3">
+                <button class="btn col-12 gcom-bg-amarillo" @onclick="@ConfirmPedido">
+                    <i class="fa fa-solid fa-check"></i>
+                    <b>Confirmar Cierres</b>
+                    @if (loadingConfirm)
+                    {
+                        <SpinnerLoading></SpinnerLoading>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+</AuthorizeView>
+
+<style type="text/css">
+    .ancho {
+        width: @TotalWidth;
+    }
+</style>
+@code {
+
+    OrdenCierre OrdenCierre { get; set; } = new OrdenCierre();
+    IList<OrdenCierre> OrdenCierres { get; set; } = new List<OrdenCierre>();
+    IList<OrdenCierre> OrdenesSeleccionadas { get; set; } = new List<OrdenCierre>();
+
+    DataGridSettings _settings;
+    DataGridSettings Settings { get { return _settings; } set { if (_settings != value) { _settings = value; InvokeAsync(SaveStateAsync); } } }
+
+    bool loading = false;
+    bool loadingConfirm = false;
+
+    private RadzenDataGrid<OrdenCierre>? grid = new RadzenDataGrid<OrdenCierre>();
+
+    private string ClienteSeleccionado = string.Empty;
+    private IEnumerable<string?> ClienteList { get; set; } = new List<string>();
+
+    private string DestinosSeleccionados = string.Empty;
+    private IEnumerable<string?> DestinoList { get; set; } = new List<string>();
+
+    private string ProductoSeleccionado = string.Empty;
+    private IEnumerable<string?> ProductoList { get; set; } = new List<string>();
+
+    int width = 0;
+    string TotalWidth = string.Empty;
+
+    FechasF fechas = new FechasF();
+
+    protected override async Task OnInitializedAsync()
+    {
+        width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 360;
+        if (width < 0)
+            width = 500;
+        TotalWidth = $"{width}px";
+        await LoadStateAsync();
+    }
+
+    private async Task SaveStateAsync()
+    {
+        try
+        {
+            await Task.CompletedTask;
+            await js.SetItemLocalStorage("settingConfirmCierre", JsonConvert.SerializeObject(Settings));
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async void ToggleCheck(bool args, OrdenCierre orden)
+    {
+        try
+        {
+            if (args)
+                OrdenesSeleccionadas.Add(orden);
+            else
+                OrdenesSeleccionadas.Remove(orden);
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    public async Task MostrarOrdenFecha()
+    {
+        try
+        {
+            loading = true;
+            StateHasChanged();
+
+            var responseHttp = await http.Post<FechasF, IList<OrdenCierre>>($"api/cierre/filtrar/pendientes", fechas);
+
+            if (responseHttp.Error)
+            {
+                loading = false;
+                var respuestaHttp = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", respuestaHttp, SweetAlertIcon.Error);
+            }
+            else
+            {
+                loading = false;
+                OrdenCierres = responseHttp.Response;
+                OrdenesSeleccionadas = new List<OrdenCierre>();
+
+                DestinoList = OrdenCierres?.DistinctBy(x => x?.Destino?.Den).Select(x => x?.Destino?.Den)!;
+                ProductoList = OrdenCierres?.DistinctBy(x => x?.Producto?.Den).Select(x => x?.Producto?.Den)!;
+                ClienteList = OrdenCierres?.DistinctBy(x => x?.Destino?.Cliente?.Den).Select(x => x?.Destino?.Cliente?.Den)!;
+            }
+        }
+        catch (Exception e)
+        {
+            loading = false;
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private async Task LoadStateAsync()
+    {
+        try
+        {
+            await Task.CompletedTask;
+            var result = await js.GetItemLocalStorage("settingConfirmCierre");
+            if (!string.IsNullOrEmpty(result))
+            {
+                _settings = JsonConvert.DeserializeObject<DataGridSettings>(result)!;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task ConfirmPedido()
+    {
+        loadingConfirm = true;
+        try
+        {
+            if (OrdenesSeleccionadas.Count != 0)
+            {
+                var response = await http.Post<IList<OrdenCierre>>("api/pedido/confirm", OrdenesSeleccionadas);
+                if (response.Error)
+                {
+                    loadingConfirm = false;
+                    string? message = await response.ObtenerMensajeError();
+                    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    loadingConfirm = false;
+
+                    ns.Notify(new NotificationMessage
+                        {
+                            Severity = NotificationSeverity.Info,
+                            Summary = "Cierres autorizados",
+                            Detail = "Se han autorizado los cierres seleccionados.",
+                            Duration = 10000
+                        });
+
+                    //ns.Notify(new NotificationMessage
+                    //    {
+                    //        Severity = NotificationSeverity.Info,
+                    //        Summary = "Enviando correos",
+                    //        Detail = "Se estan enviando los correos de autorizacion. Permanezca en esta pantalla hasta terminar el proceso.",
+                    //        Duration = 10000
+                    //    });
+                    //var responseEmail = await http.Post<IList<OrdenCierre>>("api/email/confirmorden", OrdenesSeleccionadas);
+                    //if (responseEmail.Error)
+                    //{
+                    //    loading = false;
+                    //    var message = await responseEmail.ObtenerMensajeError();
+                    //    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                    //}
+                    //else
+                    //{
+                    //    loading = false;
+                    //    await Swal.FireAsync("Exito", "Correos enviados", SweetAlertIcon.Success);
+                    //}
+
+                    //await Swal.FireAsync("Folio", response.Response.den, SweetAlertIcon.Info);
+                    ClearGridData();
+                }
+            }
+            else
+            {
+                loadingConfirm = false;
+                await Swal.FireAsync("Advertencia", "Debe tener ordenes para poder confirmarlas", SweetAlertIcon.Warning);
+            }
+        }
+        catch (Exception e)
+        {
+            loadingConfirm = false;
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private void ClearGridData()
+    {
+        foreach (var item in OrdenesSeleccionadas)
+        {
+            OrdenCierres.Remove(item);
+        }
+        OrdenesSeleccionadas = new List<OrdenCierre>();
+        StateHasChanged();
+    }
+}

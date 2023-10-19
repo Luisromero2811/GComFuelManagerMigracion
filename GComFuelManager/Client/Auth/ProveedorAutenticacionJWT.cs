@@ -100,7 +100,7 @@ namespace GComFuelManager.Client.Auth
 
         private async Task<string> RenovarToken(string token)
         {
-            Console.WriteLine("Renovando Token");
+            //Console.WriteLine("Renovando Token");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             var nuevoTokenResponse = await repositorio.Get<UserTokenDTO>("api/cuentas/renovarToken");

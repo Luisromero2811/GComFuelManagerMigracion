@@ -19,7 +19,7 @@
                         <div class="col-12 row">
                             <div class="col-6">
                                 <label class="form-label">Zona</label>
-                                <InputText @bind-Value="Zona.Nombre" class="form-control" />
+                                <InputText @bind-Value="Zona.Nombre" class="form-control" MaxLenght="20"/>
                             </div>
                             <div class="col-3 d-flex">
                                 <button class="col-12 btn gcom-bg-amarillo mt-auto" type="submit">
@@ -29,13 +29,13 @@
                             </div>
                         </div>
                     </EditForm>
-                    <EditForm Model="@zonaDto" class="form col-12" OnValidSubmit="@SaveAsignacion" Context="ZonaClientes">
+                    <EditForm Model="@Zsona" class="form col-12" OnValidSubmit="@SaveAsignacion" Context="ZonaClientes">
                         <FluentValidationValidator Validator="validate" />
                         <ValidationSummary />
                         <div class="col-12 row mb-3">
                             <div class="col-4 mb-2">
                                 <label class="form-label">Zona</label>
-                                <InputSelect @bind-Value="zonaDto.ZonaCod" class="form-select">
+                                <InputSelect @bind-Value="Zsona.ZonaCod" class="form-select">
                                     <option>-- Selecciona una opcion --</option>
                                     @if (Zonas is null)
                                     {
@@ -56,7 +56,7 @@
                             </div>
                             <div class="col-4 mb-2">
                                 <label class="form-label">Grupo</label>
-                                <InputSelect @bind-Value="zonaDto.codgru" class="form-select" onchange="@GetClientes()">
+                                <InputSelect @bind-Value="Zsona.Codgru" class="form-select" onchange="@GetClientes()">
                                     <option>-- Selecciona una opcion --</option>
                                     @if (Grupos is null)
                                     {
@@ -77,7 +77,7 @@
                             </div>
                             <div class="col-4 mb-2">
                                 <label class="form-label">Cliente</label>
-                                <InputSelect @bind-Value="zonaDto.CteCod" class="form-select" onchange="@GetEstaciones()">
+                                <InputSelect @bind-Value="Zsona.CteCod" class="form-select" onchange="@GetEstaciones()">
                                     <option>-- Selecciona una opcion --</option>
                                     @if (Clientes is null)
                                     {
@@ -98,7 +98,7 @@
                             </div>
                             <div class="col-4 mb-2">
                                 <label class="form-label">Destino</label>
-                                <InputSelect @bind-Value="zonaDto.DesCod" class="form-select">
+                                <InputSelect @bind-Value="Zsona.DesCod" class="form-select">
                                     <option>-- Selecciona una opcion --</option>
                                     @if (Destinos is null)
                                     {
@@ -140,16 +140,16 @@
 <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia">
     <div class="col-12 d-flex justify-content-center">
         <RadzenDataGrid TItem="ZonaCliente" Data="@ZonaCliente" AllowColumnResize="true" AllowVirtualization="true" AllowPickAllColumns="true"
-                        GridLines="DataGridGridLines.Both" class="rz-my-12 ancho" Style="height:500px;"
-                        IsLoading="loading" @ref="@grid" AllowSorting="true" AllowColumnPicking="true">
+                        GridLines="DataGridGridLines.Both" class="rz-my-12 ancho" Style="height:500px;" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        IsLoading="loading" @ref="@grid" AllowSorting="true" AllowColumnPicking="true" AllowFiltering="true" FilterMode="FilterMode.Simple" Culture="CultureInfo.CurrentCulture" SelectionMode="DataGridSelectionMode.Single">
             <Columns>
                 <AuthorizeView Roles="Admin, Administrador Sistema" Context="EditarZonas">
-                    <RadzenDataGridColumn TItem="ZonaCliente" Title="Acciones" OrderIndex="1">
+                    <RadzenDataGridColumn TItem="ZonaCliente" Title="Acciones" OrderIndex="1" Filterable="false">
                         <Template Context="item">
                             <AuthorizeView Roles="Admin, Administrador Sistema" Context="Actions">
                                 <Authorized>
                                     <div class="col">
-                                        <button class="btn btn-primary col-12" @onclick="@(()=>SetEdit(item))"><i class="fa fa-solid fa-pen-to-square"></i></button>
+                                        <button class="btn btn-primary col-12" @onclick="@(() => SetEdit(item))"><i class="fa fa-solid fa-pen-to-square"></i></button>
                                     </div>
                                 </Authorized>
                             </AuthorizeView>
@@ -157,11 +157,11 @@
                         </Template>
                     </RadzenDataGridColumn>
                 </AuthorizeView>
-                <RadzenDataGridColumn TItem="ZonaCliente" Title="Zona" Property="Zona.Nombre" OrderIndex="2" />
-                <RadzenDataGridColumn TItem="ZonaCliente" Title="Cliente" Property="Cliente.Den" OrderIndex="3" />
-                <RadzenDataGridColumn TItem="ZonaCliente" Title="Destino" Property="Destino.Den" OrderIndex="4" />
+                <RadzenDataGridColumn TItem="ZonaCliente" Title="Zona" Property="Zona.Nombre" OrderIndex="2" Filterable="false"/>
+                <RadzenDataGridColumn TItem="ZonaCliente" Title="Cliente" Property="Cliente.Den" OrderIndex="3" Filterable="true"/>
+                <RadzenDataGridColumn TItem="ZonaCliente" Title="Destino" Property="Destino.Den" OrderIndex="4" Filterable="true"/>
                 <AuthorizeView Roles="Admin, Administrador Sistema" Context="Accion">
-                    <RadzenDataGridColumn TItem="ZonaCliente" Title="Habilitar / Deshabilitar" Width="200px" OrderIndex="5">
+                    <RadzenDataGridColumn TItem="ZonaCliente" Title="Habilitar / Deshabilitar" Width="200px" OrderIndex="5" Filterable="false">
                         <Template Context="data">
                             <div class="col-12">
                                 <div class="form-check form-switch m-2">
@@ -182,17 +182,24 @@
     private bool isEdit = false;
 
     private Zona Zona { get; set; } = new Zona();
+
     private List<Zona> Zonas { get; set; } = new List<Zona>();
     private List<ZonaCliente> ZonaCliente { get; set; } = new List<ZonaCliente>();
+    private List<ZonaDTO> ZonasClientes { get; set; } = new List<ZonaDTO>();
+
+
     private RadzenDataGrid<ZonaCliente> grid { get; set; } = new RadzenDataGrid<ZonaCliente>();
-    private ZonaCliente zonaCliente { get; set; } = new ZonaCliente() { Cliente = new Cliente() };
+    //private ZonaCliente zonaCliente { get; set; } = new ZonaCliente() { Cliente = new Cliente() };
+    private ZonaDTO zonasCliente { get; set; } = new ZonaDTO() { Cliente = new Cliente() };
+    //Listas de obtencion de datos
     private List<Grupo> Grupos { get; set; } = new List<Grupo>();
     private List<CodDenDTO> Clientes { get; set; } = new List<CodDenDTO>();
     private List<CodDenDTO> Destinos { get; set; } = new List<CodDenDTO>();
-
+    //Elementos seleccionados
     private short? GrupoSeleccionado = 0;
     private int? ClienteSeleccionado = 0;
 
+    ZonaCliente Zsona { get; set; } = new ZonaCliente() { Cliente = new Cliente() };
     ZonaDTO zonaDto { get; set; } = new ZonaDTO();
 
     protected async override Task OnInitializedAsync()
@@ -229,7 +236,11 @@
     {
         try
         {
-            zonaCliente = item;
+            Zsona.Codgru = Zsona.Cliente.codgru;
+            Zsona = item;
+            StateHasChanged();
+            Zsona.Codgru = Zsona.Cliente.codgru;
+            Zsona = item;
             isEdit = true;
         }
         catch (Exception e)
@@ -310,9 +321,9 @@
     {
         try
         {
-            if (zonaDto.codgru != GrupoSeleccionado && zonaDto.codgru != null)
+            if (Zsona.Codgru != GrupoSeleccionado && Zsona.Codgru != null)
             {
-                var response = await http.Get<List<CodDenDTO>>($"api/cliente/{zonaDto.codgru}");
+                var response = await http.Get<List<CodDenDTO>>($"api/cliente/{Zsona.Codgru}");
                 if (response.Error)
                 {
                     var message = await response.ObtenerMensajeError();
@@ -320,7 +331,7 @@
                 }
                 else
                 {
-                    GrupoSeleccionado = zonaDto.codgru;
+                    GrupoSeleccionado = Zsona.Codgru;
                     Clientes = response.Response;
                     StateHasChanged();
                 }
@@ -337,9 +348,9 @@
     {
         try
         {
-            if (zonaDto.CteCod != null && ClienteSeleccionado != zonaDto.CteCod)
+            if (Zsona.CteCod != null && ClienteSeleccionado != Zsona.CteCod)
             {
-                var response = await http.Get<List<CodDenDTO>>($"api/estacion/{zonaDto.CteCod}");
+                var response = await http.Get<List<CodDenDTO>>($"api/estacion/{Zsona.CteCod}");
                 if (response.Error)
                 {
                     var responseHttp = await response.ObtenerMensajeError();
@@ -348,7 +359,7 @@
                 else
                 {
                     Destinos = response.Response;
-                    ClienteSeleccionado = zonaDto.CteCod;
+                    ClienteSeleccionado = Zsona.CteCod;
                     StateHasChanged();
                 }
             }
@@ -364,10 +375,10 @@
         try
         {
             loadingSave = true;
-            zonaCliente.DesCod = zonaDto.DesCod;
-            zonaCliente.CteCod = zonaDto.CteCod;
-            zonaCliente.ZonaCod = zonaDto.ZonaCod;
-            var response = await http.Post<ZonaCliente>("api/zona/asignacion", zonaCliente);
+            zonaDto.DesCod = zonaDto.DesCod;
+            zonaDto.CteCod = zonaDto.CteCod;
+            zonaDto.ZonaCod = zonaDto.ZonaCod;
+            var response = await http.Post<ZonaCliente>("api/zona/asignacion", Zsona);
             if (response.Error)
             {
                 loadingSave = false;
@@ -381,7 +392,7 @@
                 await Swal.FireAsync("Exito", "Relacion con zona guardada.", SweetAlertIcon.Success);
                 if (isEdit == true)
                 {
-                    zonaCliente = new ZonaCliente() { Cliente = new Cliente() };
+                    Zsona = new ZonaCliente() { Cliente = new Cliente() };
                     isEdit = false;
                     StateHasChanged();
                 }

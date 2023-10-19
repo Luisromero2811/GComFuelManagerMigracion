@@ -14,9 +14,14 @@ namespace GComFuelManager.Shared.Modelos
         [JsonProperty("fchPro")] public DateTime? FchPro { get; set; }
         [JsonProperty("codtad")] public Int16? Codtad { get; set; } = 1;
         [JsonProperty("codprd")] public byte? Codprd { get; set; }
-        [JsonProperty("vol"), EpplusIgnore] public double? Vol { get; set; } = 0;
+
+        [JsonProperty("vol"), DisplayName("Volumen"), EpplusIgnore]
+        public double? Vol { get; set; } = 0;
         [DisplayName("Volumen")]
-        public string Volumenes { get { return Vol.Value.ToString("N2"); } }
+        public string Volumenes { get { return string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}",  Vol); } }
+
+
+
         [JsonProperty("codchf")] public int? Codchf { get; set; }
         [JsonProperty("coddes")] public int? Coddes { get; set; }
         [JsonProperty("codest")] public byte? Codest { get; set; }
@@ -51,5 +56,7 @@ namespace GComFuelManager.Shared.Modelos
         [NotMapped] public Transportista? Transportista { get; set; } = null!;
 
         [NotMapped] public OrdenCierre? OrdenCierre { get; set; } = null!;
+        [NotMapped] public OrdenPedido? OrdenPedido { get; set; } = null!;
+        [NotMapped] public int? Compartimento { get; set; } = null!;
     }
 }

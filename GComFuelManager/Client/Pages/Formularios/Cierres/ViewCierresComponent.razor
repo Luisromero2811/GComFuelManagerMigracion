@@ -1,0 +1,264 @@
+﻿@inject IRepositorio repositorio
+@inject SweetAlertService Swal
+@inject DialogService ds
+@inject IJSRuntime js
+
+<div class="col-12 row">
+    <div class="col-8">
+        <label><b>Filtro de cierres de órdenes</b></label>
+    </div>
+</div>
+<div class="col-12 row">
+    <div class="col-2 mb-2">
+        <div class="col-12">
+            <label>Grupo empresarial</label>
+            <RadzenDropDown Data="Grupos" class="col-12" TextProperty="Den" ValueProperty="Cod" @bind-Value="fechas.codGru"
+                            AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            AllowVirtualization="true" Change="@GetClientes" AllowClear="true" />
+        </div>
+    </div>
+    <div class="col-2 mb-2">
+        <div class="col-12">
+            <label>Cliente</label>
+            <RadzenDropDown Data="ClientesFiltro" class="col-12" TextProperty="Den" ValueProperty="Cod" @bind-Value="fechas.codCte"
+                            AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            AllowVirtualization="true" AllowClear="true" />
+        </div>
+    </div>
+    <div class="col-2 mb-2">
+        <label>Del:</label>
+        <InputDate class="form-control col-12" Type="InputDateType.DateTimeLocal" @bind-Value="fechas.FchInicio" @bind-Value:format="yyyy-MM-dd hh:MM:ss" />
+    </div>
+    <div class="col-2 mb-2">
+        <label>A:</label>
+        <InputDate class="form-control col-12" Type="InputDateType.DateTimeLocal" @bind-Value="fechas.FchFin" @bind-Value:format="yyyy-MM-dd hh:MM:ss" />
+    </div>
+    <div class="col-2 mb-2">
+        <label></label>
+        <button class="col-12 btn gcom-bg-amarillo" @onclick="@GetCierresActivos">
+            <i class="fa fa-solid fa-magnifying-glass"></i> Buscar
+        </button>
+    </div>
+    <div class="col-2 mb-2">
+        <label></label>
+        <button class="col-12 btn gcom-bg-amarillo" @onclick="@ExportExcell">
+            <i class="fa fa-solid fa-file-excel"></i> Exportar
+        </button>
+    </div>
+</div>
+<RadzenDataGrid TItem="FolioCierreDTO" Data="@Folios" AllowColumnResize="true" AllowVirtualization="true" AllowPickAllColumns="true"
+                GridLines="DataGridGridLines.Both" Style="height:600px;" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                IsLoading="loading" @ref="@grid" AllowSorting="true" AllowFiltering="true" AllowColumnPicking="true">
+    <Columns>
+        <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Fecha de Cierre" Property="FchCierre" FormatString="{0:d}" Filterable="false" Width="140px" />
+        <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Folio del cierre" Property="Folio" Filterable="false" Width="200px;" />
+        <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Grupo" Property="Grupo" Filterable="false">
+            <Template Context="data">
+                @(data.Grupo is not null ? data.Grupo.Den : "Sin Grupo")
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Cliente" Filterable="false">
+            <Template Context="data">
+                @(data.cliente is not null ? data.cliente.Den : "Sin clientes")
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Destino" Filterable="false">
+            <Template Context="data">
+                @(data.destino is not null ? data.destino.Den : "Sin destino")
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Producto" FilterValue="ProductoSeleccionado" Property="Producto.Den">
+            @*<FilterTemplate Context="filter">
+                <RadzenDropDown Data="ProductList" @bind-Value="ProductoSeleccionado" AllowFiltering="true" AllowClear="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                    <ValueTemplate Context="data">
+                        <InputText class="form-control col-12" @bind-Value="ProductoSeleccionado" MaxLength="190" />
+                    </ValueTemplate>
+                </RadzenDropDown>
+            </FilterTemplate>*@
+            <Template Context="data">
+                <div class="col-12 row">
+                    <div class="col-1">
+                        @if (data.Producto.Cod == 25 || data.Producto.Cod == 26 || data.Producto.Cod == 27)
+                        {
+                            <div class="badge rounded-pill regular">&nbsp;</div>
+                        }
+                        else if (data.Producto.Cod == 11 || data.Producto.Cod == 12 || data.Producto.Cod == 116)
+                        {
+                            <div class="badge rounded-pill regular-vdm">&nbsp;</div>
+                        }
+                        else if (data.Producto.Cod == 19 || data.Producto.Cod == 20 || data.Producto.Cod == 21)
+                        {
+                            <div class="badge rounded-pill premium">&nbsp;</div>
+                        }
+                        else
+                        {
+                            <div class="badge rounded-pill diesel">&nbsp;</div>
+                        }
+                    </div>
+                    <div class="col-11">
+                        @data.Producto?.Den
+                    </div>
+                </div>
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+
+@code {
+    [Parameter] public bool isStatus { get; set; } = false;
+
+    CierreDiarioDTO fechas { get; set; } = new CierreDiarioDTO();
+    private List<CodDenDTO> ClientesFiltro { get; set; } = null!;
+    private IEnumerable<Grupo> Grupos { get; set; } = null!;
+    private short? GrupoSeleccionadoB = 0;
+
+    private string ProductoSeleccionado = string.Empty;
+    private IEnumerable<string> ProductList { get; set; } = new List<string>();
+
+    private string DestinoSeleccionado = string.Empty;
+    private IEnumerable<string> DestinoList { get; set; } = new List<string>();
+
+    private List<FolioCierreDTO> Folios { get; set; } = new List<FolioCierreDTO>();
+    RadzenDataGrid<FolioCierreDTO> grid { get; set; } = new RadzenDataGrid<FolioCierreDTO>();
+
+    bool loading = false;
+
+    List<FolioCierreDTO> SeguimientoCierre { get; set; } = new List<FolioCierreDTO>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetGrupos();
+    }
+
+    private async Task GetGrupos()
+    {
+        try
+        {
+            var httpResponse = await repositorio.Get<IEnumerable<Grupo>>("api/grupo/all");
+            if (httpResponse.Error)
+            {
+                var message = await httpResponse.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Grupos = httpResponse.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private async Task GetClientes()
+    {
+        try
+        {
+            if (fechas.codGru != null && GrupoSeleccionadoB != fechas.codGru)
+            {
+                var httpResponse = await repositorio.Get<List<CodDenDTO>>($"api/cliente/{fechas.codGru}");
+                if (httpResponse.Error)
+                {
+                    var message = await httpResponse.ObtenerMensajeError();
+                    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    GrupoSeleccionadoB = fechas.codGru;
+                    ClientesFiltro = httpResponse.Response;
+                    StateHasChanged();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    public async Task GetCierresActivos()
+    {
+        try
+        {
+            var responseHttp = await repositorio.Post<CierreDiarioDTO, List<FolioCierreDTO>>("api/cierre/cierrefolio/detalle", fechas);
+            if (responseHttp.Error)
+            {
+                var message = await responseHttp.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Folios = responseHttp.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task ExportExcell()
+    {
+        try
+        {
+            //var responseHttp = await repositorio.Post<CierreDiarioDTO, List<FolioCierreDTO>>("api/cierre/reportecierre/detalle", fechas);
+            //if (responseHttp.Error)
+            //{
+            //    var message = await responseHttp.ObtenerMensajeError();
+            //    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            //}
+            //else
+            //{
+            if (Folios != null)
+            {
+                //foreach(var item in Folios)
+                //SeguimientoCierre.Add(new FolioCierreDTO
+                //{
+                //    Folio = item.Folio,
+                //    FchCierre = item.FchCierre,
+                //    NGrupo = item.Grupo.Den,
+                //    NCliente = item.cliente.Den,
+                //    NDestino = item.destino.Den,
+                //    NProducto = item.Producto.Den
+
+                //});
+                ExcelPackage.LicenseContext = LicenseContext.Commercial;
+                var excel = new ExcelPackage();
+                var ws = excel.Workbook.Worksheets.Add("Cierres");
+                ws.Columns.Width = 70;
+                ws.Columns.AutoFit();
+
+                var header = ws.Cells["A1:F1"];
+                // var ordenFilter = new List<FolioCierreDTO>();
+                var tablebody = ws.Cells["A1:A1"].LoadFromCollection(
+                    Folios
+                    , true);
+                tablebody.Style.Font.Size = 14;
+                tablebody.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                tablebody.Style.Font.Bold = true;
+                header.Style.Font.Size = 14;
+
+                header.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                header.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+                header.Style.Font.Bold = true;
+                await js.GuardarComo($"Cierre_{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}.xlsx", excel.GetAsByteArray());
+            }
+            else
+            {
+                await Swal.FireAsync("Alerta", "Debe de tener datos filtrados para poder exportar");
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+}
+

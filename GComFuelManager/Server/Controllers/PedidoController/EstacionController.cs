@@ -1,4 +1,5 @@
 ﻿using GComFuelManager.Shared.DTOs;
+using GComFuelManager.Shared.Modelos;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -20,7 +21,7 @@ namespace GComFuelManager.Server.Controllers
         }
 
         [HttpGet("{cliente:int}")]
-        public async Task<ActionResult> Get(int cliente)
+        public async Task<ActionResult> Get([FromRoute] int cliente)
         {
             try
             {
@@ -30,6 +31,44 @@ namespace GComFuelManager.Server.Controllers
                     .OrderBy(x => x.Den)
                     .ToListAsync();
                 return Ok(estaciones);
+            }
+            catch (Exception e)
+            {
+
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpGet("{cliente:int}/all")]
+        public async Task<ActionResult> GetAll([FromRoute] int cliente)
+        {
+            try
+            {
+                var estaciones = await context.Destino
+                    .Where(x => x.Codcte == cliente && x.Activo == true)
+                    .OrderBy(x => x.Den)
+                    .ToListAsync();
+                return Ok(estaciones);
+            }
+            catch (Exception e)
+            {
+
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpPost()]
+        public async Task<ActionResult> EditDestino([FromBody] Destino destino)
+        {
+            try
+            {
+                if (destino is null)
+                    return BadRequest();
+
+                context.Update(destino);
+                await context.SaveChangesAsync();
+
+                return Ok();
             }
             catch (Exception e)
             {

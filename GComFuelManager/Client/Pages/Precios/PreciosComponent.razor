@@ -1,4 +1,4 @@
-﻿@page "/precios"
+@page "/precios"
 @inject IJSRuntime js
 @inject IRepositorio http
 @inject SweetAlertService Swal
@@ -6,7 +6,7 @@
 @inject NotificationService ns
 @inject PreciosValidation validation
 
-@attribute [Authorize(Roles = "Admin, Administrador Sistema, Precios, Direccion, Gerencia, Analista Credito, Contador")]
+@attribute [Authorize(Roles = "Admin, Administrador Sistema, Precios, Direccion, Gerencia, Analista Credito, Contador, Envio Precios")]
 
 <AuthorizeView Roles="Admin, Administrador Sistema, Precios">
     <Authorized>
@@ -31,7 +31,10 @@
                             </RadzenUpload>
                         </div>
                         <div class="col-2 d-flex">
-                            <button class="btn gcom-bg-amarillo mt-auto col-12" @onclick="@UploadFile"> <i class="fa-solid fa-upload"></i> subir</button>
+                            <button class="btn gcom-bg-amarillo mt-auto col-12" @onclick="@UploadFile">
+                                <i class="fa-solid fa-upload"></i>
+                                subir
+                            </button>
 
                         </div>
                         <div class="col-12 mt-3">
@@ -44,35 +47,43 @@
                                     </HeaderTemplate>
                                     <ChildContent>
                                         <RadzenDataGrid TItem="PreciosDTO" Data="@preciosExcel" AllowColumnResize="true" AllowVirtualization="true" AllowPickAllColumns="true"
-                                                    GridLines="DataGridGridLines.Both" class="rz-my-12" Style="height:600px;" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                                    IsLoading="loading" @ref="@gridExcel" AllowSorting="true" AllowFiltering="true">
+                                                        GridLines="DataGridGridLines.Both" class="rz-my-12" Style="height:600px;" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                        IsLoading="loading" @ref="@gridExcel" AllowSorting="true" AllowFiltering="true" FilterMode="FilterMode.Simple">
                                             <Columns>
+                                                <RadzenDataGridColumn TItem="PreciosDTO" Title="Codigo Synthesis" Property="CodSyn" Filterable="false" />
+                                                <RadzenDataGridColumn TItem="PreciosDTO" Title="Codigo Tuxpan" Property="CodTux" Filterable="false" />
+                                                <RadzenDataGridColumn TItem="PreciosDTO" Title="Destino" Property="Destino" Filterable="true" />
+                                                <RadzenDataGridColumn TItem="PreciosDTO" Title="Cliente" Property="Cliente" Filterable="true" />
                                                 <RadzenDataGridColumn TItem="PreciosDTO" Title="Fecha" Filterable="false" Property="Fecha" FormatString="{0:d}" />
-                                                <RadzenDataGridColumn TItem="PreciosDTO" Title="Precio" Property="Precio" Filterable="false" />
-                                                <RadzenDataGridColumn TItem="PreciosDTO" Title="Producto" FilterValue="ProductoSeleccionado" Property="Producto">
-                                                    <FilterTemplate Context="filter">
-                                                        <RadzenDropDown Data="ProductList" @bind-Value="ProductoSeleccionado" AllowClear="true"></RadzenDropDown>
+                                                <RadzenDataGridColumn TItem="PreciosDTO" Title="Precio" Property="Precio" Filterable="true" />
+                                                <RadzenDataGridColumn TItem="PreciosDTO" Title="Producto" Filterable="true" Property="Producto" />
+                                                @*<FilterTemplate Context="filter">
+                                                    <RadzenDropDown Data="ProductList" @bind-Value="ProductoSeleccionado" AllowClear="true" AllowFiltering="true">
+                                                    <InputText class="form-control col-12" @bind-Value="ProductoSeleccionado" MaxLength="180" />
+                                                    </RadzenDropDown>
                                                     </FilterTemplate>
                                                     <Template Context="data">
-                                                        <div class="col-12 d-flex">
-                                                            <div class="col-11">
-                                                                @data.Producto
-                                                            </div>
-                                                        </div>
+                                                    <div class="col-12 d-flex">
+                                                    <div class="col-11">
+                                                    @data.Producto
+                                                    </div>
+                                                    </div>
                                                     </Template>
-                                                </RadzenDataGridColumn>
+                                                    </RadzenDataGridColumn>*@
                                                 <RadzenDataGridColumn TItem="PreciosDTO" Title="Zona" Property="Zona" Filterable="false" />
-                                                <RadzenDataGridColumn TItem="PreciosDTO" Title="Destino" Property="Destino" Filterable="false" />
-                                                <RadzenDataGridColumn TItem="PreciosDTO" Title="Cliente" Property="Cliente" Filterable="false" />
                                             </Columns>
                                         </RadzenDataGrid>
                                     </ChildContent>
                                 </RadzenPanel>
                                 <div class="col-12 d-flex justify-content-center mt-3">
                                     <div class="col-4">
-                                        <button class="btn gcom-bg-amarillo col-12" @onclick="@SendPrecios">
+                                        <button class="btn gcom-bg-amarillo col-12" @onclick="@SendPrecios" disabled="@loadingSend">
                                             <i class="fa fa-solid fa-floppy-disk"></i>
                                             Guardar
+                                            @if (loadingSend)
+                                            {
+                                                <SpinnerLoading />
+                                            }
                                         </button>
                                     </div>
                                 </div>
@@ -83,7 +94,7 @@
                     <div class="col-12">
                         <EditForm Model="Precio" class="form col-12 row" Context="FORM" OnValidSubmit="@SavePrecio">
                             @*<DataAnnotationsValidator />*@
-                            <FluentValidationValidator Validator="validation"/>
+                            <FluentValidationValidator Validator="validation" />
                             <ValidationSummary />
                             <div class="col-4 mb-2">
                                 <label class="form-label">Zona</label>
@@ -198,7 +209,7 @@
                             </div>
                             <div class="col-4 mb-2">
                                 <label class="form-label">Precio</label>
-                                <InputNumber TValue="double?" @bind-Value="Precio.Pre" class="form-control col-12" />
+                                <InputNumber TValue="double" @bind-Value="Precio.Pre" class="form-control col-12" MaxLenght="10" />
                             </div>
                             <div class="col-12 d-flex justify-content-center row">
                                 <div class="col-4">
@@ -211,16 +222,20 @@
                                         }
                                     </button>
                                 </div>
-                                <div class="col-4">
-                                    <button class="btn col-12 gcom-bg-amarillo" type="button" @onclick="@SendEmailPrecios">
-                                        <i class="fa fa-solid fa-paper-plane"></i>
-                                        Enviar Precios
-                                        @if (loadingSend)
-                                        {
-                                            <SpinnerLoading />
-                                        }
-                                    </button>
-                                </div>
+                                <AuthorizeView Roles="Envio Precios, Admin, Administrador Sistema" Context="SendPrecios">
+                                    <Authorized>
+                                        <div class="col-4">
+                                            <button class="btn col-12 gcom-bg-amarillo" type="button" @onclick="@SendEmailPrecios">
+                                                <i class="fa fa-solid fa-paper-plane"></i>
+                                                Enviar Precios
+                                                @if (loadingSend)
+                                                {
+                                                    <SpinnerLoading />
+                                                }
+                                            </button>
+                                        </div>
+                                    </Authorized>
+                                </AuthorizeView>
                             </div>
                         </EditForm>
                     </div>
@@ -233,162 +248,284 @@
 
 <AuthorizeView Roles="Admin, Administrador Sistema, Precios, Direccion, Gerencia, Analista Credito, Contador" Context="Grid">
     <Authorized>
-        <RadzenTabs RenderMode="TabRenderMode.Client" SelectedIndex="SelectedTab">
+        <RadzenTabs RenderMode="TabRenderMode.Client" TabPosition="TabPosition" Change="@OnChangeIndex">
             <Tabs>
-                <RadzenTabsItem Text="Precios">
-                    <div class="col-12 d-flex justify-content-center">
-            <RadzenDataGrid TItem="Precio" Data="@precios" AllowColumnResize="true" AllowVirtualization="false" AllowPickAllColumns="true"
-                            GridLines="DataGridGridLines.Both" class="rz-my-12 ancho" Style="height:600px;" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            IsLoading="loading" @ref="@grid" AllowSorting="true" AllowFiltering="true" ColumnWidth="200px" AllowColumnPicking="true"
-                            @bind-Settings="@Settings">
-                <Columns>
-                    <AuthorizeView Roles="Admin, Administrador Sistema, Precios" Context="Acciones">
-                        <Authorized>
-                            <RadzenDataGridColumn TItem="Precio" Title="Acciones" Visible="true" Filterable="false" OrderIndex="1" Width="110px">
-                                <Template Context="item">
-                                    <div class="col-12 row">
-                                        <div class="col">
-                                            <button class="btn btn-primary col-12" @onclick="@(()=>setEdit(item))"><i class="fa fa-solid fa-pen-to-square"></i></button>
+                <RadzenTabsItem Text="Precios Vigentes">
+                    <div class="col-12">
+                        <table class="table table-hover table-bordered table-sm table-responsive" style="max-height:600px;overflow:auto;width:100%">
+                            <thead>
+                                <tr>
+
+                                    <th scope="col" width="100px">
+                                        <AuthorizeView Roles="Admin, Administrador Sistema, Precios">
+                                            <Authorized>
+                                                Editar
+                                            </Authorized>
+                                        </AuthorizeView>
+                                    </th>
+
+                                    <th scope="col">Fecha</th>
+                                    <th scope="col">Precio</th>
+                                    <th scope="col">Producto</th>
+                                    <th scope="col">Destino</th>
+                                    <th scope="col" width="150px">Zona</th>
+                                    <th scope="col">Cliente</th>
+
+                                    <th scope="col">
+                                        <AuthorizeView Roles="Admin, Administrador Sistema, Precios">
+                                            <Authorized>
+                                                Habilitar / deshabilitar
+                                            </Authorized>
+                                        </AuthorizeView>
+                                    </th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="height:50px;">
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <RadzenTextBox Change="@LoadData" @bind-Value="@busquedaPrecios.producto" />
+                                    </td>
+                                    <td>
+                                        <RadzenTextBox Change="@LoadData" @bind-Value="@busquedaPrecios.destino" />
+                                    </td>
+                                    <td>
+                                        <RadzenTextBox Change="@LoadData" @bind-Value="@busquedaPrecios.zona" />
+                                    </td>
+                                    <td>
+                                        <RadzenTextBox Change="@LoadData" @bind-Value="@busquedaPrecios.cliente" />
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                @if (precios is null)
+                                {
+                                    <tr>
+                                        <td colspan="8">
+                                            <p>No hay precios</p>
+                                        </td>
+                                    </tr>
+                                }
+                                else if (precios?.Count > 0)
+                                {
+                                    @foreach (var item in precios)
+                                    {
+                                        <tr style="height:50px">
+
+                                            <td width="100px">
+                                                <AuthorizeView Roles="Admin, Administrador Sistema, Precios" Context="Acciones">
+                                                    <div class="col-12">
+                                                        <div class="col p-2">
+                                                            <button class="btn btn-primary col-12" @onclick="@(()=>setEdit(item))"><i class="fa fa-solid fa-pen-to-square"></i></button>
+                                                        </div>
+                                                    </div>
+                                                </AuthorizeView>
+                                            </td>
+
+                                            <td>
+                                                <RadzenText Text="@item.FchDia.ToString("dd/MM/yyyy")" TextStyle="TextStyle.Body2" />
+                                            </td>
+                                            <td>
+                                                <RadzenText Text="@item.Pre.ToString()" TextStyle="TextStyle.Body2" />
+                                            </td>
+                                            <td>
+                                                <RadzenText Text="@item?.Producto?.Den" TextStyle="TextStyle.Body2" />
+                                            </td>
+                                            <td>
+                                                <RadzenText Text="@item?.Destino?.Den" TextStyle="TextStyle.Body2" />
+                                            </td>
+                                            <td>
+                                                <RadzenText Text="@item?.Zona?.Nombre" TextStyle="TextStyle.Body2" />
+                                            </td>
+                                            <td>
+                                                <RadzenText Text="@item?.Cliente?.Den" TextStyle="TextStyle.Body2" />
+                                            </td>
+                                            <td>
+                                                <AuthorizeView Roles="Admin, Administrador Sistema, Precios" Context="EditPrice">
+                                                    <div class="col-12">
+                                                        <div class="form-check form-switch m-2">
+                                                            <input class="form-check-input" type="checkbox" role="switch" id="@item?.Cod" checked="@item?.Activo"
+                                                                   @onchange="@((ChangeEventArgs e) => ChangeStatus(item, e))">
+                                                        </div>
+                                                    </div>
+                                                </AuthorizeView>
+                                            </td>
+
+                                        </tr>
+                                    }
+
+                                }
+                                else if (precios?.Count == 0)
+                                {
+                                    <tr>
+                                        <td colspan="8">
+                                            <p>No hay precios</p>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="8">
+                                        <div class="col-12 row">
+                                            <div class="text-muted col-2">
+                                                <p>total de registros: @ConteoTotal</p>
+                                            </div>
+                                            <div class="col-6 offset-4">
+                                                <PaginacionComponent PaginaActual="PaginaActual" PaginaSeleccionada="PaginasSeleccionadas" PaginasTotales="PaginasTotales" />
+                                            </div>
                                         </div>
-                                    </div>
-                                </Template>
-                            </RadzenDataGridColumn>
-                        </Authorized>
-                    </AuthorizeView>
-                    <RadzenDataGridColumn TItem="Precio" Title="Fecha" Property="FchDia" FormatString="{0:d}" Filterable="false" OrderIndex="2" Width="140px"/>
-                    <RadzenDataGridColumn TItem="Precio" Title="Ultima fecha de actualizacion" Property="FchActualizacion" FormatString="{0:d}" Filterable="false" OrderIndex="3"/>
-                    <RadzenDataGridColumn TItem="Precio" Title="Precio" Property="Pre" Filterable="false" OrderIndex="4" Width="100px"/>
-                    <RadzenDataGridColumn TItem="Precio" Title="Producto" FilterValue="ProductoSeleccionado" Property="Producto.Den" OrderIndex="5">
-                        <FilterTemplate Context="filter">
-                            <RadzenDropDown Data="ProductList" @bind-Value="ProductoSeleccionado" AllowClear="true"></RadzenDropDown>
-                        </FilterTemplate>
-                        <Template Context="data">
-                            <div class="col-12 d-flex row">
-                                <div class="col-1">
-                                    @if (data.codPrd == 25 || data.codPrd == 26 || data.codPrd == 27)
-                                    {
-                                        <div class="badge rounded-pill regular me-1">&nbsp;</div>
-                                    }
-                                    else if (data.codPrd == 11 || data.codPrd == 12 || data.codPrd == 116)
-                                    {
-                                        <div class="badge rounded-pill regular-vdm me-1">&nbsp;</div>
-                                    }
-                                    else if (data.codPrd == 19 || data.codPrd == 20 || data.codPrd == 21)
-                                    {
-                                        <div class="badge rounded-pill premium me-1">&nbsp;</div>
-                                    }
-                                    else
-                                    {
-                                        <div class="badge rounded-pill diesel me-1">&nbsp;</div>
-                                    }
-                                </div>
-                                <div class="col-11">
-                                    @data.Producto?.Den
-                                </div>
-                            </div>
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn TItem="Precio" Title="Destino" Property="NombreDestino" Filterable="false" OrderIndex="6"/>
-                    <RadzenDataGridColumn TItem="Precio" Title="Zona" Property="NombreZona" Filterable="false" OrderIndex="7" Width="100px"/>
-                    <RadzenDataGridColumn TItem="Precio" Title="Cliente" Property="NombreCliente" Filterable="false" OrderIndex="8"/>
-                    <AuthorizeView Roles="Admin, Administrador Sistema, Precios" Context="EditPrice">
-                        <RadzenDataGridColumn TItem="Precio" Title="Habilitar / Deshabilitar" OrderIndex="9">
-                            <Template Context="data">
-                                <div class="col-12">
-                                    <div class="form-check form-switch m-2">
-                                        <input class="form-check-input" type="checkbox" role="switch" id="@data.Cod" checked="@data.Activo"
-                                               @onchange="@((ChangeEventArgs e) => ChangeStatus(data, e))">
-                                    </div>
-                                </div>
-                            </Template>
-                        </RadzenDataGridColumn>
-                    </AuthorizeView>
-                </Columns>
-            </RadzenDataGrid>
-        </div>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </RadzenTabsItem>
                 <RadzenTabsItem Text="Precios Programados">
-                    <div class="col-12 d-flex justify-content-center">
-                        <RadzenDataGrid TItem="Precio" Data="@preciosPro" AllowColumnResize="true" AllowVirtualization="false" AllowPickAllColumns="true"
-                                        GridLines="DataGridGridLines.Both" class="rz-my-12 ancho" Style="height:600px;" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                        IsLoading="loading" @ref="@grid" AllowSorting="true" AllowFiltering="true" ColumnWidth="200px" AllowColumnPicking="true"
-                        @bind-Settings="@Settings">
-                            <Columns>
-                                <AuthorizeView Roles="Admin, Administrador Sistema, Precios" Context="Acciones">
-                                    <Authorized>
-                                        <RadzenDataGridColumn TItem="Precio" Title="Acciones" Visible="true" Filterable="false" OrderIndex="1" Width="110px">
-                                            <Template Context="item">
-                                                <div class="col-12 row">
-                                                    <div class="col">
-                                                        <button class="btn btn-primary col-12" @onclick="@(()=>setEdit(item))"><i class="fa fa-solid fa-pen-to-square"></i></button>
+                    <div class="col-12">
+                        <table class="table table-hover table-bordered table-sm table-responsive" style="max-height:600px;overflow:auto;width:100%">
+                            <thead>
+                                <tr>
+                                    <th scope="col" width="100px">
+                                        <AuthorizeView Roles="Admin, Administrador Sistema, Precios, Ejecutivo de Cuenta Comercial">
+                                            <Authorized>
+                                                Editar
+                                            </Authorized>
+                                        </AuthorizeView>
+                                    </th>
+                                    <th scope="col">Fecha</th>
+                                    <th scope="col">Precio</th>
+                                    <th scope="col">Producto</th>
+                                    <th scope="col">Destino</th>
+                                    <th scope="col" width="150px">Zona</th>
+                                    <th scope="col">Cliente</th>
+                                    <th scope="col">
+                                        <AuthorizeView Roles="Admin, Administrador Sistema, Precios, Ejecutivo de Cuenta Comercial">
+                                            <Authorized>
+                                                Habilitar / deshabilitar
+                                            </Authorized>
+                                        </AuthorizeView>
+                                    </th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="height:50px;">
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>
+                                        <RadzenTextBox Change="@LoadDataProgramados" @bind-Value="@busquedaPreciosPro.producto" />
+                                    </td>
+                                    <td>
+                                        <RadzenTextBox Change="@LoadDataProgramados" @bind-Value="@busquedaPreciosPro.destino" />
+                                    </td>
+                                    <td>
+                                        <RadzenTextBox Change="@LoadDataProgramados" @bind-Value="@busquedaPreciosPro.zona" />
+                                    </td>
+                                    <td>
+                                        <RadzenTextBox Change="@LoadDataProgramados" @bind-Value="@busquedaPreciosPro.cliente" />
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                @if (preciosPro is null)
+                                {
+                                    <tr>
+                                        <td colspan="8">
+                                            <p>No hay precios</p>
+                                        </td>
+                                    </tr>
+                                }
+                                else if (preciosPro?.Count > 0)
+                                {
+                                    @foreach (var item in preciosPro)
+                                    {
+                                        <tr style="height:50px">
+                                          
+                                                <td width="100px">
+                                                    <AuthorizeView Roles="Admin, Administrador Sistema, Precios" Context="Acciones">
+                                                        <div class="col-12">
+                                                            <div class="col p-2">
+                                                                <button class="btn btn-primary col-12" @onclick="@(()=>setEdit(item))"><i class="fa fa-solid fa-pen-to-square"></i></button>
+                                                            </div>
+                                                        </div>
+                                                    </AuthorizeView>
+                                                </td>
+                                          
+                                            <td>
+                                                <RadzenText Text="@item.FchDia.ToString("dd/MM/yyyy")" TextStyle="TextStyle.Body2" />
+                                            </td>
+                                            <td>
+                                                <RadzenText Text="@item.Pre.ToString()" TextStyle="TextStyle.Body2" />
+                                            </td>
+                                            <td>
+                                                <RadzenText Text="@item?.Producto?.Den" TextStyle="TextStyle.Body2" />
+                                            </td>
+                                            <td>
+                                                <RadzenText Text="@item?.Destino?.Den" TextStyle="TextStyle.Body2" />
+                                            </td>
+                                            <td>
+                                                <RadzenText Text="@item?.Zona?.Nombre" TextStyle="TextStyle.Body2" />
+                                            </td>
+                                            <td>
+                                                <RadzenText Text="@item?.Cliente?.Den" TextStyle="TextStyle.Body2" />
+                                            </td>
+
+                                          
+                                            <td>
+                                                <AuthorizeView Roles="Admin, Administrador Sistema, Precios" Context="EditPrice">
+                                                    <div class="col-12">
+                                                        <div class="form-check form-switch m-2">
+                                                            <input class="form-check-input" type="checkbox" role="switch" id="@item?.Cod" checked="@item?.Activo"
+                                                                   @onchange="@((ChangeEventArgs e) => ChangeStatus(item, e))">
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </Template>
-                                        </RadzenDataGridColumn>
-                                    </Authorized>
-                                </AuthorizeView>
-                                <RadzenDataGridColumn TItem="Precio" Title="Fecha de aplicacion" Property="FchDia" FormatString="{0:d}" Filterable="false" OrderIndex="2" Width="140px" />
-                                <RadzenDataGridColumn TItem="Precio" Title="Precio" Property="Pre" Filterable="false" OrderIndex="4" Width="100px" />
-                                <RadzenDataGridColumn TItem="Precio" Title="Producto" FilterValue="ProductoSeleccionado" Property="Producto.Den" OrderIndex="5">
-                                    <FilterTemplate Context="filter">
-                                        <RadzenDropDown Data="ProductList" @bind-Value="ProductoSeleccionado" AllowClear="true"></RadzenDropDown>
-                                    </FilterTemplate>
-                                    <Template Context="data">
-                                        <div class="col-12 d-flex row">
-                                            <div class="col-1">
-                                                @if (data.codPrd == 25 || data.codPrd == 26 || data.codPrd == 27)
-                                                {
-                                                    <div class="badge rounded-pill regular me-1">&nbsp;</div>
-                                                }
-                                                else if (data.codPrd == 11 || data.codPrd == 12 || data.codPrd == 116)
-                                                {
-                                                    <div class="badge rounded-pill regular-vdm me-1">&nbsp;</div>
-                                                }
-                                                else if (data.codPrd == 19 || data.codPrd == 20 || data.codPrd == 21)
-                                                {
-                                                    <div class="badge rounded-pill premium me-1">&nbsp;</div>
-                                                }
-                                                else
-                                                {
-                                                    <div class="badge rounded-pill diesel me-1">&nbsp;</div>
-                                                }
+                                                </AuthorizeView>
+                                            </td>
+                                      
+                                        </tr>
+                                    }
+
+                                }
+                                else if (preciosPro?.Count == 0)
+                                {
+                                    <tr>
+                                        <td colspan="8">
+                                            <p>No hay precios</p>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="8">
+                                        <div class="col-12 row">
+                                            <div class="text-muted col-2">
+                                                <p>total de registros: @ConteoTotalPro</p>
                                             </div>
-                                            <div class="col-11">
-                                                @data.Producto?.Den
+                                            <div class="col-6 offset-4">
+                                                <PaginacionComponent PaginaActual="PaginaActualPro" PaginaSeleccionada="PaginasSeleccionadasPro" PaginasTotales="PaginasTotalesPro" />
                                             </div>
                                         </div>
-                                    </Template>
-                                </RadzenDataGridColumn>
-                                <RadzenDataGridColumn TItem="Precio" Title="Destino" Property="NombreDestino" Filterable="false" OrderIndex="6" />
-                                <RadzenDataGridColumn TItem="Precio" Title="Zona" Property="NombreZona" Filterable="false" OrderIndex="7" Width="100px" />
-                                <RadzenDataGridColumn TItem="Precio" Title="Cliente" Property="NombreCliente" Filterable="false" OrderIndex="8" />
-                                <AuthorizeView Roles="Admin, Administrador Sistema, Precios" Context="EditPrice">
-                                    <RadzenDataGridColumn TItem="Precio" Title="Habilitar / Deshabilitar" OrderIndex="9">
-                                        <Template Context="data">
-                                            <div class="col-12">
-                                                <div class="form-check form-switch m-2">
-                                                    <input class="form-check-input" type="checkbox" role="switch" id="@data.Cod" checked="@data.Activo"
-                                                    @onchange="@((ChangeEventArgs e) => ChangeStatus(data, e))">
-                                                </div>
-                                            </div>
-                                        </Template>
-                                    </RadzenDataGridColumn>
-                                </AuthorizeView>
-                            </Columns>
-                        </RadzenDataGrid>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </RadzenTabsItem>
             </Tabs>
         </RadzenTabs>
-        
+
     </Authorized>
 </AuthorizeView>
 
-<style type="text/css">
-    .ancho {
-        width: @TotalWidth;
-    }
-</style>
+@*<style type="text/css">
+        .ancho {
+            width: @TotalWidth;
+        }
+    </style>*@
 
 @code {
 
@@ -415,6 +552,7 @@
     private int? ClienteSeleccionado = 0;
 
     int SelectedTab = 0;
+    TabPosition TabPosition = 0;
     private int Progress = 0;
     private int TotalEmails = 0;
     private int CurrentEmails = 0;
@@ -432,24 +570,69 @@
 
     int width = 0;
     string TotalWidth = string.Empty;
-
+    bool isClose = false;
     DataGridSettings _settings;
     DataGridSettings Settings { get { return _settings; } set { if (_settings != value) { _settings = value; InvokeAsync(SaveStateAsync); } } }
 
+    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30 };
+
+    ParametrosBusquedaPrecios busquedaPrecios = new ParametrosBusquedaPrecios();
+    int PaginasTotales;
+    int PaginaActual = 1;
+    int ConteoTotal;
+
+    ParametrosBusquedaPrecios busquedaPreciosPro = new ParametrosBusquedaPrecios();
+    int PaginasTotalesPro;
+    int PaginaActualPro = 1;
+    int ConteoTotalPro;
+
+    Dictionary<string, string> queryStringObject = new Dictionary<string, string>();
+    Dictionary<string, string> queryStringObjectPro = new Dictionary<string, string>();
+    Dictionary<string, string> queryStringObjectPre = new Dictionary<string, string>();
+
     protected override async Task OnInitializedAsync()
     {
-        width = await js.InvokeAsync<int>("eval", "window.innerWidth") - 360;
-        if (width < 0)
-            width = 500;
-        TotalWidth = $"{width}px";
-
         await GetProductos();
         await GetGrupos();
         await GetZonas();
-        await GetPrecios();
-        await GetPreciosProgramados();
+        await LoadData();
+        await LoadDataProgramados();
 
         Token = "Bearer " + await js.GetItemLocalStorage("TOKENKEY");
+    }
+
+    private async Task LoadData()
+    {
+        if (queryStringObject is null) { queryStringObject = new Dictionary<string, string>(); }
+        queryStringObject["producto"] = busquedaPrecios.producto;
+        queryStringObject["destino"] = busquedaPrecios.destino;
+        queryStringObject["cliente"] = busquedaPrecios.cliente;
+        queryStringObject["zona"] = busquedaPrecios.zona;
+        queryStringObject["pagina"] = busquedaPrecios.pagina.ToString();
+        queryStringObject["tamanopagina"] = busquedaPrecios.tamanopagina.ToString();
+
+        var DefaultValues = new List<string>() { "false", "", "0" };
+        var uri = string.Join("&", queryStringObject.Where(x => !DefaultValues.Contains(x.Value.ToLower()))
+        .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+
+        await GetPreciosFiltro(uri);
+    }
+
+    private async Task LoadDataProgramados()
+    {
+        if (queryStringObjectPro is null) { queryStringObjectPro = new Dictionary<string, string>(); }
+        queryStringObjectPro["producto"] = busquedaPreciosPro.producto;
+        queryStringObjectPro["destino"] = busquedaPreciosPro.destino;
+        queryStringObjectPro["cliente"] = busquedaPreciosPro.cliente;
+        queryStringObjectPro["zona"] = busquedaPreciosPro.zona;
+        queryStringObjectPro["pagina"] = busquedaPreciosPro.pagina.ToString();
+        queryStringObjectPro["tamanopagina"] = busquedaPreciosPro.tamanopagina.ToString();
+
+        var DefaultValues = new List<string>() { "false", "", "0" };
+        var uri = string.Join("&", queryStringObjectPro.Where(x => !DefaultValues.Contains(x.Value.ToLower()))
+        .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+
+        await GetPreciosFiltroPro(uri);
     }
 
     protected override async Task OnAfterRenderAsync(bool first)
@@ -481,6 +664,21 @@
             foreach (var item in e.Files)
             {
                 Console.WriteLine(JsonConvert.SerializeObject(item));
+            }
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
+    private void OnChangeFileUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            foreach (var item in e.GetMultipleFiles(1))
+            {
+
             }
         }
         catch (Exception)
@@ -532,56 +730,6 @@
         }
         catch (Exception e)
         {
-            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
-            throw e;
-        }
-    }
-
-    private async Task GetPrecios()
-    {
-        try
-        {
-            loading = true;
-            var response = await http.Get<List<Precio>>("api/precio");
-            if (response.Error)
-            {
-                loading = false;
-                var message = await response.ObtenerMensajeError();
-            }
-            else
-            {
-                loading = false;
-                precios = response.Response;
-            }
-        }
-        catch (Exception e)
-        {
-            loading = false;
-            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
-            throw e;
-        }
-    }
-
-    private async Task GetPreciosProgramados()
-    {
-        try
-        {
-            loading = true;
-            var response = await http.Get<List<Precio>>("api/precio/programados/lista");
-            if (response.Error)
-            {
-                loading = false;
-                var message = await response.ObtenerMensajeError();
-            }
-            else
-            {
-                loading = false;
-                preciosPro = response.Response;
-            }
-        }
-        catch (Exception e)
-        {
-            loading = false;
             await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
             throw e;
         }
@@ -660,7 +808,7 @@
     {
         try
         {
-            if (Precio.codCte != 0 && ClienteSeleccionado != Precio.codCte)
+            if (Precio.codCte != null && ClienteSeleccionado != Precio.codCte)
             {
                 var response = await http.Get<List<CodDenDTO>>($"api/estacion/{Precio.codCte}");
                 if (response.Error)
@@ -699,7 +847,8 @@
         try
         {
             loadingSave = true;
-            if(SelectedTab == 0){
+            if (SelectedTab == 0)
+            {
                 var response = await http.Post<Precio>("api/precio", Precio);
                 if (response.Error)
                 {
@@ -710,7 +859,7 @@
                 else
                 {
                     loadingSave = false;
-                    await GetPrecios();
+                    await LoadData();
                 }
             }
             else
@@ -725,7 +874,7 @@
                 else
                 {
                     loadingSave = false;
-                    await GetPreciosProgramados();
+                    await LoadDataProgramados();
                 }
             }
         }
@@ -801,19 +950,53 @@
                 await Swal.FireAsync("Alerta", "La lista no puede estar vacia", SweetAlertIcon.Warning);
                 return;
             }
-
-            var response = await http.Post<IEnumerable<PreciosDTO>>("api/precio/confirm/upload", preciosExcel);
+            ns.Notify(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Subiendo precios", Detail = $"Los precios se estan subiendo, esto podria tardar unos minutos. Permanesca en esta pantalla hasta terminar el proceso.", Duration = 10000 });
+            loadingSend = true;
+            var response = await http.Post<IEnumerable<PreciosDTO>, List<PreciosDTO>>("api/precio/confirm/upload", preciosExcel);
             if (response.Error)
             {
-                loadingSave = false;
+                loadingSend = false;
                 var message = await response.ObtenerMensajeError();
                 await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
             }
             else
             {
-                loadingSave = false;
+                loadingSend = false;
+
+                if (response.Response.Count > 0)
+                {
+                    ns.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Info,
+                        Summary = "Generando reporte",
+                        Detail = $"Se encontraron destinos sin precios, se generara un reporte con los datos encontrados.",
+                        Duration = 15000
+                    });
+
+                    ExcelPackage.LicenseContext = LicenseContext.Commercial;
+                    var excel = new ExcelPackage();
+
+                    var ws = excel.Workbook.Worksheets.Add("Precios");
+                    var header = ws.Cells["A1:H1"];
+
+                    var tablebody = ws.Cells["A1:A1"].LoadFromCollection<PreciosDTO>(response.Response, true);
+
+                    tablebody.Style.Font.Size = 14;
+                    header.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                    header.Style.Font.Size = 14;
+                    header.Style.Font.Bold = true;
+                    header.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    header.Style.Fill.BackgroundColor.SetColor(Color.Black);
+                    header.Style.Font.Color.SetColor(Color.White);
+
+                    ws.Columns.AutoFit();
+
+                    await js.GuardarComo($"Destinos_sin_precio_{DateTime.Now.ToString("dd MM yyyy HH mm ss")}.xlsx", excel.GetAsByteArray());
+                }
+
                 await Swal.FireAsync("Exito", "Se han guardado los precios exitosamente.", SweetAlertIcon.Success);
-                await GetPrecios();
+                await LoadData();
+                await LoadDataProgramados();
             }
 
         }
@@ -829,63 +1012,103 @@
         try
         {
             loadingSend = true;
-            if (precios is null)
-            {
-                loadingSend = false;
-
-                await Swal.FireAsync("Alerta", "La lista no puede estar vacia.", SweetAlertIcon.Error);
-                return;
-            }
-
-            if (precios.Count is 0)
-            {
-                loadingSend = false;
-
-                await Swal.FireAsync("Alerta", "La lista no puede estar vacia.", SweetAlertIcon.Error);
-                return;
-            }
-
+            var count = 0;
+            var totalcount = 0;
             ClientesSeleccionados = precios.DistinctBy(x => x.NombreCliente).Select(x => x.NombreCliente);
 
-            var clientes = await ds.OpenAsync<SelectionComponent>($"Clientes",
-            new Dictionary<string, object>() { { "lista", ClientesSeleccionados } },
-            new DialogOptions() { Height = "600px", Width = "75%", Resizable = true, Draggable = false, CloseDialogOnOverlayClick = true });
+            EnvioTipoPreciosEmailDtoClass1 clientes = new EnvioTipoPreciosEmailDtoClass1();
 
-            if (clientes is null || clientes.Count == 0)
+            var clientesPre = await ds.OpenAsync<SelectionComponent>($"Clientes",
+            options: new DialogOptions() { Height = "600px", Width = "75%", Resizable = true, Draggable = false, CloseDialogOnOverlayClick = true });
+
+            if (clientesPre is not null)
+                clientes = clientesPre;
+
+            if (clientes.Clientes is null || clientes.Clientes.Count == 0)
             {
                 loadingSend = false;
                 return;
             }
-
+            totalcount = clientes.Clientes.Count;
             Message(new NotificationMessage
             {
                 Severity = NotificationSeverity.Info,
                 Summary = "Enviando Correos",
-                Detail = "Los correos se estan enviando.\nPermanesca en esta pantalla hasta terminar el proceso.",
+                Detail = "Los correos se estan enviando.\nPermanezca en esta pantalla hasta terminar el proceso.",
                 Duration = 15000
             });
 
             List<Precio> listaPrecios = new List<Precio>();
 
-            foreach (var cliente in clientes)
+            foreach (var cliente in clientes.Clientes)
             {
-                listaPrecios.AddRange(precios.Where(x => x.NombreCliente!.Equals(cliente) && x.Pre != 0 && x.Activo == true));
-            }
+                count++;
 
-            var response = await http.Post<IEnumerable<Precio>>("api/email/precios", listaPrecios);
-            if (response.Error)
-            {
-                loadingSend = false;
-                var message = await response.ObtenerMensajeError();
-                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
-                return;
-            }
-            else
-            {
-                await Swal.FireAsync("Exito", "Los correos han sido enviados", SweetAlertIcon.Success);
+                Message(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Info,
+                    Summary = "Enviando Correos",
+                    Detail = $"Enviando {count} de {totalcount}",
+                    Duration = 15000
+                });
+
+                if (queryStringObjectPre is null) { queryStringObjectPre = new Dictionary<string, string>(); }
+                queryStringObjectPre["den"] = cliente;
+                queryStringObjectPre["cod"] = clientes.TipoEnvio.ToString();
+
+                var DefaultValues = new List<string>() { "false", "", "0" };
+
+                var uri = string.Join("&", queryStringObjectPre.Where(x => !DefaultValues.Contains(x.Value.ToLower()))
+                .Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+
+                if (clientes.TipoEnvio == 1)
+                {
+                    var response = await http.Post<IEnumerable<Precio>, List<Precio>>($"api/email/precios?{uri}", listaPrecios);
+                    if (response.Error)
+                    {
+                        loadingSend = false;
+                        var message = await response.ObtenerMensajeError();
+                        await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                        count--;
+                    }
+                    else
+                    {
+                        Message(new NotificationMessage
+                        {
+                            Severity = NotificationSeverity.Info,
+                            Summary = "Correo enviado",
+                            Detail = $"El correo se ha enviado al cliente {cliente}",
+                            Duration = 15000
+                        });
+                    }
+                }
+                else if (clientes.TipoEnvio == 2)
+                {
+                    var response = await http.Post<IEnumerable<Precio>, List<Precio>>($"api/email/precios/programados?{uri}", listaPrecios);
+                    if (response.Error)
+                    {
+                        loadingSend = false;
+                        var message = await response.ObtenerMensajeError();
+                        await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                        count--;
+                    }
+                    else
+                    {
+                        Message(new NotificationMessage
+                        {
+                            Severity = NotificationSeverity.Info,
+                            Summary = "Correo enviado",
+                            Detail = $"El correo se ha enviado al cliente {cliente}",
+                            Duration = 15000
+                        });
+                    }
+                }
             }
 
             alert.Dispose();
+
+            await Swal.FireAsync("Correos enviados", $"Se enviaron {count} de {totalcount}.", SweetAlertIcon.Info);
+
             loadingSend = false;
 
         }
@@ -907,19 +1130,39 @@
         try
         {
             precio.Activo = (bool)ea.Value;
-            var response = await http.Post<Precio>($"api/precio", precio);
-            if (response.Error)
+            if (SelectedTab == 0)
             {
-                var message = await response.ObtenerMensajeError();
-                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                var response = await http.Post<Precio>($"api/precio", precio);
+                if (response.Error)
+                {
+                    var message = await response.ObtenerMensajeError();
+                    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    grid?.Reload();
+                    if (precio.Activo)
+                        Message(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Precio habilitado", Detail = "El precio ha sido habilitado." });
+                    else
+                        Message(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Precio deshabilitado", Detail = "El precio ha sido deshabilitado." });
+                }
             }
             else
             {
-                grid?.Reload();
-                if (precio.Activo)
-                    Message(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Precio habilitado", Detail = "El precio ha sido habilitado." });
+                var response = await http.Post<Precio>($"api/precio/programado", precio);
+                if (response.Error)
+                {
+                    var message = await response.ObtenerMensajeError();
+                    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                }
                 else
-                    Message(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Precio deshabilitado", Detail = "El precio ha sido deshabilitado." });
+                {
+                    grid?.Reload();
+                    if (precio.Activo)
+                        Message(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Precio habilitado", Detail = "El precio ha sido habilitado." });
+                    else
+                        Message(new NotificationMessage { Severity = NotificationSeverity.Info, Summary = "Precio deshabilitado", Detail = "El precio ha sido deshabilitado." });
+                }
             }
         }
         catch (Exception e)
@@ -956,5 +1199,80 @@
         {
             await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
         }
+    }
+
+    private void OnChangeIndex(int index)
+    {
+        SelectedTab = index;
+    }
+
+    private async Task GetPreciosFiltro(string uri)
+    {
+        try
+        {
+            loading = true;
+            var response = await http.Get<List<Precio>>($"api/precio/filtro?{uri}");
+            if (response.Error)
+            {
+                loading = false;
+                var message = await response.ObtenerMensajeError();
+            }
+            else
+            {
+                loading = false;
+                PaginasTotales = int.Parse(response.HttpResponseMessage.Headers.GetValues("paginas").FirstOrDefault());
+                ConteoTotal = int.Parse(response.HttpResponseMessage.Headers.GetValues("conteo").FirstOrDefault());
+                PaginaActual = int.Parse(response.HttpResponseMessage.Headers.GetValues("pagina").FirstOrDefault());
+                precios = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            loading = false;
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private async Task PaginasSeleccionadas(int pagina)
+    {
+        PaginaActual = pagina;
+        busquedaPrecios.pagina = PaginaActual;
+        await LoadData();
+    }
+
+    private async Task GetPreciosFiltroPro(string uri)
+    {
+        try
+        {
+            loading = true;
+            var response = await http.Get<List<Precio>>($"api/precio/programado/filtro?{uri}");
+            if (response.Error)
+            {
+                loading = false;
+                var message = await response.ObtenerMensajeError();
+            }
+            else
+            {
+                loading = false;
+                PaginasTotalesPro = int.Parse(response.HttpResponseMessage.Headers.GetValues("paginas").FirstOrDefault());
+                ConteoTotalPro = int.Parse(response.HttpResponseMessage.Headers.GetValues("conteo").FirstOrDefault());
+                PaginaActualPro = int.Parse(response.HttpResponseMessage.Headers.GetValues("pagina").FirstOrDefault());
+                preciosPro = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            loading = false;
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+            throw e;
+        }
+    }
+
+    private async Task PaginasSeleccionadasPro(int pagina)
+    {
+        PaginaActualPro = pagina;
+        busquedaPreciosPro.pagina = PaginaActualPro;
+        await LoadDataProgramados();
     }
 }

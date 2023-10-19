@@ -23,7 +23,7 @@
                                 <label>Nombre Completo:</label>
                             </div>
                             <div class="mt-2">
-                                <InputText class="form-control" @bind-Value="info.Nombre" />
+                                <InputText class="form-control" @bind-Value="info.Nombre" MaxLenght="60"/>
                             </div>
 
                         </div>
@@ -115,25 +115,28 @@
                         <label>Roles:</label>
                         <!--Selector multiple de Radzen-->
                         <RadzenDropDown @bind-Value="info.Roles" Data="Roles" TextProperty="NombreRol" ValueProperty="NombreRol" @ref="dropdown"
-                                        Multiple=true Placeholder="Seleccione los roles" Chips=true class="col-12" />
+                                        Multiple=true Placeholder="Seleccione los roles" Chips=true class="col-12" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"/>
                     </div>
                 </div>
                 <div class="col-12 mt-2 mb-3">
                     <div class="col-12 mb-2">
                         <div class="row d-flex justify-content-start">
                             <div class="col-4">
-                                <RadzenCheckBox @bind-Value="info.ShowUsersActions" Name="CheckBox1" class="mx-3" />
-                                <RadzenLabel Text="Mostrar acciones" Component="CheckBox1" />
+                                <RadzenCheckBox @bind-Value="info.ShowUsersActions" Name="CheckBox2" class="mx-3" />
+                                <RadzenLabel Text="Mostrar acciones" Component="CheckBox2" />
                             </div>
                         </div>
                         <div class="row d-flex justify-content-center">
                             @if (info.ShowUsersActions)
                             {
-                                <div class="col-4">
+                                <div class="col-3">
                                     <button class="btn gcom-bg-amarillo col-12" type="submit"><i class="fa-solid fa-user-plus"></i> <b>Agregar</b></button>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-3" @onmouseenter="@(args => ShowTip(Icon))" @ref="Icon">
                                     <button class="btn gcom-bg-amarillo col-12" @onclick="@EditUser" type="button"><i class="fa-solid fa-floppy-disk"></i> <b>Guardar Cambios</b></button>
+                                </div>
+                                <div class="col-3">
+                                    <button class="btn gcom-bg-amarillo col-12" @onclick="@ClearFormData" type="button"><i class="fa fa-solid fa-broom"></i> <b>Limpiar Formulario</b></button>
                                 </div>
                             }
                         </div>
@@ -149,9 +152,9 @@
     <!--class="rz-my-12 ancho"-->
     <!--Maquetación de Tabla con Radzen-->
     <div class="col-12 d-flex justify-content-center mb-2">
-        <RadzenDataGrid TItem="UsuarioInfo" Data="@Usuarios" AllowColumnResize="true" AllowVirtualization="true" AllowPickAllColumns="true"
+        <RadzenDataGrid TItem="UsuarioInfo" Data="@Usuarios" AllowColumnResize="true" AllowVirtualization="true" AllowPickAllColumns="true" AllowPaging="true"
                         GridLines="DataGridGridLines.Both" Style="height:500px;" class="mb-3" ColumnResized="@(()=>grid.Reset())" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                        IsLoading="@loadingEdit" @ref="@grid" AllowSorting="true" AllowColumnPicking="false">
+                        IsLoading="@loadingEdit" @ref="@grid" AllowSorting="true" AllowColumnPicking="false" ShowPagingSummary="true" PageSizeOptions="@pageSizeOptions" FilterMode="FilterMode.Simple" AllowFiltering="true">
             <Columns>
                 <AuthorizeView Roles="Admin, Administrador Sistema, Administrador de Usuarios" Context="Acciones">
                     <Authorized>
@@ -166,10 +169,10 @@
                         </RadzenDataGridColumn>
                     </Authorized>
                 </AuthorizeView>
-                <RadzenDataGridColumn TItem="UsuarioInfo" Title="Nombre" Property="Nombre" Width="200px" OrderIndex="2" />
-                <RadzenDataGridColumn TItem="UsuarioInfo" Title="Usuario" Property="UserName" Width="200px" OrderIndex="3" />
+                <RadzenDataGridColumn TItem="UsuarioInfo" Title="Nombre" Property="Nombre" Width="200px" OrderIndex="2" Filterable="true"/>
+                <RadzenDataGridColumn TItem="UsuarioInfo" Title="Usuario" Property="UserName" Width="200px" OrderIndex="3" Filterable="true"/>
                 <AuthorizeView Roles="Admin, Administrador Sistema, Administrador de Usuarios" Context="WatchPassword">
-                    <RadzenDataGridColumn TItem="UsuarioInfo" Title="Contraseña" Property="Password" Width="200px" OrderIndex="4">
+                    <RadzenDataGridColumn TItem="UsuarioInfo" Title="Contraseña" Property="Password" Width="200px" OrderIndex="4" Filterable="false">
                         <Template Context="user">
                             <div class="d-flex align-items-center">
                                 @if (usuarioSeleccionado.Count == 1)
@@ -196,7 +199,7 @@
                     </Template>
                 </RadzenDataGridColumn>
                 <AuthorizeView Roles="Admin, Administrador Sistema, Administrador de Usuarios" Context="Actions">
-                    <RadzenDataGridColumn TItem="UsuarioInfo" Title="Activar/Desactivar" Width="140px" OrderIndex="6">
+                    <RadzenDataGridColumn TItem="UsuarioInfo" Title="Activar/Desactivar" Width="140px" OrderIndex="6" Filterable="false">
                         <Template Context="data">
                             <div class="col-12">
                                 <div class="form-check form-switch m-2">
@@ -243,8 +246,11 @@
 
     ElementReference infoIcon;
     ElementReference infosIcon;
+    ElementReference Icon;
 
     private RadzenDropDown<List<string>> dropdown = new RadzenDropDown<List<string>>();
+
+    IEnumerable<int> pageSizeOptions = new int[] { 10, 20, 30 };
 
     //Ciclo de vida de inicio del componente
     protected override async Task OnInitializedAsync()
@@ -254,12 +260,16 @@
         await GetGrupos();
     }
 
-    void ShowToolTip(ElementReference elementReference, TooltipOptions options = null!) => ts.Open(elementReference, "Mínimo 8 y máximo 10 caracteres, al menos una letra mayúscula, una minúscula, un número y un carácter especial. Ej: Angel2023+", options);
-    void ShowToolsTip(ElementReference elementReference, TooltipService optionss = null!) => ts.Open(elementReference, "Mínimo de 8 y máximo de 10 caracteres, sin usar letra Ñ");
+    void ShowToolTip(ElementReference elementReference, TooltipOptions options = null!) => ts.Open(elementReference, "Mínimo 8 y máximo 16 caracteres, al menos una letra mayúscula, una minúscula, un número y un carácter especial. Ej: Angel2023+", options);
+    void ShowToolsTip(ElementReference elementReference, TooltipService optionss = null!) => ts.Open(elementReference, "Mínimo de 8 y máximo de 16 caracteres, sin caracteres especiales");
+    void ShowTip(ElementReference elementReference, TooltipService opts = null!) => ts.Open(elementReference, "Boton exclusivo para la edición del usuario");
 
     private string passwordType = "password";
 
-
+    private void ClearFormData()
+    {
+        info = new UsuarioInfo();
+    }
 
     //Obtención de roles
     public async Task GetRoles()

@@ -39,13 +39,17 @@
         <div class="col-12 d-flex justify-content-center">
             <RadzenDataGrid TItem="PrecioHistorico" Data="@preciosL" AllowColumnResize="true" AllowVirtualization="true" AllowPickAllColumns="true"
                             GridLines="DataGridGridLines.Both" class="rz-my-12" Style="height:600px;" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            IsLoading="loading" @ref="grid" AllowSorting="true" AllowFiltering="true" ColumnWidth="200px" AllowColumnPicking="true" Culture="CultureInfo.CurrentCulture">
+                            IsLoading="loading" @ref="grid" AllowSorting="true" AllowFiltering="true" ColumnWidth="200px" AllowColumnPicking="true" Culture="CultureInfo.CurrentCulture" >
                 <Columns>
                     <RadzenDataGridColumn TItem="PrecioHistorico" Title="Fecha" Property="FchDia" FormatString="{0:d}" Filterable="false" OrderIndex="1" Frozen="true" />
                     <RadzenDataGridColumn TItem="PrecioHistorico" Title="Precio" Property="pre" Filterable="false" OrderIndex="2" Frozen="true" />
                     <RadzenDataGridColumn TItem="PrecioHistorico" Title="Producto" FilterValue="ProductoSeleccionado" Property="Producto.Den" OrderIndex="3" Frozen="true">
                         <FilterTemplate Context="filter">
-                            <RadzenDropDown Data="ProductList" @bind-Value="ProductoSeleccionado" AllowClear="true"></RadzenDropDown>
+                            <RadzenDropDown Data="ProductList" AllowFiltering="true" @bind-Value="ProductoSeleccionado" AllowClear="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                                <ValueTemplate Context="data">
+                                    <InputText class="form-control col-12" @bind-Value="ProductoSeleccionado" MaxLength="100"/>
+                                </ValueTemplate>
+                            </RadzenDropDown>
                         </FilterTemplate>
                         <Template Context="data">
                             <div class="col-12 d-flex">
@@ -74,8 +78,12 @@
                         </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="PrecioHistorico" Title="Destino" Property="NombreDestino" FilterValue="DestinoSeleccionado" OrderIndex="4">
-                        <FilterTemplate>
-                            <RadzenDropDown Data="DestinoList" @bind-Value="DestinoSeleccionado" AllowClear="true"></RadzenDropDown>
+                        <FilterTemplate Context="filterdest">
+                            <RadzenDropDown Data="DestinoList" AllowFiltering="true" @bind-Value="DestinoSeleccionado" AllowClear="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                                <ValueTemplate Context="data">
+                                    <InputText class="form-control col-12" @bind-Value="DestinoSeleccionado" MaxLength="180"/>
+                                </ValueTemplate>
+                            </RadzenDropDown>
                         </FilterTemplate>
                         <Template Context="data">
                             <div>
@@ -85,8 +93,12 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="PrecioHistorico" Title="Zona" Property="NombreZona" Filterable="false" OrderIndex="5" />
                     <RadzenDataGridColumn TItem="PrecioHistorico" Title="Cliente" Property="NombreCliente" FilterValue="ClienteSeleccionado" OrderIndex="6">
-                        <FilterTemplate>
-                            <RadzenDropDown Data="ClienteList" @bind-Value="ClienteSeleccionado" AllowClear="true"></RadzenDropDown>
+                        <FilterTemplate Context="filterclio">
+                            <RadzenDropDown Data="ClienteList" AllowFiltering="true" @bind-Value="ClienteSeleccionado" AllowClear="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                                <ValueTemplate Context="data">
+                                    <InputText class="form-control col-12" @bind-Value="ClienteSeleccionado" MaxLength="180"></InputText>
+                                </ValueTemplate>
+                            </RadzenDropDown>
                         </FilterTemplate>
                         <Template Context="data">
                             <div>
@@ -96,7 +108,7 @@
                     </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGrid>
-        </div>
+</div>
     </Authorized>
 </AuthorizeView>
 
@@ -186,15 +198,15 @@
                 {
                     if ((item.Producto!.Den == ProductoSeleccionado || string.IsNullOrEmpty(ProductoSeleccionado))
                     && (item.Destino!.Den == DestinoSeleccionado || string.IsNullOrEmpty(DestinoSeleccionado))
-                        && (item.Destino!.Cliente!.Den == ClienteSeleccionado || string.IsNullOrEmpty(ClienteSeleccionado)))
+                        && (item.Cliente!.Den == ClienteSeleccionado || string.IsNullOrEmpty(ClienteSeleccionado)))
                         historialPrecio.Add(new HistorialPrecioDTO
                             {
                                 Fecha = item.FchDia.ToString("dd/MM/yyyy"),
-                                Pre = item.pre,
-                                Producto = item.Producto?.Den,
-                                Destino = item.Destino?.Den,
-                                Zona = item.Zona?.Nombre,
-                                Cliente = item.Cliente?.Den
+                                Pre = item?.pre,
+                                Producto = item?.Producto?.Den,
+                                Destino = item?.Destino?.Den,
+                                Zona = item?.Zona?.Nombre,
+                                Cliente = item?.Cliente?.Den
                             });
                 }
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -213,7 +225,7 @@
                 header.Style.Fill.BackgroundColor.SetColor(Color.LightGray);
 
                 //Guardar en excel
-                await js.GuardarComo($"HistorialPrecios_{DateTime.Today.ToString("dd/MM/yyyy")}.xlsx", excel.GetAsByteArray());
+                await js.GuardarComo($"HistorialPrecios_{DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")}.xlsx", excel.GetAsByteArray());
                 historialPrecio.Clear();
             }
             else

@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OfficeOpenXml.Attributes;
 
 namespace GComFuelManager.Shared.DTOs
 {
@@ -17,7 +18,12 @@ namespace GComFuelManager.Shared.DTOs
         [DisplayName("Destino")] public string? Destino { get; set; } = string.Empty;
         [DisplayName("Producto")] public string? Producto { get; set; } = string.Empty;
         [DisplayName("Precio")] public string? Precio { get; set; } = string.Empty;
-        [DisplayName("Volumen"), DisplayFormat(DataFormatString = "#,##0.00")] public double? Volumen { get; set; } = 0;
+
+        [EpplusIgnore]
+        public double? Volumen { get; set; } = 0;
+        [DisplayName("Volumen")]
+        public string? Volumenes { get { return string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", Volumen); } }
+
         [DisplayName("Unidad")] public string? Unidad { get; set; } = string.Empty;
         [DisplayName("Estatus")] public string? Estatus { get; set; } = string.Empty;
         [DisplayName("Fecha de llegada")] public string? FchLlegada { get; set; } = string.Empty;

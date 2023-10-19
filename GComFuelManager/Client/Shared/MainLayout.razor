@@ -1,5 +1,7 @@
 ﻿@inherits LayoutComponentBase
-@inject GComFuelManager.Client.Auth.RenovadorToken renovadorToken 
+@inject GComFuelManager.Client.Auth.RenovadorToken renovadorToken
+@inject IJSRuntime js
+@inject NavigationManager navigationManager
 
 <AuthorizeView>
     <Authorized>
@@ -30,17 +32,36 @@
     </Authorized>
 </AuthorizeView>
 
-@code{
+@code {
     public bool isClosed = false;
 
-    public void CloseMenu()
+    public async void CloseMenu()
     {
         isClosed = !isClosed;
+        await js.SetItemLocalStorage("CloseMenu", isClosed.ToString());
     }
 
-    protected override void OnInitialized()
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+    protected async override Task OnInitializedAsync()
     {
+        await js.InvokeVoidAsync("timerInactivo", DotNetObjectReference.Create(this));
+
+        var cm = await js.GetItemLocalStorage("CloseMenu");
+        if (cm is not null)
+            isClosed = bool.Parse(cm);
+
         renovadorToken.Iniciar();
+    }
+
+    [JSInvokable]
+    public async Task Logoute()
+    {
+        var authState = await AuthenticationStateTask;
+        if (authState.User.Identity!.IsAuthenticated)
+        {
+            navigationManager.NavigateTo("logout");
+        }
     }
 
 }

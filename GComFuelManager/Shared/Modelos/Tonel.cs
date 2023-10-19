@@ -64,13 +64,13 @@ namespace GComFuelManager.Shared.Modelos
             get
             {
                 int c = 0;
-                if (Idcom != null && Idcom != 0)
+                if (Idcom != null && Idcom != 0 && Capcom != 0 && Capcom != null)
                     c++;
-                if (Capcom2 != null && Idcom2 != 0)
+                if (Capcom2 != null && Idcom2 != 0 && Capcom2 != 0 && Capcom2 != null)
                     c++;
-                if (Capcom3 != null && Idcom3 != 0)
+                if (Capcom3 != null && Idcom3 != 0 && Capcom3 != 0 && Capcom3 != null)
                     c++;
-                if (Capcom4 != null && Idcom4 != 0)
+                if (Capcom4 != null && Idcom4 != 0 && Capcom4 != 0 && Capcom4 != null)
                     c++;
                 return c;
             }

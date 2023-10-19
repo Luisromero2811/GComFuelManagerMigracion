@@ -8,8 +8,8 @@ using OfficeOpenXml.Attributes;
 
 namespace GComFuelManager.Shared.DTOs
 {
-	public class EtaDTO
-	{
+    public class EtaDTO
+    {
         public string? Referencia { get; set; } = string.Empty;
         [DisplayName("Fecha de Programa")]
         public string? FechaPrograma { get; set; } = string.Empty;
@@ -29,12 +29,12 @@ namespace GComFuelManager.Shared.DTOs
         [DisplayName("Volumen Natural"), EpplusIgnore]
         public double? VolNat { get; set; } = 0;
         [DisplayName("Volumen Natural")]
-        public string Volms { get { return VolNat.Value.ToString("N2"); } }
+        public string Volms { get { return string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", VolNat); } }
 
         [DisplayName("Volumen Cargado"), EpplusIgnore]
         public double? VolCar { get; set; } = 0;
         [DisplayName("Volumen Cargado")]
-        public string Vols { get { return VolCar.Value.ToString("N2"); } }
+        public string Vols { get { return string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", VolCar); } }
 
         public string? Transportista { get; set; } = string.Empty;
         public string? Unidad { get; set; } = string.Empty;
@@ -42,16 +42,20 @@ namespace GComFuelManager.Shared.DTOs
 
         [DisplayName("Fecha Documentacion")]
         public string? FechaDoc { get; set; } = string.Empty;
-        //public string? Eta { get; set; } = string.Empty;
-        [DisplayName("Fecha Estimada")]
+        [DisplayName("Horas estimadas de viaje")]
+        public string? Eta { get; set; } = string.Empty;
+        [DisplayName("ETA")]
         public string? FechaEst { get; set; } = string.Empty;
         [DisplayName("Estado de Orden")]
         public string? Trayecto { get; set; } = string.Empty;
         public string? Observaciones { get; set; } = string.Empty;
         [DisplayName("Fecha Real de Llegada")]
         public string? FechaRealEta { get; set; } = string.Empty;
-        [DisplayName("Litros Entregados")]
+
+        [DisplayName("Litros Entregados"), EpplusIgnore]
         public double? LitEnt { get; set; } = 0;
+        [DisplayName("Litros Entregados")]
+        public string EntLit { get { return string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", LitEnt); } }
 
     }
 }

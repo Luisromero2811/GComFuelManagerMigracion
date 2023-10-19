@@ -1,19 +1,14 @@
-using System;
-using Microsoft.AspNetCore.Mvc;
-using GComFuelManager.Shared.DTOs;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using System.Diagnostics;
-using System.ServiceModel;
-using ServiceReference6;
-using ServiceReference3;
-using GComFuelManager.Shared.Modelos;
-using Newtonsoft.Json;
 using GComFuelManager.Server.Helpers;
-using Microsoft.AspNetCore.Identity;
 using GComFuelManager.Server.Identity;
+using GComFuelManager.Shared.Modelos;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+//using ServiceReference6;
+using ServiceReference8;
+using System.Diagnostics;
 
 namespace GComFuelManager.Server.Controllers.AsignacionUnidadesController
 {
@@ -56,6 +51,8 @@ namespace GComFuelManager.Server.Controllers.AsignacionUnidadesController
         {
             try
             {
+                List<Chofer> ChoferesActivos = new List<Chofer>();
+
                 BusinessEntityServiceClient client = new BusinessEntityServiceClient(BusinessEntityServiceClient.EndpointConfiguration.BasicHttpBinding_BusinessEntityService);
                 client.ClientCredentials.UserName.UserName = "energasws";
                 client.ClientCredentials.UserName.Password = "Energas23!";
@@ -69,20 +66,20 @@ namespace GComFuelManager.Server.Controllers.AsignacionUnidadesController
 
                     WsGetBusinessEntityAssociationsRequest getReq = new WsGetBusinessEntityAssociationsRequest();
 
-                    getReq.IncludeChildObjects = new ServiceReference6.NBool();
+                    getReq.IncludeChildObjects = new NBool();
                     getReq.IncludeChildObjects.Value = false;
 
-                    getReq.BusinessEntityType = new ServiceReference6.NInt();
+                    getReq.BusinessEntityType = new NInt();
                     getReq.BusinessEntityType.Value = 8192;
 
-                    getReq.AssociatedBusinessEntityType = new ServiceReference6.NInt();
+                    getReq.AssociatedBusinessEntityType = new NInt();
                     getReq.AssociatedBusinessEntityType.Value = 8;
 
-                    getReq.ActiveIndicator = new ServiceReference6.NEnumOfActiveIndicatorEnum();
-                    getReq.ActiveIndicator.Value = ServiceReference6.ActiveIndicatorEnum.ACTIVE;
+                    getReq.ActiveIndicator = new NEnumOfActiveIndicatorEnum();
+                    getReq.ActiveIndicator.Value = ActiveIndicatorEnum.ACTIVE;
 
-                    getReq.AssociatedBusinessEntityId = new ServiceReference6.Identifier();
-                    getReq.AssociatedBusinessEntityId.Id = new ServiceReference6.NLong();
+                    getReq.AssociatedBusinessEntityId = new Identifier();
+                    getReq.AssociatedBusinessEntityId.Id = new NLong();
                     getReq.AssociatedBusinessEntityId.Id.Value = code;
 
                     var respuesta = await svc.GetBusinessEntityAssociationsAsync(getReq);
@@ -106,7 +103,7 @@ namespace GComFuelManager.Server.Controllers.AsignacionUnidadesController
                                     Shortden = item.BusinessEntity.BusinessEntityShortName,
                                     Codtransport = Convert.ToInt32(code),
                                     Dricod = item.BusinessEntity.BusinessEntityId.Id.Value.ToString(),
-                                    Activo = item.BusinessEntity.ActiveIndicator.Value == ServiceReference6.ActiveIndicatorEnum.ACTIVE ? true : false,
+                                    Activo = item.BusinessEntity.ActiveIndicator.Value == ActiveIndicatorEnum.ACTIVE ? true : false,
                                 };
                                 //Obtención del code del chofer
                                 Chofer? c = context.Chofer.Where(x => x.Den == chofer.Den && x.Codtransport == chofer.Codtransport && x.Dricod == chofer.Dricod)
@@ -153,7 +150,7 @@ namespace GComFuelManager.Server.Controllers.AsignacionUnidadesController
                                     Shortden = item.AssociatedBusinessEntity.BusinessEntityShortName,
                                     Codtransport = Convert.ToInt32(code),
                                     Dricod = item.AssociatedBusinessEntity.BusinessEntityId.Id.Value.ToString(),
-                                    Activo = item.AssociatedBusinessEntity.ActiveIndicator.Value == ServiceReference6.ActiveIndicatorEnum.ACTIVE ? true : false,
+                                    Activo = item.AssociatedBusinessEntity.ActiveIndicator.Value == ActiveIndicatorEnum.ACTIVE ? true : false,
                                 };
                                 //Obtención del code del chofer
                                 Chofer? c = context.Chofer.Where(x => x.Den == chofer.Den && x.Codtransport == chofer.Codtransport && x.Dricod == chofer.Dricod)
@@ -197,7 +194,7 @@ namespace GComFuelManager.Server.Controllers.AsignacionUnidadesController
                         if (string.IsNullOrEmpty(id))
                             return BadRequest();
 
-                        await context.SaveChangesAsync(id,13);
+                        await context.SaveChangesAsync(id, 13);
                         return Ok(true);
                     }
                     else
@@ -226,7 +223,7 @@ namespace GComFuelManager.Server.Controllers.AsignacionUnidadesController
             try
             {
                 var i = 1;
-                var transportistas = context.Transportista.Where(x=>x.Activo == true).ToList();
+                var transportistas = context.Transportista.Where(x => x.Activo == true).ToList();
                 foreach (var item in transportistas)
                 {
                     long busentid;
