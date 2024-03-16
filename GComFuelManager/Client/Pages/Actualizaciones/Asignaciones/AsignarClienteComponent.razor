@@ -248,7 +248,7 @@
             else
             {
                 //Console.WriteLine(JsonConvert.SerializeObject(CliGru));
-                CliGru.cliente!.codgru = CliGru.grupo!.Cod;
+                CliGru.cliente!.Codgru = CliGru.grupo!.Cod;
                 CliGru.cliente!.Tipven = CliGru.Tipven;
                 CliGru.cliente!.MdVenta = CliGru.Mdpven;
                 var response = await http.Post<Cliente>($"api/grupo/cliente", CliGru.cliente);

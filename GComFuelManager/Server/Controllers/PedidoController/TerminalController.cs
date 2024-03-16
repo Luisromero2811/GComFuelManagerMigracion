@@ -1,4 +1,5 @@
 ﻿using GComFuelManager.Shared.DTOs;
+using GComFuelManager.Shared.Modelos;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -19,19 +20,43 @@ namespace GComFuelManager.Server.Controllers
             this.context = context;
         }
 
-        public async Task<ActionResult> Get()
+        public ActionResult Get()
         {
             try
             {
-                var terminales = await context.Tad
-                .Where(x => x.Activo == true)
-                //.Select(x => new CodDenDTO { Cod = x.Cod, Den = x.Den! })
-                .ToListAsync();
-                return Ok(terminales);
+                var terminales = context.Tad.Where(x => x.Activo == true).ToList();
+                return Ok(terminales.Order());
             }
             catch (Exception e)
             {
+                return BadRequest(e.Message);
+            }
+        }
 
+        [HttpGet("login"), AllowAnonymous]
+        public ActionResult Obteer_Terminales_De_Login()
+        {
+            try
+            {
+                List<string?> tads = new();
+                tads = context.Tad.Where(x => x.Activo == true && !string.IsNullOrEmpty(x.Den)).Select(x => x.Den).ToList();
+                return Ok(tads.Order());
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpGet("activas")]
+        public async Task <ActionResult<List<Tad>>> Obtener_Terminales_De_Login()
+        {
+            try
+            {
+                return await context.Tad.Where(x => x.Activo == true).ToListAsync();
+            }
+            catch (Exception e)
+            {
                 return BadRequest(e.Message);
             }
         }

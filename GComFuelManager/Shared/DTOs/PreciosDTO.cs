@@ -31,5 +31,7 @@ namespace GComFuelManager.Shared.DTOs
         public string? Moneda { get; set; } = string.Empty;
         [DisplayName("EQUIBALENCIA")]
         public double? Equibalencia { get; set; } = 1;
+        [DisplayName("TERMINAL")]
+        public string? Terminal { get; set; } = string.Empty;
     }
 }

@@ -19,35 +19,40 @@ namespace GComFuelManager.Server.Controllers.AsignacionUnidadesController
         private readonly ApplicationDbContext context;
         private readonly VerifyUserToken verifyUser;
         private readonly UserManager<IdentityUsuario> userManager;
+        private readonly User_Terminal _terminal;
 
-        public DestinoController(ApplicationDbContext context, VerifyUserToken verifyUser, UserManager<IdentityUsuario> userManager)
+        public DestinoController(ApplicationDbContext context, VerifyUserToken verifyUser, UserManager<IdentityUsuario> userManager, User_Terminal _Terminal)
         {
             this.context = context;
             this.verifyUser = verifyUser;
             this.userManager = userManager;
+            this._terminal = _Terminal;
         }
 
-        [HttpGet]
-        public ActionResult<List<Destino>> Get()
-        {
-            try
-            {
-                var destinos = context.Destino
-                    .ToList();
-                return Ok(destinos);
-            }
-            catch (Exception e)
-            {
-
-                return BadRequest(e.Message);
-            }
-        }
+        //[HttpGet]//TODO: checar utilidad
+        //public ActionResult<List<Destino>> Get()
+        //{
+        //    try
+        //    {
+        //        var destinos = context.Destino
+        //            .ToList();
+        //        return Ok(destinos);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return BadRequest(e.Message);
+        //    }
+        //}
 
         [HttpGet("comprador")]
         public ActionResult GetClientComprador()
         {
             try
             {
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
                 var userId = verifyUser.GetName(HttpContext);
 
                 if (string.IsNullOrEmpty(userId))
@@ -57,7 +62,8 @@ namespace GComFuelManager.Server.Controllers.AsignacionUnidadesController
                 if (user == null)
                     return BadRequest();
 
-                var clientes = context.Destino.Where(x => x.Codcte == user!.CodCte).AsEnumerable().OrderBy(x => x.Den);
+                var clientes = context.Destino.IgnoreAutoIncludes().Where(x => x.Codcte == user!.CodCte && x.Terminales.Any(x => x.Cod == id_terminal))
+                    .Include(x => x.Terminales).IgnoreAutoIncludes().OrderBy(x => x.Den).ToList();
 
                 return Ok(clientes);
             }

@@ -39,20 +39,38 @@
                 @bind-Settings="@Settings" AllowGrouping="true" HideGroupedColumn="true">
     <Columns>
         <AuthorizeView Roles="Admin, Administrador Usuario, Ejecutivo de Cuenta Comercial" Context="EdicionUnidades">
-            <RadzenDataGridColumn TItem="OrdenEmbarque" Width="60px" Sortable="false" Filterable="false" OrderIndex="1" Frozen="true">
+            <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Seleccionar/Confirmar" Width="140px" Sortable="false" Filterable="false" OrderIndex="1" Frozen="true">
                 <HeaderTemplate>
                     <RadzenCheckBox TriState="false" TValue="bool" Value="@(OrdenEmbarques.Any(i => OrdenesSeleccionadas!= null && OrdenesSeleccionadas.Contains(i)))"
                                     Change="@(args => OrdenesSeleccionadas = args ? OrdenEmbarques.ToList() : new List<OrdenEmbarque>())" />
                 </HeaderTemplate>
                 <Template Context="data">
-                    <RadzenCheckBox TriState="false" Value="@(OrdenesSeleccionadas.Contains(data))"
-                                    TValue="bool" Change="@((bool args) => ToggleCheck(args, data))" />
+                    <div class="col-12 row d-flex">
+                        <div class="col-2 d-flex">
+                            <RadzenCheckBox TriState="false" Value="@(OrdenesSeleccionadas.Contains(data))"
+                                            TValue="bool" Change="@((bool args) => ToggleCheck(args, data))" />
+                        </div>
+                        <div class="col-4 d-flex me-2">
+                            <button class="btn gcom-bg-amarillo" @onclick="@ConfirmPedido">
+                                <i class="fa fa-solid fa-check"></i>
+                                @*@if (loadingConfirm)
+                                {
+                                    <SpinnerLoading></SpinnerLoading>
+                                }*@
+                            </button>
+                        </div>
+                        <div class="col-4 d-flex">
+                            <button class="btn gcom-bg-rojo" @onclick="@(()=>CancelOrden(data))">
+                                <i class="fa-solid fa-x"></i>
+                            </button>
+                        </div>
+                    </div>
                 </Template>
             </RadzenDataGridColumn>
         </AuthorizeView>
         <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Folio de orden" Property="OrdenCierre.Folio" Width="150px" Filterable="false" OrderIndex="2" Frozen="true" />
-        <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Folio de pedido" Property="OrdenPedido.Folio" Width="150px" Filterable="false" OrderIndex="3" Frozen="true" />
-        <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Cliente" FilterValue="ClienteSeleccionado" Property="Destino.Cliente.Den" Width="200px" OrderIndex="4" Frozen="true">
+        @*<RadzenDataGridColumn TItem="OrdenEmbarque" Title="Folio de pedido" Property="OrdenPedido.Folio" Width="150px" Filterable="false" OrderIndex="3" Frozen="true" />*@
+        <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Cliente" FilterValue="ClienteSeleccionado" Property="Destino.Cliente.Den" Width="200px" OrderIndex="3" Frozen="true">
             <FilterTemplate Context="Cliente">
                 <RadzenDropDown Data="ClienteList" @bind-Value="ClienteSeleccionado" AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
                     <ValueTemplate Context="data">
@@ -66,7 +84,7 @@
                 </div>
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Destino" Property="Destino.Den" Width="220px" FilterValue="DestinosSeleccionados" OrderIndex="5">
+        <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Destino" Property="Destino.Den" Width="220px" FilterValue="DestinosSeleccionados" OrderIndex="4">
             <FilterTemplate Context="Destinos">
                 <RadzenDropDown Data="DestinoList" @bind-Value="DestinosSeleccionados" AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
                     <ValueTemplate Context="data">
@@ -80,7 +98,7 @@
                 </div>
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Producto" Property="Producto.Den" Width="200px" OrderIndex="6" FilterValue="ProductoSeleccionado">
+        <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Producto" Property="Producto.Den" Width="200px" OrderIndex="5" FilterValue="ProductoSeleccionado">
             <FilterTemplate Context="Productos">
                 <RadzenDropDown Data="ProductoList" @bind-Value="ProductoSeleccionado" AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
                     <ValueTemplate Context="data">
@@ -94,10 +112,10 @@
                 </div>
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Volumen" Width="100px" FormatString="{0:N2}" Filterable="false" OrderIndex="7">
+        <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Volumen" Width="100px" FormatString="{0:N2}" Filterable="false" OrderIndex="6">
             <Template Context="data">
                 <div class="col-12">
-                    @string.Format(new System.Globalization.CultureInfo("en-US"),"{0:N2}",
+                    @string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}",
                     data?.Orden is not null ? data?.Orden?.Vol :
                     data?.Compartment == 1 && data.Tonel is not null ? data?.Tonel?.Capcom
                     : data?.Compartment == 2 && data.Tonel is not null ? data?.Tonel?.Capcom2
@@ -108,12 +126,12 @@
                 </div>
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Fecha de carga" Property="Fchcar" FormatString="{0:d}" Filterable="false" Width="160px" OrderIndex="8" Sortable="false" />
-        <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Bin" Property="Bin" Filterable="false" Width="110px" OrderIndex="9" />
-        <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Estatus" Property="Estado.den" Filterable="false" Width="120px" OrderIndex="10" />
+        <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Fecha de carga" Property="Fchcar" FormatString="{0:d}" Filterable="false" Width="160px" OrderIndex="7" Sortable="false" />
+        <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Bin" Property="Bin" Filterable="false" Width="110px" OrderIndex="8" />
+        <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Estatus" Property="Estado.den" Filterable="false" Width="120px" OrderIndex="9" />
     </Columns>
 </RadzenDataGrid>
-<AuthorizeView Roles="Admin, Administrador Usuario, Ejecutivo de Cuenta Comercial" Context="AccionConfirm">
+@*<AuthorizeView Roles="Admin, Administrador Usuario, Ejecutivo de Cuenta Comercial" Context="AccionConfirm">
     <div class="card col-12 shadow-sm">
         <div class="col-12 row card-body">
             <div class="col-3">
@@ -128,7 +146,7 @@
             </div>
         </div>
     </div>
-</AuthorizeView>
+</AuthorizeView>*@
 
 <style type="text/css">
     .ancho {
@@ -279,15 +297,17 @@
                 }
                 else
                 {
+                    grid!.Reload();
                     loadingConfirm = false;
 
                     ns.Notify(new NotificationMessage
-                        {
-                            Severity = NotificationSeverity.Info,
-                            Summary = "Enviando correos",
-                            Detail = "Se estan enviando los correos de autorizacion. Permanezca en esta pantalla hasta terminar el proceso.",
-                            Duration = 10000
-                        });
+                    {
+                        Severity = NotificationSeverity.Info,
+                        Summary = "Enviando correos",
+                        Detail = "Se estan enviando los correos de autorizacion. Permanezca en esta pantalla hasta terminar el proceso.",
+                        Duration = 10000
+                    });
+                    grid!.Reload();
                     var responseEmail = await http.Post<IList<OrdenEmbarque>>("api/email/confirmorden", OrdenesSeleccionadas);
                     if (responseEmail.Error)
                     {
@@ -297,6 +317,8 @@
                     }
                     else
                     {
+                        ClearGridData();
+                        grid!.Reload();
                         loading = false;
                         await Swal.FireAsync("Exito", "Correos enviados", SweetAlertIcon.Success);
                     }
@@ -314,6 +336,46 @@
         catch (Exception e)
         {
             loadingConfirm = false;
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task CancelOrden(OrdenEmbarque orden)
+    {
+        try
+        {
+            var confirm = await Swal.FireAsync(new SweetAlertOptions
+            {
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Aceptar",
+                CancelButtonText = "Cancelar",
+                Text = "¿Desea cancelar la orden(es)?"
+            });
+            if (!string.IsNullOrEmpty(confirm.Value))
+            {
+                var response = await http.Get<OrdenEmbarque>($"api/cierre/cancelarordencliente/{orden.Cod}");
+                if (response.Error)
+                {
+                    var responseHttp = await response.ObtenerMensajeError();
+                    await Swal.FireAsync("Error", responseHttp, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    var index = OrdenEmbarques.IndexOf(orden);
+                    OrdenEmbarques.RemoveAt(index);
+
+                    if (OrdenEmbarques.Contains(orden))
+                        OrdenEmbarques.Remove(orden);
+
+                    grid!.Reload();
+                    StateHasChanged();
+                    await Swal.FireAsync("Exito", "La orden(es) fueron canceladas con éxito", SweetAlertIcon.Success);
+                }
+            }
+        }
+        catch (Exception e)
+        {
             await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
         }
     }

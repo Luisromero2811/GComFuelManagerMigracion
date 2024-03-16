@@ -1,7 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using OfficeOpenXml.Attributes;
 
 namespace GComFuelManager.Shared.Modelos
 {
@@ -20,6 +21,21 @@ namespace GComFuelManager.Shared.Modelos
 		[JsonProperty("activo")]
 		public bool? Activo { get; set; } = true;
 		//public List<OrdenEmbarque> OrdenEmbarque { get; set; } = null!;
+		[NotMapped] public List<Cliente> Clientes { get; set; } = new();
+		[NotMapped] public List<Cliente_Tad> Cliente_Tads { get; set; } = new();
+		[NotMapped] public List<Destino> Destinos { get; set; } = new();
+		[NotMapped] public List<Destino_Tad> Destino_Tads { get; set; } = new();
+		[NotMapped] public List<Transportista> Transportistas { get; set; } = new();
+		[NotMapped] public List<Transportista_Tad> Transportista_Tads { get; set; } = new();
+		[NotMapped] public List<Chofer> Choferes { get; set; } = new();
+		[NotMapped] public List<Chofer_Tad> Chofer_Tads { get; set; } = new();
+		[NotMapped] public List<Tonel> Unidades { get; set; } = new();
+		[NotMapped] public List<Unidad_Tad> Unidad_Tads { get; set; } = new();
+
+		[NotMapped] public List<GrupoTransportista> GruposTransportes { get; set; } = new();
+		[NotMapped] public List<GrupoTransportista_Tad> GrupoTransportista_Tads { get; set; } = new();
+
+ 		[NotMapped] public List<Tad> Terminales { get; set; } = new List<Tad>();
     }
 }
 

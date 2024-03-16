@@ -22,12 +22,14 @@ namespace GComFuelManager.Server.Controllers.Cierres
         private readonly ApplicationDbContext context;
         private readonly VerifyUserId verifyUser;
         private readonly UserManager<IdentityUsuario> userManager;
+        private readonly User_Terminal _terminal;
 
-        public ClientesController(ApplicationDbContext context, VerifyUserId verifyUser, UserManager<IdentityUsuario> UserManager)
+        public ClientesController(ApplicationDbContext context, VerifyUserId verifyUser, UserManager<IdentityUsuario> UserManager, User_Terminal _Terminal)
         {
             this.context = context;
             this.verifyUser = verifyUser;
             userManager = UserManager;
+            this._terminal = _Terminal;
         }
 
         private async Task SaveErrors(Exception e)
@@ -49,17 +51,21 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                var clientes_filtrados = context.Cliente.Include(x => x.Vendedor).Include(x => x.Originador).AsQueryable();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                var clientes_filtrados = context.Cliente.IgnoreAutoIncludes().Where(x => x.Terminales.Any(x => x.Cod == id_terminal)).Include(x => x.Terminales).IgnoreAutoIncludes().AsQueryable();
 
                 if (filtro_.ID_Grupo != 0)
-                    clientes_filtrados = clientes_filtrados.Where(x => x.codgru == filtro_.ID_Grupo);
+                    clientes_filtrados = clientes_filtrados.Where(x => x.Codgru == filtro_.ID_Grupo);
 
                 if (!string.IsNullOrEmpty(filtro_.Cliente_Filtrado))
                     clientes_filtrados = clientes_filtrados.Where(x => !string.IsNullOrEmpty(x.Den) && x.Den.ToLower().Contains(filtro_.Cliente_Filtrado));
 
                 //var clientes = context.Cliente.AsEnumerable().Select(x => new CodDenDTO { Cod = x.Cod, Den = x.Den! }).OrderBy(x => x.Den);
 
-                var clientes = clientes_filtrados.OrderBy(x => x.Den);
+                var clientes = clientes_filtrados.Include(x => x.Vendedor).IgnoreAutoIncludes().Include(x => x.Originador).IgnoreAutoIncludes().OrderBy(x => x.Den);
                 return Ok(clientes);
             }
             catch (Exception e)
@@ -88,7 +94,43 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                var clientes = context.Cliente.AsEnumerable().OrderBy(x => x.Den);
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                var clientes = context.Cliente.IgnoreAutoIncludes().Where(x => x.Terminales.Any(x => x.Cod == id_terminal)).Include(x => x.Terminales).IgnoreAutoIncludes().OrderBy(x => x.Den);
+                return Ok(clientes);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpGet("allactives")]
+        public async Task<ActionResult> GetAllActives()
+        {
+            try
+            {
+                var clientes = await context.Cliente.Where(x => x.Activo == true).OrderBy(x => x.Den).ToListAsync();
+                return Ok(clientes);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpGet("filtraractivos")]
+        public ActionResult Obtener_Grupos_Activos([FromQuery] Cliente cliente)
+        {
+            try
+            {
+                var clientes = context.Cliente.IgnoreAutoIncludes().AsQueryable();
+
+                if (!string.IsNullOrEmpty(cliente.Den))
+                    clientes = clientes.Where(x => x.Den!.ToLower().Contains(cliente.Den.ToLower()) && x.Activo == true);
+
                 return Ok(clientes);
             }
             catch (Exception e)
@@ -102,7 +144,13 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                var clientes = context.Cliente.Where(x => x.codgru == cod).Include(x => x.Vendedor).AsEnumerable().OrderBy(x => x.Den);
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                var clientes = context.Cliente.IgnoreAutoIncludes().Where(x => x.Codgru == cod && x.Terminales.Any(x => x.Cod == id_terminal))
+                    .Include(x => x.Vendedor).IgnoreAutoIncludes()
+                    .Include(x => x.Terminales).IgnoreAutoIncludes().OrderBy(x => x.Den);
                 return Ok(clientes);
             }
             catch (Exception e)
@@ -158,31 +206,31 @@ namespace GComFuelManager.Server.Controllers.Cierres
             }
         }
 
-        [HttpGet("folio/{cod:int}")]
-        public async Task<ActionResult> GetFolio([FromRoute] int cod)
-        {
-            try
-            {
-                var cliente = await context.Cliente.FindAsync(cod);
-                if (cliente == null)
-                    return NotFound();
+        //[HttpGet("folio/{cod:int}")]
+        //public async Task<ActionResult> GetFolio([FromRoute] int cod)
+        //{
+        //    try
+        //    {
+        //        var cliente = await context.Cliente.FindAsync(cod);
+        //        if (cliente == null)
+        //            return NotFound();
 
-                cliente.Consecutivo = cliente.Consecutivo != null ? cliente.Consecutivo + 1 : 1;
+        //        cliente.Consecutivo = cliente.Consecutivo != null ? cliente.Consecutivo + 1 : 1;
 
-                var folio = cliente.CodCte != null ? cliente.CodCte + Convert.ToString(cliente.Consecutivo) : string.Empty;
+        //        var folio = cliente.CodCte != null ? cliente.CodCte + Convert.ToString(cliente.Consecutivo) : string.Empty;
 
-                //cliente.Grupo = null!;
+        //        //cliente.Grupo = null!;
 
-                context.Update(cliente);
-                await context.SaveChangesAsync();
+        //        context.Update(cliente);
+        //        await context.SaveChangesAsync();
 
-                return Ok(folio);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
+        //        return Ok(folio);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return BadRequest(e.Message);
+        //    }
+        //}
 
         [HttpPut("{cod:int}")]
         public async Task<ActionResult> ChangeStatus([FromRoute] int cod, [FromBody] bool status)
@@ -253,6 +301,13 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                if (id_terminal != 1)
+                    return BadRequest("No esta permitida esta accion en esta terminal");
+
                 BusinessEntityServiceClient client = new BusinessEntityServiceClient(BusinessEntityServiceClient.EndpointConfiguration.BasicHttpBinding_BusinessEntityService2);
                 client.ClientCredentials.UserName.UserName = "energasws";
                 client.ClientCredentials.UserName.Password = "Energas23!";
@@ -450,56 +505,64 @@ namespace GComFuelManager.Server.Controllers.Cierres
 
         }
 
-        [HttpGet("buscar")]
-        public ActionResult GetClienteBusqueda([FromQuery] CodDenDTO cliente)
-        {
-            try
-            {
-                var clientes = context.Cliente.AsQueryable();
+        //[HttpGet("buscar")]
+        //public ActionResult GetClienteBusqueda([FromQuery] CodDenDTO cliente)
+        //{
+        //    try
+        //    {
+        //        var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+        //        if (id_terminal == 0)
+        //            return BadRequest();
 
-                if (string.IsNullOrEmpty(cliente.Den))
-                {
-                    clientes = clientes.Where(x => !string.IsNullOrEmpty(x.Den) && x.Den.ToLower().Contains(cliente.Den.ToLower()));
-                }
+        //        var clientes = context.Cliente.IgnoreAutoIncludes().Where(x => x.Terminales.Any(x => x.Cod == id_terminal)).Include(x => x.Terminales).IgnoreAutoIncludes().AsQueryable();
 
-                var newclientes = clientes.Select(x => x.Den);
+        //        if (string.IsNullOrEmpty(cliente.Den))
+        //        {
+        //            clientes = clientes.Where(x => !string.IsNullOrEmpty(x.Den) && x.Den.ToLower().Contains(cliente.Den.ToLower()));
+        //        }
 
-                return Ok(newclientes);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
+        //        var newclientes = clientes.Select(x => x.Den);
 
-        [HttpGet("buscarGrupo")]
-        public ActionResult GetGrupoBusqueda([FromQuery] CodDenDTO grupo)
-        {
-            try
-            {
-                var grupos = context.Grupo.AsQueryable();
+        //        return Ok(newclientes);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return BadRequest(e.Message);
+        //    }
+        //}
 
-                if (string.IsNullOrEmpty(grupo.Den))
-                {
-                    grupos = grupos.Where(x => !string.IsNullOrEmpty(x.Den) && x.Den.ToLower().Contains(grupo.Den.ToLower()));
-                }
+        //[HttpGet("buscarGrupo")]
+        //public ActionResult GetGrupoBusqueda([FromQuery] CodDenDTO grupo)
+        //{
+        //    try
+        //    {
+        //        var grupos = context.Grupo.AsQueryable();
 
-                var newgrupos = grupos.Select(x => x.Den);
+        //        if (string.IsNullOrEmpty(grupo.Den))
+        //        {
+        //            grupos = grupos.Where(x => !string.IsNullOrEmpty(x.Den) && x.Den.ToLower().Contains(grupo.Den.ToLower()));
+        //        }
 
-                return Ok(newgrupos);
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
+        //        var newgrupos = grupos.Select(x => x.Den);
+
+        //        return Ok(newgrupos);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return BadRequest(e.Message);
+        //    }
+        //}
 
         [HttpGet("filtrar")]
         public async Task<ActionResult> Filtrar_Clientes([FromQuery] CodDenDTO parametros)
         {
             try
             {
-                var clientes = context.Cliente.AsQueryable();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                var clientes = context.Cliente.IgnoreAutoIncludes().Where(x => x.Terminales.Any(x => x.Cod == id_terminal)).Include(x => x.Terminales).IgnoreAutoIncludes().AsQueryable();
 
                 if (!string.IsNullOrEmpty(parametros.Den))
                 {
@@ -532,9 +595,9 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                var destinos_en_precios = context.Precio.Select(x => x.codDes).Distinct().ToList();
-                var destinos_en_precios_programados = context.PrecioProgramado.Select(x => x.codDes).Distinct().ToList();
-                var destinos_en_precios_historial = context.PreciosHistorico.Select(x => x.codDes).Distinct().ToList();
+                var destinos_en_precios = context.Precio.Select(x => x.CodDes).Distinct().ToList();
+                var destinos_en_precios_programados = context.PrecioProgramado.Select(x => x.CodDes).Distinct().ToList();
+                var destinos_en_precios_historial = context.PreciosHistorico.Select(x => x.CodDes).Distinct().ToList();
 
                 List<int?> destinos_encontrados = new();
 

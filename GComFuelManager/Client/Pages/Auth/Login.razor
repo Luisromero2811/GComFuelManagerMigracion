@@ -24,8 +24,19 @@
 
                                     <EditForm Model="usuario" OnValidSubmit="LoguearUsuario">
                                         <DataAnnotationsValidator />
-                                        <div class="d-flex align-items-center mb-3 pb-1">
-                                            <i class="fas fa-cubes fa-2x me-3" style="color: #ff6219;"></i>
+                                        <div class="col-12 mb-2">
+                                            <label>Terminal</label>
+                                            <select @bind="@usuario.Terminal" class="form-select form-select-sm">
+                                                <option>-- seleccione una terminal --</option>
+                                                @foreach (var terminal in Terminales)
+                                                {
+                                                    <option value="@terminal">@terminal</option>
+                                                }
+                                            </select>
+                                            @if (loading_terminales)
+                                            {
+                                                <SpinnerLoading />
+                                            }
                                         </div>
                                         <div class="form-outline mb-4">
                                             <label class="form-label" for="form2Example17">Ingrese su Usuario:</label>
@@ -63,9 +74,43 @@
 
 @code {
     private UserLogin usuario { get; set; } = new UserLogin();
+
+    List<string> Terminales { get; set; } = new();
+
     private bool loading = false;
+    private bool loading_terminales = false;
 
     [CascadingParameter] public ErrorHandleComponent? Error { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Obtener_Terminales_Validas();
+    }
+
+    private async Task Obtener_Terminales_Validas()
+    {
+        try
+        {
+            loading_terminales = true;
+            var response = await http.Get<List<string>>("api/terminal/login");
+            if (response.Error)
+            {
+                loading_terminales = false;
+                string? message = await response.ObtenerMensajeError();
+                await swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                loading_terminales = false;
+                Terminales = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            loading_terminales = false;
+            Error?.ProcessError(e);
+        }
+    }
 
     private async Task LoguearUsuario()
     {

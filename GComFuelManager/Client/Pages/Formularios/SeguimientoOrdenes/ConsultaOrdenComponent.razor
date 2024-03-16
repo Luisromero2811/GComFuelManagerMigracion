@@ -40,12 +40,13 @@
         <thead>
             <tr>
                 <th class="th-resizable overflow-hidden" style="min-width:20px;width:400px;">BOL</th>
+                <th class="th-resizable overflow-hidden" style="min-width:20px;width:400px;">Unidad de Negocio</th>
                 <th class="th-resizable overflow-hidden" style="min-width:20px;width:400px;">Cliente</th>
                 <th class="th-resizable overflow-hidden" style="min-width:20px;width:400px;">Destino</th>
                 <th class="th-resizable overflow-hidden" style="min-width:20px;width:400px;">Producto</th>
                 <th class="th-resizable overflow-hidden" style="min-width:20px;width:400px;">Precio</th>
                 <th class="th-resizable overflow-hidden" style="min-width:20px;width:400px;">Volumen Cargado</th>
-                <th class="th-resizable overflow-hidden" style="min-width:20px;width:400px" @onmouseenter="@(args => ShowToolTip(infoIcon))" @ref="infoIcon">Folio de Pedido <i class="fa-solid fa-circle-info fa-xs"></i></th> 
+                <th class="th-resizable overflow-hidden" style="min-width:20px;width:400px" @onmouseenter="@(args => ShowToolTip(infoIcon))" @ref="infoIcon">Folio de Pedido <i class="fa-solid fa-circle-info fa-xs"></i></th>
             </tr>
         </thead>
         <tbody>
@@ -53,6 +54,9 @@
                 <tr style="height:49px;">
                     <td>
                         @data.BOL
+                    </td>
+                    <td>
+                        @data.Unidad_Negocio
                     </td>
                     <td>
                         @data.Cliente_Original

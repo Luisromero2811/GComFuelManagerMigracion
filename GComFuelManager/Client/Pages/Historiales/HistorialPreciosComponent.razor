@@ -51,6 +51,7 @@
                         <th scope="col">Moneda</th>
                         <th scope="col">Cambio</th>
                         <th scope="col">Usuario</th>
+                        <th scope="col">Unidad de Negocio</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -72,6 +73,7 @@
                             <!--Filtro cliente-->
                             <RadzenTextBox Change="@LoadData" @bind-Value="@busquedaPrecios.cliente" />
                         </td>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>
@@ -105,6 +107,9 @@
                             </td>
                             <td>
                                 <p>@data?.Usuario?.Den</p>
+                            </td>
+                            <td>
+                                <p>@data?.Terminal?.Den</p>
                             </td>
                         </tr>
                     }

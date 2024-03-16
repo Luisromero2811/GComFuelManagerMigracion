@@ -91,7 +91,7 @@
                             <ValidationSummary />
                             <div class="col-4 mb-2">
                                 <label>Zona</label>
-                                <InputSelect @bind-Value="Precio.codZona" class="form-select col-12">
+                                <InputSelect @bind-Value="Precio.CodZona" class="form-select col-12">
                                     <option>-- Seleccione una opcion</option>
                                     @if (Zonas == null)
                                     {
@@ -112,7 +112,7 @@
                             </div>
                             <div class="col-4 mb-2">
                                 <label>Grupo</label>
-                                <InputSelect @bind-Value="Precio.codGru" class="form-select col-12" onchange="@GetClientes()">
+                                <InputSelect @bind-Value="Precio.CodGru" class="form-select col-12" onchange="@GetClientes()">
                                     <option>-- Seleccione una opcion</option>
                                     @if (Grupos == null)
                                     {
@@ -133,7 +133,7 @@
                             </div>
                             <div class="col-4 mb-2">
                                 <label>Cliente</label>
-                                <InputSelect @bind-Value="Precio.codCte" class="form-select col-12" onchange="@GetEstaciones()">
+                                <InputSelect @bind-Value="Precio.CodCte" class="form-select col-12" onchange="@GetEstaciones()">
                                     <option>-- Seleccione una opcion</option>
                                     @if (Clientes == null)
                                     {
@@ -155,7 +155,7 @@
                             <div class="col-4 mb-1">
                                 <div class="col-12">
                                     <label>Destino</label>
-                                    <InputSelect @bind-Value="Precio.codDes" class="form-select col-12">
+                                    <InputSelect @bind-Value="Precio.CodDes" class="form-select col-12">
                                         <option>-- Seleccione una opcion</option>
                                         @if (Destinos == null)
                                         {
@@ -177,7 +177,7 @@
                             </div>
                             <div class="col-4 mb-2">
                                 <label>Producto</label>
-                                <InputSelect @bind-Value="Precio.codPrd" class="form-select col-12">
+                                <InputSelect @bind-Value="Precio.CodPrd" class="form-select col-12">
                                     <option>-- Seleccione una opcion</option>
                                     @if (Productos == null)
                                     {
@@ -286,6 +286,7 @@
                                     </AuthorizeView>
 
                                     <th>Fecha</th>
+                                    <th>Unidad de Negocio</th>
                                     <th>Precio</th>
                                     <th>Producto</th>
                                     <th>Destino</th>
@@ -306,6 +307,7 @@
                             </thead>
                             <tbody>
                                 <tr>
+                                    <td></td>
                                     <td></td>
                                     <td></td>
                                     <td></td>
@@ -353,6 +355,9 @@
 
                                             <td>
                                                 <RadzenText Text="@item.FchDia.ToString("dd/MM/yyyy")" TextStyle="TextStyle.Body2" />
+                                            </td>
+                                            <td>
+                                                <RadzenText Text="@item?.Terminal?.Den" TextStyle="TextStyle.Body2" />
                                             </td>
                                             <td>
                                                 <RadzenText Text="@item.Pre.ToString()" TextStyle="TextStyle.Body2" />
@@ -426,6 +431,7 @@
                                         </AuthorizeView>
                                     </th>
                                     <th>Fecha</th>
+                                    <th>Unidad de Negocio</th>
                                     <th>Precio</th>
                                     <th>Producto</th>
                                     <th>Destino</th>
@@ -446,6 +452,7 @@
                             </thead>
                             <tbody>
                                 <tr>
+                                    <td></td>
                                     <td></td>
                                     <td></td>
                                     <td></td>
@@ -493,6 +500,9 @@
 
                                             <td>
                                                 <RadzenText Text="@item.FchDia.ToString("dd/MM/yyyy")" TextStyle="TextStyle.Body2" />
+                                            </td>
+                                            <td>
+                                                <RadzenText Text="@item?.Terminal?.Den" TextStyle="TextStyle.Body2"/>
                                             </td>
                                             <td>
                                                 <RadzenText Text="@item.Pre.ToString()" TextStyle="TextStyle.Body2" />
@@ -861,9 +871,9 @@
     {
         try
         {
-            if (Precio.codGru != null && Precio.codGru != GrupoSeleccionado)
+            if (Precio.CodGru != null && Precio.CodGru != GrupoSeleccionado)
             {
-                var response = await http.Get<List<CodDenDTO>>($"api/cliente/{Precio.codGru}");
+                var response = await http.Get<List<CodDenDTO>>($"api/cliente/{Precio.CodGru}");
                 if (response.Error)
                 {
                     var message = await response.ObtenerMensajeError();
@@ -871,7 +881,7 @@
                 }
                 else
                 {
-                    GrupoSeleccionado = Precio.codGru;
+                    GrupoSeleccionado = Precio.CodGru;
                     Clientes = response.Response;
                     StateHasChanged();
                 }
@@ -888,9 +898,9 @@
     {
         try
         {
-            if (Precio.codCte != null && ClienteSeleccionado != Precio.codCte)
+            if (Precio.CodCte != null && ClienteSeleccionado != Precio.CodCte)
             {
-                var response = await http.Get<List<CodDenDTO>>($"api/estacion/{Precio.codCte}");
+                var response = await http.Get<List<CodDenDTO>>($"api/estacion/{Precio.CodCte}");
                 if (response.Error)
                 {
                     var responseHttp = await response.ObtenerMensajeError();
@@ -900,7 +910,7 @@
                 {
                     Destinos = response.Response;
                     StateHasChanged();
-                    ClienteSeleccionado = Precio.codCte;
+                    ClienteSeleccionado = Precio.CodCte;
                 }
             }
         }

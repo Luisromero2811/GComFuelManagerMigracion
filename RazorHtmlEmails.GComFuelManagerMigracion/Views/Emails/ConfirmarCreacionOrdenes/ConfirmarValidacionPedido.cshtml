@@ -1,0 +1,149 @@
+﻿@using GComFuelManager.Shared.DTOs;
+@using GComFuelManager.Shared.Modelos;
+@using RazorHtmlEmails.GComFuelManagerMigracion.Views.Emails.ConfirmationAccount
+@using RazorHtmlEmails.GComFuelManagerMigracion.Views.Shared
+@using System.Diagnostics;
+@model EmailContent<OrdenCierre>
+
+<div style="width:100%;margin-bottom:15px;display: flex;flex-direction:row;">
+    <div style="width:50%;text-align:start;display: inline;">
+        @*<b>
+            Folio: @Model.Lista!.FirstOrDefault()!.Folio
+        </b>*@
+    </div>
+    <div style="width:50%;text-align:end;display: inline;">
+        <b>
+            Fecha: @DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss")
+        </b>
+    </div>
+</div>
+@{
+    ViewData["EmailTitle"] = "Cierre autorizado!";
+}
+@if (Model.Lista!.FirstOrDefault()!.Cliente is not null)
+{
+<p> @Model.Lista!.FirstOrDefault()!.Cliente!.Den, se ha validado el pedido de los siguientes productos.</p>
+}
+@if (Model.Lista!.FirstOrDefault()!.Grupo is not null && Model.Lista!.FirstOrDefault()!.Cliente is null)
+{
+        <p>@Model.Lista!.FirstOrDefault()!.Grupo!.Den, se ha validado el siguiente pedido</p>
+}
+
+<br />
+
+@{
+    if (Model.Lista != null)
+    {
+        <b style="margin-bottom:10px;">Fecha de vencimiento: @Model.Lista!.FirstOrDefault()!.FchVen</b>
+
+        <table cellspacing="0" cellpadding="0" border="0" width="100%">
+            <thead>
+                <tr>
+                    <th width="18%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Arial, Helvetica, sans-serif; font-size: 16px; font-weight:800; line-height: 24px; padding: 10px;">
+                        Folio
+                    </th>
+                    <th width="50%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 800; line-height: 24px; padding: 10px;">
+                        Producto
+                    </th>
+                    <th width="20%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 800; line-height: 24px; padding: 10px;">
+                        Destino
+                    </th>
+                    <th width="10%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 800; line-height: 24px; padding: 10px;">
+                        Litros totales
+                    </th>
+                    <th width="10%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 800; line-height: 24px; padding: 10px;">
+                        Precio por litro
+                    </th>
+                    <th width="10%" align="left" bgcolor="#eeeeee" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 800; line-height: 24px; padding: 10px;">
+                        Subtotal
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Lista)
+                {
+                    <tr>
+                        <td align="left" style="font-family: Open Sans, Arial, Helvetica, sans-serif; font-size: 14px; font-weight: 300; line-height: 24px; padding: 15px 10px 5px 10px;">
+                            @item.Folio
+                        </td>
+                        <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 24px; padding: 15px 10px 5px 10px;">
+                            @if (item.Producto.Cod == 25 || item.Producto.Cod == 26 || item.Producto.Cod == 27)
+                            {
+                                <div style="background-color:#528234; border-radius:50%;display:inline;width:15px;height:15px;">&nbsp;&nbsp;&nbsp;</div>
+                            }
+                            else if (item.Producto.Cod == 11 || item.Producto.Cod == 12 || item.Producto.Cod == 116)
+                            {
+                                <div style="background-color:#8FD154; border-radius:50%;display:inline;width:15px;height:15px;">&nbsp;&nbsp;&nbsp;</div>
+                            }
+                            else if (item.Producto.Cod == 19 || item.Producto.Cod == 20 || item.Producto.Cod == 21)
+                            {
+                                <div style="background-color:#AC0608; border-radius:50%;display:inline;width:15px;height:15px;">&nbsp;&nbsp;&nbsp;</div>
+                            }
+                            else
+                            {
+                                <div style="background-color:#AEAAA9; border-radius:50%;display:inline;width:15px;height:15px;">&nbsp;&nbsp;&nbsp;</div>
+                            }
+                            @item.Producto!.Den
+                        </td>
+                        <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 300; line-height: 24px; padding: 15px 10px 5px 10px;">
+                            @item.Destino!.Den
+                        </td>
+                        <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 300; line-height: 24px; padding: 15px 10px 5px 10px;">
+                            @item.Volumen?.ToString("N")
+                        </td>
+                        <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 300; line-height: 24px; padding: 15px 10px 5px 10px;">
+                            @item.Precio.ToString("N4")
+                        </td>
+                        <td align="left" style="font-family: Open Sans, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 300; line-height: 24px; padding: 15px 10px 5px 10px;">
+                            @((Convert.ToDouble(item.Volumen) * item.Precio).ToString("N"))
+                        </td>
+                    </tr>
+                }
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        <b>Total</b>
+                    </td>
+                    <td>
+                        @GetTotal()?.ToString("N")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div style="width:100%;margin-bottom:15px;display: inline-block;margin-top:25px;">
+                            <div style="width:100%;text-align:start;">
+                                <b>Tipo de pago: @Model.Lista!.FirstOrDefault()!.TipoPago</b>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div colspan="4" style="width:100%;margin-top:25px;">
+                            @*<a style="background-color:#EABF1A; color:black; border:none; border-radius:5px;margin:10px;padding:15px 25px;box-shadow: 0px 4px 4px 0px #00000040;
+                                                                                                font-size:18px; text-decoration:none;" href="https://gcom.dgl.com.mx/orden/@Model.Lista.First().Folio">
+                                Ver pedido
+                            </a>*@
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    }
+}
+<br />
+
+@functions {
+    public double? GetTotal()
+    {
+        double? total = 0;
+        foreach (var item in Model.Lista!)
+        {
+            total += (Convert.ToDouble(item.Volumen) * item.Precio);
+        }
+
+        return total;
+    }
+}

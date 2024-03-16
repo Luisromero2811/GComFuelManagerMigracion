@@ -40,29 +40,53 @@ namespace GComFuelManager.Server.Controllers.Auth
         {
             try
             {
-                ModelState.AddModelError("Credenciales no validas", "Nombre de usuario y/o contraseña no validos");
 
                 var usuario = await context.Usuario.FirstOrDefaultAsync(x => x.Usu == info.UserName);
                 if (usuario == null)
-                    return BadRequest(ModelState);
+                    return BadRequest("El usuario no tiene acceso al sistema");
 
-                if(usuario!.Activo == true)
+                if (usuario!.Activo == true)
                 {
-                    var resultado = await signInManager.PasswordSignInAsync(info.UserName, info.Password, isPersistent: false, lockoutOnFailure: false);
-                    if (resultado.Succeeded)
+
+                    var user_asp = await userManager.FindByNameAsync(info.UserName);
+                    if (user_asp == null)
+                        return BadRequest("El usuario no tiene acceso al sistema");
+
+                    var terminal = context.Tad.FirstOrDefault(x => !string.IsNullOrEmpty(x.Den) && x.Den.Equals(info.Terminal));
+                    if (terminal is null)
                     {
-                        var token = await BuildToken(info);
-                        return Ok(token);
+                        var user = await userManager.FindByNameAsync(info.UserName);
+                        if (user is not null)
+                        {
+                            if (await userManager.IsInRoleAsync(user, "Obtencion de Ordenes") || await userManager.IsInRoleAsync(user, "Consulta Precios"))
+                            {
+                                terminal = new() { Cod = 0 };
+                                info.Terminal = "Interno";
+                            }
+                            else
+                                return BadRequest("No tiene acceso a esta terminal");
+                        }
+                        else
+                            return BadRequest("No tiene acceso a esta terminal");
+                    }
+
+                    if (context.Usuario_Tad.Any(x => x.Id_Usuario == user_asp.Id && x.Id_Terminal == terminal!.Cod))
+                    {
+                        var resultado = await signInManager.PasswordSignInAsync(info.UserName, info.Password, isPersistent: false, lockoutOnFailure: false);
+                        if (resultado.Succeeded)
+                        {
+                            var token = await BuildToken(info);
+
+                            return Ok(token);
+                        }
+                        else
+                            return BadRequest("Nombre de usuario y/o contraseña no validos");
                     }
                     else
-                    {
-                        return BadRequest(ModelState);
-                    }
+                        return BadRequest("No tiene acceso a esta terminal");
                 }
                 else
-                {
-                    return BadRequest(ModelState);
-                }
+                    return BadRequest("El usuario no tiene acceso al sistema");
             }
             catch (Exception e)
             {
@@ -72,13 +96,17 @@ namespace GComFuelManager.Server.Controllers.Auth
 
         [HttpGet("renovarToken")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<ActionResult<UserTokenDTO>> Renovar()
+        public async Task<ActionResult<UserTokenDTO>> Renovar([FromQuery] string t)
         {
-            //Construimos un userInfo para poder utilizar el method de BuildToken
-            var userInfo = new UsuarioInfo()
+            var userInfo = new UsuarioInfo();
+
+            var Claims = Validar_Token(t);
+
+            if (Claims is not null)
             {
-                UserName = HttpContext.User.Identity!.Name!
-            };
+                userInfo.UserName = Claims.FindFirstValue(ClaimTypes.Name) ?? string.Empty;
+                userInfo.Terminal = Claims.FindFirstValue("Terminal") ?? string.Empty;
+            }
 
             return await BuildToken(userInfo);
         }
@@ -89,8 +117,16 @@ namespace GComFuelManager.Server.Controllers.Auth
             {
                 new Claim(ClaimTypes.Name, info.UserName),
                 new Claim(JwtRegisteredClaimNames.UniqueName, info.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim("Terminal",info.Terminal)
             };
+
+            if (string.IsNullOrEmpty(info.UserName))
+                throw new ArgumentNullException(nameof(info.UserName));
+
+            if (string.IsNullOrEmpty(info.Terminal))
+                throw new ArgumentNullException(nameof(info.Terminal));
+
             var usuario = await userManager.FindByNameAsync(info.UserName);
             if (usuario != null)
             {
@@ -116,6 +152,7 @@ namespace GComFuelManager.Server.Controllers.Auth
             {
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
                 Expiration = expiration,
+                Claims = claims
             };
         }
         //Crear usuarios ya definidos de la tabla Usuarios
@@ -173,6 +210,28 @@ namespace GComFuelManager.Server.Controllers.Auth
             catch (Exception e)
             {
                 return BadRequest(e);
+            }
+        }
+
+        private ClaimsPrincipal Validar_Token(string token)
+        {
+            try
+            {
+                var validationParameters = new TokenValidationParameters
+                {
+                    ValidateAudience = false,
+                    ValidateIssuer = false,
+                    ValidateLifetime = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["jwtkey"]!))
+                };
+
+                SecurityToken Token_validado;
+
+                return new JwtSecurityTokenHandler().ValidateToken(token, validationParameters, out Token_validado);
+            }
+            catch (Exception e)
+            {
+                throw new InvalidOperationException();
             }
         }
     }

@@ -65,7 +65,7 @@
                         <div class="col-4">
                             <div class="col-12">
                                 <label class="form-label">Grupo</label>
-                                <InputSelect @bind-Value="info.CodGru" class="form-select" onchange="@GetClientes()">
+                                @*<InputSelect @bind-Value="info.CodGru" class="form-select" onchange="@GetClientes()">
                                     <option>-- Selecciona una opcion --</option>
                                     @if (Grupos is null)
                                     {
@@ -81,14 +81,17 @@
                                         {
                                             <option value="@item.Cod">@item.Den</option>
                                         }
-                                    }
-                                </InputSelect>
+                                    }*@
+                                    <RadzenDropDown Data="Grupos" class="col-12" TextProperty="Den" ValueProperty="Cod" @bind-Value="info.CodGru"
+                                                    AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                    AllowVirtualization="true" AllowClear="true" Change="@GetClientes"/>
+                                @*</InputSelect>*@
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="col-12">
                                 <label class="form-label">Cliente</label>
-                                <InputSelect @bind-Value="info.CodCte" class="form-select">
+                                @*<InputSelect @bind-Value="info.CodCte" class="form-select">
                                     <option>-- Selecciona una opcion --</option>
                                     @if (Clientes is null)
                                     {
@@ -105,7 +108,10 @@
                                             <option value="@item.Cod">@item.Den</option>
                                         }
                                     }
-                                </InputSelect>
+                                </InputSelect>*@
+                                <RadzenDropDown Data="Clientes" class="col-12" TextProperty="Den" ValueProperty="Cod" @bind-Value="info.CodCte"
+                                                AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                                AllowVirtualization="true" AllowClear="true"/>
                             </div>
                         </div>
                     }
@@ -233,7 +239,8 @@
 
     private int? clienteSeleccioado { get; set; }
 
-    private List<CodDenDTO> Grupos { get; set; } = null!;
+    //private List<CodDenDTO> Grupos { get; set; } = null!;
+    private IEnumerable<Grupo> Grupos { get; set; } = new List<Grupo>();
     private Int16? GrupoSeleccionadoB = 0;
 
     //Usuario seleccionado
@@ -456,7 +463,7 @@
     {
         try
         {
-            var response = await repositorio.Get<List<CodDenDTO>>("api/grupo");
+            var response = await repositorio.Get<IEnumerable<Grupo>>("api/grupo/all");
             if (response.Error)
             {
                 var message = await response.ObtenerMensajeError();

@@ -12,6 +12,8 @@ namespace GComFuelManager.Shared.DTOs
 	{
 		public Cliente? cliente { get; set; }
 		public CodDenDTO? destino { get; set; }
-	}
+		public Destino? destinos { get; set; }
+        public string Den { get; set; } = string.Empty;
+    }
 }
 

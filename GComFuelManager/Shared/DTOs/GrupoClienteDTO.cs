@@ -15,6 +15,7 @@ namespace GComFuelManager.Shared.DTOs
 		public Grupo? grupo { get; set; }
         public string? Tipven { get; set; } 
         public string? Mdpven { get; set; }
+        public string? Den { get; set; } = string.Empty;
 
         [NotMapped]
         public string? MdVenta { get; set; } = string.Empty;

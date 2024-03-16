@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using static GComFuelManager.Server.Controllers.Precios.PrecioController;
 
 namespace GComFuelManager.Server.Controllers.Cierres
 {
@@ -19,12 +18,14 @@ namespace GComFuelManager.Server.Controllers.Cierres
     {
         private readonly ApplicationDbContext context;
         private readonly VerifyUserId verifyUser;
+        private readonly User_Terminal _terminal;
 
-        public CierreController(ApplicationDbContext context, UserManager<IdentityUsuario> userManager, VerifyUserId verifyUser)
+        public CierreController(ApplicationDbContext context, UserManager<IdentityUsuario> userManager, VerifyUserId verifyUser, User_Terminal _Terminal)
         {
             this.context = context;
             UserManager = userManager;
             this.verifyUser = verifyUser;
+            _terminal = _Terminal;
         }
 
         public UserManager<IdentityUsuario> UserManager { get; }
@@ -44,26 +45,30 @@ namespace GComFuelManager.Server.Controllers.Cierres
             await context.SaveChangesAsync();
         }
 
-        [HttpGet]
-        public async Task<ActionResult> Get()
-        {
-            try
-            {
-                var ordenes = context.OrdenCierre.AsEnumerable();
-                return Ok();
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
+        //[HttpGet]
+        //public async Task<ActionResult> Get()
+        //{
+        //    try
+        //    {
+        //        var ordenes = context.OrdenCierre.AsEnumerable();
+        //        return Ok();
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return BadRequest(e.Message);
+        //    }
+        //}
 
         [HttpGet("{folio}")]
         public async Task<ActionResult> GetByFolio([FromRoute] string folio)
         {
             try
             {
-                var ordenes = await context.OrdenCierre.Where(x => x.Folio == folio && x.Estatus == true)
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                var ordenes = await context.OrdenCierre.Where(x => x.Folio == folio && x.Estatus == true && x.Id_Tad == id_terminal)
                     .Include(x => x.OrdenEmbarque)
                     .ThenInclude(x => x!.Destino)
                     .Include(x => x.OrdenEmbarque)
@@ -86,12 +91,16 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                Porcentaje porcentaje = new Porcentaje();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                Porcentaje porcentaje = new();
                 var por = context.Porcentaje.FirstOrDefault(x => x.Accion == "cierre");
                 if (por != null)
                     porcentaje = por;
 
-                var cierres = await context.OrdenCierre.Where(x => x.Folio == folio)
+                var cierres = await context.OrdenCierre.Where(x => x.Folio == folio && x.Id_Tad == id_terminal)
                     .Include(x => x.Destino)
                     .Include(x => x.Cliente)
                     .Include(x => x.Producto)
@@ -123,17 +132,25 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                List<OrdenCierre> cierresVolumen = new List<OrdenCierre>();
-                List<OrdenCierre> Ordenes_Adicionales_Modificadas = new List<OrdenCierre>();
-                var ordenes = context.OrdenCierre.Where(x => x.Folio == folio && x.Estatus == true).ToList();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                List<OrdenCierre> cierresVolumen = new();
+                List<OrdenCierre> Ordenes_Adicionales_Modificadas = new();
+                var ordenes = context.OrdenCierre.IgnoreAutoIncludes().Where(x => x.Folio == folio && x.Estatus == true && x.Id_Tad == id_terminal).ToList();
 
                 if (ordenes.Count > 0)
                 {
 
-                    var pedidos = context.OrdenPedido.Where(x => x.Folio == folio && x.CodPed != null && x.OrdenEmbarque != null).ToList();
+                    var pedidos = context.OrdenPedido.Where(x => x.Folio == folio && x.CodPed != null && x.OrdenEmbarque != null && x.OrdenCierre != null && x.OrdenCierre.Id_Tad == id_terminal)
+                        .Include(x => x.OrdenEmbarque).IgnoreAutoIncludes()
+                        .Include(x => x.OrdenCierre).IgnoreAutoIncludes()
+                        .ToList();
+
                     foreach (var item1 in pedidos)
                     {
-                        var pedido = context.OrdenCierre.Where(x => x.CodPed == item1.CodPed)
+                        var pedido = context.OrdenCierre.IgnoreAutoIncludes().Where(x => x.CodPed == item1.CodPed && x.Id_Tad == id_terminal)
                             .Include(x => x.OrdenEmbarque)
                             .Include(x => x.Cliente)
                             .Include(x => x.Producto)
@@ -156,10 +173,10 @@ namespace GComFuelManager.Server.Controllers.Cierres
                             cierresVolumen.Add(pedido);
 
                             if (context.Orden.Count(x => pedido.OrdenEmbarque != null && pedido.OrdenEmbarque.Orden != null && x.Ref == pedido.OrdenEmbarque.FolioSyn
-                            && x.Codest != 14 && pedido.OrdenEmbarque.Codest != 14) > 1)
+                            && x.Codest != 14 && pedido.OrdenEmbarque.Codest != 14 && x.Id_Tad == id_terminal) > 1)
                             {
                                 var Ordenes_Adicionales = context.Orden.Where(x => pedido.OrdenEmbarque != null && pedido.OrdenEmbarque.Orden != null && x.Ref == pedido.OrdenEmbarque.FolioSyn
-                                && x.Cod != pedido.OrdenEmbarque.Orden.Cod).ToList();
+                                && x.Cod != pedido.OrdenEmbarque.Orden.Cod && x.Id_Tad == id_terminal).ToList();
 
                                 foreach (var oa in Ordenes_Adicionales)
                                 {
@@ -213,13 +230,21 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                List<OrdenCierre> cierresVolumen = new List<OrdenCierre>();
-                var ordenes = context.OrdenCierre.Where(x => x.Folio == folio && x.Estatus == true).ToList();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                List<OrdenCierre> cierresVolumen = new();
+                var ordenes = context.OrdenCierre.Where(x => x.Folio == folio && x.Estatus == true && x.Id_Tad == id_terminal).ToList();
 
                 if (ordenes.Count > 0)
                 {
 
-                    var pedidos = context.OrdenPedido.Where(x => x.Folio == folio && x.CodPed != null && x.OrdenEmbarque != null).ToList();
+                    var pedidos = context.OrdenPedido.IgnoreAutoIncludes().Where(x => x.Folio == folio && x.CodPed != null && x.OrdenEmbarque != null && x.OrdenCierre != null && x.OrdenCierre.Id_Tad == id_terminal)
+                        .Include(x => x.OrdenCierre).IgnoreAutoIncludes()
+                        .Include(x => x.OrdenEmbarque).IgnoreAutoIncludes()
+                        .ToList();
+
                     foreach (var item1 in pedidos)
                     {
                         var pedido = context.OrdenCierre.Where(x => x.CodPed == item1.CodPed)
@@ -262,6 +287,10 @@ namespace GComFuelManager.Server.Controllers.Cierres
             {
                 var id = await verifyUser.GetId(HttpContext, UserManager);
                 if (string.IsNullOrEmpty(id))
+                    return BadRequest();
+
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
                     return BadRequest();
 
                 if (orden is null)
@@ -330,6 +359,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 orden.Producto = null!;
                 orden.Destino = null!;
 
+                orden.Id_Tad = id_terminal;
                 orden.FchVencimiento = orden.FchCierre?.AddDays(5);
                 context.Add(orden);
 
@@ -338,6 +368,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 var NewOrden = await context.OrdenCierre.Where(x => x.Cod == orden.Cod)
                     .Include(x => x.Destino)
                     .Include(x => x.Producto)
+                    .Include(x => x.Terminal)
                     .Include(x => x.Grupo)
                     .Include(x => x.OrdenEmbarque)
                     .ThenInclude(x => x.Estado)
@@ -349,7 +380,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
 
                 if (orden.PrecioOverDate)
                 {
-                    CierrePrecioDespuesFecha cierreprecio = new CierrePrecioDespuesFecha()
+                    CierrePrecioDespuesFecha cierreprecio = new()
                     {
                         CodCie = orden.Cod,
                         CodCte = orden.CodCte,
@@ -376,6 +407,10 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
                 orden.Producto = null;
                 orden.Destino = null;
                 orden.Cliente = null;
@@ -385,7 +420,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 context.Update(orden);
                 await context.SaveChangesAsync();
 
-                var newOrden = context.OrdenCierre.Where(x => x.Cod == orden.Cod)
+                var newOrden = context.OrdenCierre.Where(x => x.Cod == orden.Cod && x.Id_Tad == id_terminal)
                     .Include(x => x.OrdenEmbarque)
                     .Include(x => x.Destino)
                     .Include(x => x.Producto)
@@ -405,7 +440,11 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                var orden = await context.OrdenCierre.FirstOrDefaultAsync(x => x.Cod == cod);
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                var orden = await context.OrdenCierre.FirstOrDefaultAsync(x => x.Cod == cod && x.Id_Tad == id_terminal);
 
                 if (orden == null)
                     return NotFound();
@@ -423,13 +462,13 @@ namespace GComFuelManager.Server.Controllers.Cierres
             }
         }
 
-        [HttpPost("list")]
+        [HttpPost("list")] //TODO: verificar uso
         public async Task<ActionResult> PostList(List<int> list)
         {
             try
             {
-                List<OrdenCierre> ordenes = new List<OrdenCierre>();
-                OrdenCierre? pedido = new OrdenCierre();
+                List<OrdenCierre> ordenes = new();
+                OrdenCierre? pedido = new();
 
                 foreach (var item in list)
                 {
@@ -454,8 +493,12 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                List<OrdenCierre> cierresGroup = new List<OrdenCierre>();
-                cierresGroup = await context.OrdenCierre.Where(x => x.CodGru == filtroDTO.codGru && x.Folio.StartsWith("G") && x.Estatus == true)
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                List<OrdenCierre> cierresGroup = new();
+                cierresGroup = await context.OrdenCierre.IgnoreAutoIncludes().Where(x => !string.IsNullOrEmpty(x.Folio) && x.CodGru == filtroDTO.codGru && x.Folio.StartsWith("G") && x.Estatus == true && x.Id_Tad == id_terminal)
                      .Include(x => x.Cliente)
                         .Include(x => x.Producto)
                         .Include(x => x.Destino)
@@ -482,12 +525,16 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                List<OrdenCierre> cierres = new List<OrdenCierre>();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                List<OrdenCierre> cierres = new();
 
                 if (!filtroDTO.forFolio)
                 {
                     cierres = await context.OrdenCierre.Where(x => x.CodCte == filtroDTO.codCte
-                    && x.FchCierre >= filtroDTO.FchInicio && x.FchCierre <= filtroDTO.FchFin && x.Estatus == true)
+                    && x.FchCierre >= filtroDTO.FchInicio && x.FchCierre <= filtroDTO.FchFin && x.Estatus == true && x.Id_Tad == id_terminal)
                         .Include(x => x.Cliente)
                         .Include(x => x.Producto)
                         .Include(x => x.Destino)
@@ -508,7 +555,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                     //Filtrado mediante el folio del cierre
                     if (!string.IsNullOrEmpty(filtroDTO.Folio))
                     {
-                        cierres = await context.OrdenCierre.Where(x => x.Folio == filtroDTO.Folio && x.Estatus == true)
+                        cierres = await context.OrdenCierre.Where(x => x.Folio == filtroDTO.Folio && x.Estatus == true && x.Id_Tad == id_terminal)
                             .Include(x => x.Cliente)
                             .Include(x => x.Producto)
                             .Include(x => x.Destino)
@@ -542,11 +589,16 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                List<PrecioBolDTO> precios = new List<PrecioBolDTO>();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
 
-                var ordenes = context.Orden.Where(x => x.Ref == referencia)
+                List<PrecioBolDTO> precios = new();
+
+                var ordenes = context.Orden.IgnoreAutoIncludes().Where(x => x.Ref == referencia && x.Id_Tad == id_terminal)
                     .Include(x => x.Producto)
                     .Include(x => x.Destino)
+                    .Include(x => x.Terminal)
                     .ToList();
 
                 if (ordenes is null || ordenes.Count == 0)
@@ -554,10 +606,10 @@ namespace GComFuelManager.Server.Controllers.Cierres
 
                 foreach (var item in ordenes)
                 {
-                    PrecioBolDTO precio = new PrecioBolDTO();
+                    PrecioBolDTO precio = new();
 
-                    OrdenEmbarque? orden = new OrdenEmbarque();
-                    orden = context.OrdenEmbarque.Where(x => x.FolioSyn == item.Ref).Include(x => x.Producto).Include(x => x.Destino).ThenInclude(x => x.Cliente).FirstOrDefault();
+                    OrdenEmbarque? orden = new();
+                    orden = context.OrdenEmbarque.IgnoreAutoIncludes().Where(x => x.FolioSyn == item.Ref && x.Codtad == id_terminal).Include(x => x.Producto).Include(x => x.Tad).Include(x => x.Destino).ThenInclude(x => x.Cliente).FirstOrDefault();
 
                     precio.Fecha_De_Carga = item.Fchcar;
 
@@ -580,6 +632,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
 
                     precio.BOL = item.BatchId;
                     precio.Volumen_Cargado = item.Vol;
+                    precio.Unidad_Negocio = item.Terminal.Den;
                     if (orden is not null)
                     {
                         if (orden.Destino is not null)
@@ -589,16 +642,16 @@ namespace GComFuelManager.Server.Controllers.Cierres
                             precio.Producto_Original = orden.Producto.Den ?? "";
                     }
 
-                    var precioVig = context.Precio.Where(x => item != null && x.codDes == item.Coddes && x.codPrd == item.Codprd)
+                    var precioVig = context.Precio.Where(x => item != null && x.CodDes == item.Coddes && x.CodPrd == item.Codprd && x.Id_Tad == id_terminal)
                         .OrderByDescending(x => x.FchDia)
                         .FirstOrDefault();
 
-                    var precioPro = context.PrecioProgramado.Where(x => item != null && x.codDes == item.Coddes && x.codPrd == item.Codprd)
+                    var precioPro = context.PrecioProgramado.Where(x => item != null && x.CodDes == item.Coddes && x.CodPrd == item.Codprd && x.Id_Tad == id_terminal)
                         .OrderByDescending(x => x.FchDia)
                         .FirstOrDefault();
 
-                    var precioHis = context.PreciosHistorico.Where(x => item != null && x.codDes == item.Coddes && x.codPrd == item.Codprd
-                        && item.Fchcar != null && x.FchDia <= item.Fchcar.Value.Date)
+                    var precioHis = context.PreciosHistorico.Where(x => item != null && x.CodDes == item.Coddes && x.CodPrd == item.Codprd
+                        && item.Fchcar != null && x.FchDia <= item.Fchcar.Value.Date && x.Id_Tad == id_terminal)
                         .OrderByDescending(x => x.FchDia)
                         .FirstOrDefault();
 
@@ -682,12 +735,16 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                List<PrecioBolDTO> precios = new List<PrecioBolDTO>();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                List<PrecioBolDTO> precios = new();
                 List<Orden> ordenes_unificadas = new();
 
                 //var ordenes = context.OrdenCierre.Where(x => x.CodGru == fechas.codGru && x.CodCte == fechas.codCte && x.FchCierre >= fechas.FchInicio && x.FchCierre <= fechas.FchFin && x.Folio.StartsWith("OP"));
 
-                var ordenes = context.Orden.Where(x => x.Fchcar != null && x.Fchcar.Value.Date >= fechas.FchInicio.Date && x.Fchcar.Value.Date <= fechas.FchFin.Date)
+                var ordenes = context.Orden.Where(x => x.Fchcar != null && x.Fchcar.Value.Date >= fechas.FchInicio.Date && x.Fchcar.Value.Date <= fechas.FchFin.Date && x.Id_Tad == id_terminal)
                     .Include(x => x.Producto)
                     .Include(x => x.Destino)
                     .IgnoreAutoIncludes()
@@ -702,9 +759,10 @@ namespace GComFuelManager.Server.Controllers.Cierres
                     {
                         if (!ordenes_unificadas.Any(x => x.Ref == item.Ref && x.Bolguiid == item.Bolguiid && x.BatchId == item.BatchId && x.CompartmentId == item.CompartmentId))
 
-                            if (context.Orden.Count(x => x.Ref == item.Ref && x.Bolguiid == item.Bolguiid && x.BatchId == item.BatchId && x.CompartmentId == item.CompartmentId) > 1)
+                            if (context.Orden.Count(x => x.Ref == item.Ref && x.Bolguiid == item.Bolguiid && x.BatchId == item.BatchId && x.CompartmentId == item.CompartmentId && x.Id_Tad == id_terminal) > 1)
                             {
-                                var ordenesa_a_unificar = context.Orden.Where(x => x.Ref == item.Ref && x.Bolguiid == item.Bolguiid && x.BatchId == item.BatchId && x.CompartmentId == item.CompartmentId && x.Cod != item.Cod)
+                                var ordenesa_a_unificar = context.Orden.Where(x => x.Ref == item.Ref && x.Bolguiid == item.Bolguiid && x.BatchId == item.BatchId && x.CompartmentId == item.CompartmentId && x.Cod != item.Cod
+                                && x.Id_Tad == id_terminal)
                                     .IgnoreAutoIncludes()
                                     .ToList();
 
@@ -725,7 +783,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                     PrecioBolDTO precio = new();
 
                     OrdenEmbarque? orden = new();
-                    orden = context.OrdenEmbarque.Where(x => x.FolioSyn == item.Ref).Include(x => x.Producto).Include(x => x.Destino).ThenInclude(x => x.Cliente).Include(x => x.OrdenCierre).IgnoreAutoIncludes().FirstOrDefault();
+                    orden = context.OrdenEmbarque.IgnoreAutoIncludes().Where(x => x.FolioSyn == item.Ref && x.Codtad == id_terminal)
+                        .Include(x => x.Producto).Include(x => x.Destino).ThenInclude(x => x.Cliente).Include(x => x.OrdenCierre).IgnoreAutoIncludes().FirstOrDefault();
 
                     precio.Fecha_De_Carga = item.Fchcar;
 
@@ -763,12 +822,12 @@ namespace GComFuelManager.Server.Controllers.Cierres
                             precio.Producto_Original = item.Producto.Den ?? "";
                     }
 
-                    var precioVig = context.Precio.Where(x => item != null && x.codDes == item.Coddes && x.codPrd == item.Codprd).OrderByDescending(x => x.FchActualizacion).FirstOrDefault();
+                    var precioVig = context.Precio.Where(x => item != null && x.CodDes == item.Coddes && x.CodPrd == item.Codprd && x.Id_Tad == id_terminal).OrderByDescending(x => x.FchActualizacion).FirstOrDefault();
 
-                    var precioPro = context.PrecioProgramado.Where(x => item != null && x.codDes == item.Coddes && x.codPrd == item.Codprd).OrderByDescending(x => x.FchActualizacion).FirstOrDefault();
+                    var precioPro = context.PrecioProgramado.Where(x => item != null && x.CodDes == item.Coddes && x.CodPrd == item.Codprd && x.Id_Tad == id_terminal).OrderByDescending(x => x.FchActualizacion).FirstOrDefault();
 
-                    var precioHis = context.PreciosHistorico.Where(x => item != null && x.codDes == item.Coddes && x.codPrd == item.Codprd
-                        && item.Fchcar != null && x.FchDia <= item.Fchcar.Value.Date)
+                    var precioHis = context.PreciosHistorico.Where(x => item != null && x.CodDes == item.Coddes && x.CodPrd == item.Codprd
+                        && item.Fchcar != null && x.FchDia <= item.Fchcar.Value.Date && x.Id_Tad == id_terminal)
                         .OrderByDescending(x => x.FchDia)
                         .FirstOrDefault();
 
@@ -857,12 +916,16 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                List<OrdenCierre> cierres = new List<OrdenCierre>();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                List<OrdenCierre> cierres = new();
 
                 if (!filtroDTO.forFolio)
                 {
                     cierres = await context.OrdenCierre.Where(x => x.CodCte == filtroDTO.codCte
-                    && x.FchCierre >= filtroDTO.FchInicio && x.FchCierre <= filtroDTO.FchFin && x.Estatus == true && x.Activa == true)
+                    && x.FchCierre >= filtroDTO.FchInicio && x.FchCierre <= filtroDTO.FchFin && x.Estatus == true && x.Activa == true && x.Id_Tad == id_terminal)
                         .Include(x => x.Cliente)
                         .Include(x => x.Producto)
                         .Include(x => x.Destino)
@@ -880,7 +943,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 {
                     if (!string.IsNullOrEmpty(filtroDTO.Folio))
                     {
-                        cierres = await context.OrdenCierre.Where(x => x.Folio == filtroDTO.Folio && x.Estatus == true && x.Activa == true)
+                        cierres = await context.OrdenCierre.Where(x => x.Folio == filtroDTO.Folio && x.Estatus == true && x.Activa == true && x.Id_Tad == id_terminal)
                             .Include(x => x.Cliente)
                             .Include(x => x.Producto)
                             .Include(x => x.Destino)
@@ -898,20 +961,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                     else
                         return BadRequest("Debe escribir un folio valido.");
                 }
-                //foreach (var item in cierres)
-                //{
-                //    if (item.OrdenEmbarque is not null)
-                //    {
-                //        if (item.OrdenEmbarque!.Folio != 0 && item.OrdenEmbarque!.Folio != null)
-                //        {
-                //            var o = await context.Orden.Where(y => y.Ref!.Contains(item.OrdenEmbarque!.Folio.ToString()!)).Include(x => x.Estado).FirstOrDefaultAsync();
-                //            if (o != null)
-                //                cierres.FirstOrDefault(x => x.Cod == item.Cod)!.OrdenEmbarque!.Orden = o;
-                //            else
-                //                cierres.FirstOrDefault(x => x.Cod == item.Cod)!.OrdenEmbarque!.Orden = null!;
-                //        }
-                //    }
-                //}
+
                 return Ok(cierres);
             }
             catch (Exception e)
@@ -920,7 +970,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
             }
         }
 
-        [HttpGet("years")]
+        [HttpGet("years")] //TODO: verificar uso
         public async Task<ActionResult> GetYears()
         {
             try
@@ -939,9 +989,13 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
                 var ordens = await context.OrdenCierre
                     .Where(x => x.OrdenEmbarque!.Fchcar >= fechas.DateInicio && x.OrdenEmbarque!.Fchcar <= fechas.DateFin && x.OrdenEmbarque!.Codest == 3 && x.OrdenEmbarque!.FchOrd != null
-                    && x.OrdenEmbarque!.Bolguidid == null)
+                    && x.OrdenEmbarque!.Bolguidid == null && x.Id_Tad == id_terminal)
                     .Include(x => x.OrdenEmbarque!.Chofer)
                     .Include(x => x.OrdenEmbarque!.Destino)
                     .ThenInclude(x => x.Cliente)
@@ -968,9 +1022,13 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                List<OrdenCierre> ordens = new List<OrdenCierre>();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
 
-                ordens = context.OrdenCierre.Where(x => x.Folio == fechas.Folio).ToList();
+                List<OrdenCierre> ordens = new();
+
+                ordens = context.OrdenCierre.Where(x => x.Folio == fechas.Folio && x.Id_Tad == id_terminal).ToList();
 
                 if (ordens is null)
                     return BadRequest();
@@ -990,7 +1048,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
 
                 await context.SaveChangesAsync(id, 5);
 
-                var ordenes = await context.OrdenCierre.Where(x => x.Folio == fechas.Folio && x.Estatus == true)
+                var ordenes = await context.OrdenCierre.Where(x => x.Folio == fechas.Folio && x.Estatus == true && x.Id_Tad == id_terminal)
                     .Include(x => x.Producto)
                     .Include(x => x.Destino)
                     .Include(x => x.OrdenEmbarque)
@@ -1011,30 +1069,21 @@ namespace GComFuelManager.Server.Controllers.Cierres
             }
         }
 
-        [HttpPost("margen")]
-        public async Task<ActionResult> PostMargen([FromBody] CierreFiltroDTO fechas)
-        {
-            try
-            {
-                return Ok();
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-        }
-
-        [HttpPost("volumen")]
+        [HttpPost("volumen")] //TODO: checar utilidad
         public async Task<ActionResult<VolumenDisponibleDTO>> GetListadoVolumen([FromBody] CierreFiltroDTO filtro)
         {
             try
             {
-                VolumenDisponibleDTO volumen = new VolumenDisponibleDTO();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                VolumenDisponibleDTO volumen = new();
 
                 if (!filtro.forFolio)
                 {
                     var cierres = await context.OrdenCierre.Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
-                    && x.Estatus == true && x.CodCte == filtro.codCte)
+                    && x.Estatus == true && x.CodCte == filtro.codCte && x.Id_Tad == id_terminal)
                         .Include(x => x.Producto).Include(x => x.OrdenEmbarque).ThenInclude(x => x.Tonel).Include(x => x.OrdenEmbarque).ThenInclude(x => x.Orden).ToListAsync();
 
                     if (cierres is null)
@@ -1044,7 +1093,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
 
                     foreach (var item in cierres.DistinctBy(x => x.Cod))
                     {
-                        if (context.OrdenPedido.Any(x => x.Folio.Equals(item.Folio)))
+                        if (context.OrdenPedido.Any(x => !string.IsNullOrEmpty(x.Folio) && x.Folio.Equals(item.Folio)))
                         {
 
                             var VolumenDisponible = item.Volumen;
@@ -1052,7 +1101,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                             var listConsumido = context.OrdenPedido.Where(x => !string.IsNullOrEmpty(x.Folio) && x.Folio.Equals(item.Folio) && x.OrdenEmbarque != null && x.OrdenEmbarque.Tonel != null && x.OrdenEmbarque.Codprd == item.CodPrd
                             && x.OrdenEmbarque.Codest == 22
                             && x.OrdenEmbarque.Folio != null
-                            && x.OrdenEmbarque.Bolguidid != null)
+                            && x.OrdenEmbarque.Bolguidid != null
+                            && x.OrdenEmbarque.Codtad == id_terminal)
                             .Include(x => x.OrdenEmbarque)
                             .ThenInclude(x => x.Tonel).ToList();
 
@@ -1066,7 +1116,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                                 && x.OrdenEmbarque.Orden.Codest != 14
                                 && x.OrdenEmbarque.Codest != 14
                             && x.OrdenEmbarque.Codprd == item.CodPrd
-                            && x.OrdenEmbarque.Orden.BatchId != null)
+                            && x.OrdenEmbarque.Orden.BatchId != null
+                            && x.OrdenEmbarque.Orden.Id_Tad == id_terminal)
                                 .Include(x => x.OrdenEmbarque)
                                 .ThenInclude(x => x.Orden)
                                 .Sum(x => x.OrdenEmbarque!.Orden!.Vol);
@@ -1074,20 +1125,22 @@ namespace GComFuelManager.Server.Controllers.Cierres
                             var VolumenProgramado = context.OrdenPedido.Where(x => !string.IsNullOrEmpty(x.Folio) && x.Folio.Equals(item.Folio) && x.OrdenEmbarque != null && x.OrdenEmbarque.Folio == null
                                 && x.OrdenEmbarque.Codprd == item.CodPrd
                                 && x.OrdenEmbarque.Bolguidid == null && x.OrdenEmbarque.Codest == 3
-                                && x.OrdenEmbarque.FchOrd != null)
+                                && x.OrdenEmbarque.FchOrd != null
+                                && x.OrdenEmbarque.Codtad == id_terminal)
                                 .Include(x => x.OrdenEmbarque)
                                     .Sum(x => x.OrdenEmbarque!.Vol);
 
                             var VolumenSolicitado = context.OrdenPedido.Where(x => !string.IsNullOrEmpty(x.Folio) && x.Folio.Equals(item.Folio) && x.OrdenEmbarque != null && x.OrdenEmbarque.Folio == null
                             && x.OrdenEmbarque.Codprd == item.CodPrd
                             && x.OrdenEmbarque.Bolguidid == null && x.OrdenEmbarque.Codest == 9
-                            && x.OrdenEmbarque.FchOrd == null)
+                            && x.OrdenEmbarque.FchOrd == null
+                            && x.OrdenEmbarque.Codtad == id_terminal)
                                 .Include(x => x.OrdenEmbarque)
                                 .Sum(x => x.OrdenEmbarque!.Vol);
 
                             var VolumenTotalDisponible = VolumenDisponible - (VolumenConsumido + VolumenCongelado + VolumenProgramado);
 
-                            ProductoVolumen productoVolumen = new ProductoVolumen();
+                            ProductoVolumen productoVolumen = new();
 
                             productoVolumen.Nombre = item.Producto?.Den;
                             productoVolumen.Disponible = VolumenTotalDisponible;
@@ -1138,7 +1191,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
 
                             var VolumenTotalDisponible = VolumenDisponible - (VolumenConsumido + VolumenCongelado + VolumenProgramado);
 
-                            ProductoVolumen productoVolumen = new ProductoVolumen();
+                            ProductoVolumen productoVolumen = new();
                             productoVolumen.Nombre = item.Producto!.Den;
                             productoVolumen.Disponible = VolumenTotalDisponible;
                             productoVolumen.Congelado = VolumenCongelado;
@@ -1215,7 +1268,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
 
                             var VolumenTotalDisponible = VolumenDisponible - (VolumenConsumido + VolumenCongelado + VolumenProgramado);
 
-                            ProductoVolumen productoVolumen = new ProductoVolumen();
+                            ProductoVolumen productoVolumen = new();
 
                             productoVolumen.Nombre = item.Producto?.Den;
                             productoVolumen.Disponible = VolumenTotalDisponible;
@@ -1273,7 +1326,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
 
                             var VolumenTotalDisponible = VolumenDisponible - (VolumenConsumido + VolumenCongelado + VolumenProgramado);
 
-                            ProductoVolumen productoVolumen = new ProductoVolumen();
+                            ProductoVolumen productoVolumen = new();
                             productoVolumen.Nombre = item.Producto?.Den;
                             productoVolumen.Disponible = VolumenTotalDisponible;
                             productoVolumen.Congelado = VolumenCongelado;
@@ -1296,15 +1349,19 @@ namespace GComFuelManager.Server.Controllers.Cierres
             }
         }
 
-        [HttpPost("volumen/mes")]
+        [HttpPost("volumen/mes")] //TDODO: checar utilidad
         public async Task<ActionResult<VolumenDisponibleDTO>> GetListadoVolumenMes([FromBody] CierreFiltroDTO filtro)
         {
             try
             {
-                VolumenDisponibleDTO volumen = new VolumenDisponibleDTO();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
 
-                var cierres = await context.OrdenCierre.Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
-                && x.Estatus == true && x.CodCte == filtro.codCte)
+                VolumenDisponibleDTO volumen = new();
+
+                var cierres = await context.OrdenCierre.IgnoreAutoIncludes().Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
+                && x.Estatus == true && x.CodCte == filtro.codCte && x.Id_Tad == id_terminal)
                     .Include(x => x.Producto).Include(x => x.OrdenEmbarque).ThenInclude(x => x.Tonel).Include(x => x.OrdenEmbarque).ThenInclude(x => x.Orden).ToListAsync();
 
                 if (cierres is null)
@@ -1339,7 +1396,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
 
                     var VolumenTotalDisponible = VolumenDisponible - (VolumenConsumido + VolumenCongelado + VolumenProgramado);
 
-                    ProductoVolumen productoVolumen = new ProductoVolumen();
+                    ProductoVolumen productoVolumen = new();
                     productoVolumen.Nombre = item?.Producto!.Den;
                     productoVolumen.Disponible = VolumenTotalDisponible;
                     productoVolumen.Congelado = VolumenCongelado;
@@ -1374,12 +1431,16 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                VolumenDisponibleDTO volumen = new VolumenDisponibleDTO();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                VolumenDisponibleDTO volumen = new();
 
                 if (!filtro.forFolio)
                 {
                     var cierres = await context.OrdenCierre.Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
-                    && x.Estatus == true && x.CodCte == filtro.codCte)
+                    && x.Estatus == true && x.CodCte == filtro.codCte && x.Id_Tad == id_terminal)
                         .Include(x => x.Producto).Include(x => x.OrdenEmbarque).ThenInclude(x => x.Tonel).Include(x => x.OrdenEmbarque).ThenInclude(x => x.Orden).ToListAsync();
 
                     if (cierres is null)
@@ -1395,7 +1456,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                             var listConsumido = context.OrdenPedido.Where(x => x.OrdenEmbarque != null && x.OrdenEmbarque.Tonel != null && !string.IsNullOrEmpty(x.Folio) && x.Folio.Equals(item.Folio) && x.OrdenEmbarque != null && x.OrdenEmbarque.Tonel != null && x.OrdenEmbarque.Codprd == item.CodPrd
                             && x.OrdenEmbarque.Codest == 22
                             && x.OrdenEmbarque.Folio != null
-                            && x.OrdenEmbarque.Bolguidid != null)
+                            && x.OrdenEmbarque.Bolguidid != null
+                            && x.OrdenEmbarque.Codtad == id_terminal)
                             .Include(x => x.OrdenEmbarque)
                             .ThenInclude(x => x.Tonel).ToList();
 
@@ -1409,7 +1471,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                                 && x.OrdenEmbarque.Orden.Codest != 14
                                 && x.OrdenEmbarque.Codest != 14
                             && x.OrdenEmbarque.Codprd == item.CodPrd
-                            && x.OrdenEmbarque.Orden.BatchId != null)
+                            && x.OrdenEmbarque.Orden.BatchId != null
+                            && x.OrdenEmbarque.Orden.Id_Tad == id_terminal)
                                 .Include(x => x.OrdenEmbarque)
                                 .ThenInclude(x => x.Orden)
                                 .Sum(x => x.OrdenEmbarque!.Orden!.Vol);
@@ -1417,20 +1480,22 @@ namespace GComFuelManager.Server.Controllers.Cierres
                             var VolumenProgramado = context.OrdenPedido.Where(x => !string.IsNullOrEmpty(x.Folio) && x.Folio.Equals(item.Folio) && x.OrdenEmbarque != null && x.OrdenEmbarque.Folio == null
                                 && x.OrdenEmbarque.Codprd == item.CodPrd
                                 && x.OrdenEmbarque.Bolguidid == null && x.OrdenEmbarque.Codest == 3
-                                && x.OrdenEmbarque.FchOrd != null)
+                                && x.OrdenEmbarque.FchOrd != null
+                                && x.OrdenEmbarque.Codtad == id_terminal)
                                 .Include(x => x.OrdenEmbarque)
                                     .Sum(x => x.OrdenEmbarque!.Vol);
 
                             var VolumenSolicitado = context.OrdenPedido.Where(x => !string.IsNullOrEmpty(x.Folio) && x.Folio.Equals(item.Folio) && x.OrdenEmbarque != null && x.OrdenEmbarque.Folio == null
                             && x.OrdenEmbarque.Codprd == item.CodPrd
                             && x.OrdenEmbarque.Bolguidid == null && x.OrdenEmbarque.Codest == 9
-                            && x.OrdenEmbarque.FchOrd == null)
+                            && x.OrdenEmbarque.FchOrd == null
+                            && x.OrdenEmbarque.Codtad == id_terminal)
                                 .Include(x => x.OrdenEmbarque)
                                 .Sum(x => x.OrdenEmbarque!.Vol);
 
                             var VolumenTotalDisponible = VolumenDisponible - (VolumenConsumido + VolumenCongelado + VolumenProgramado);
 
-                            ProductoVolumen productoVolumen = new ProductoVolumen();
+                            ProductoVolumen productoVolumen = new();
 
                             productoVolumen.Nombre = item.Producto?.Den;
                             productoVolumen.Disponible = VolumenTotalDisponible;
@@ -1461,7 +1526,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                             var listConsumido = context.OrdenPedido.Where(x => !string.IsNullOrEmpty(x.Folio) && x.Folio.Equals(item.Folio) && x.OrdenEmbarque != null && x.OrdenEmbarque.Tonel != null && x.OrdenEmbarque.Codprd == item.CodPrd
                             && x.OrdenEmbarque.Codest == 22
                             && x.OrdenEmbarque.Folio != null
-                            && x.OrdenEmbarque.Bolguidid != null)
+                            && x.OrdenEmbarque.Bolguidid != null
+                            && x.OrdenEmbarque.Codtad == id_terminal)
                             .Include(x => x.OrdenEmbarque)
                             .ThenInclude(x => x.Tonel).ToList();
 
@@ -1475,7 +1541,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                                 && x.OrdenEmbarque.Orden.Codest != 14
                                 && x.OrdenEmbarque.Codest != 14
                             && x.OrdenEmbarque.Codprd == item.CodPrd
-                            && x.OrdenEmbarque.Orden.BatchId != null)
+                            && x.OrdenEmbarque.Orden.BatchId != null
+                            && x.OrdenEmbarque.Orden.Id_Tad == id_terminal)
                                 .Include(x => x.OrdenEmbarque)
                                 .ThenInclude(x => x.Orden)
                                 .Sum(x => x.OrdenEmbarque!.Orden!.Vol);
@@ -1483,20 +1550,22 @@ namespace GComFuelManager.Server.Controllers.Cierres
                             var VolumenProgramado = context.OrdenPedido.Where(x => !string.IsNullOrEmpty(x.Folio) && x.Folio.Equals(item.Folio) && x.OrdenEmbarque != null && x.OrdenEmbarque.Folio == null
                                 && x.OrdenEmbarque.Codprd == item.CodPrd
                                 && x.OrdenEmbarque.Bolguidid == null && x.OrdenEmbarque.Codest == 3
-                                && x.OrdenEmbarque.FchOrd != null)
+                                && x.OrdenEmbarque.FchOrd != null
+                                && x.OrdenEmbarque.Codtad == id_terminal)
                                 .Include(x => x.OrdenEmbarque)
                                     .Sum(x => x.OrdenEmbarque!.Vol);
 
                             var VolumenSolicitado = context.OrdenPedido.Where(x => !string.IsNullOrEmpty(x.Folio) && x.Folio.Equals(item.Folio) && x.OrdenEmbarque != null && x.OrdenEmbarque.Folio == null
                             && x.OrdenEmbarque.Codprd == item.CodPrd
                             && x.OrdenEmbarque.Bolguidid == null && x.OrdenEmbarque.Codest == 9
-                            && x.OrdenEmbarque.FchOrd == null)
+                            && x.OrdenEmbarque.FchOrd == null
+                            && x.OrdenEmbarque.Codtad == id_terminal)
                                 .Include(x => x.OrdenEmbarque)
                                 .Sum(x => x.OrdenEmbarque!.Vol);
 
                             var VolumenTotalDisponible = VolumenDisponible - (VolumenConsumido + VolumenCongelado + VolumenProgramado);
 
-                            ProductoVolumen productoVolumen = new ProductoVolumen();
+                            ProductoVolumen productoVolumen = new();
                             productoVolumen.Nombre = item.Producto!.Den;
                             productoVolumen.Disponible = VolumenTotalDisponible;
                             productoVolumen.Congelado = VolumenCongelado;
@@ -1571,7 +1640,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
 
                             var VolumenTotalDisponible = VolumenDisponible - (VolumenConsumido + VolumenCongelado + VolumenProgramado);
 
-                            ProductoVolumen productoVolumen = new ProductoVolumen();
+                            ProductoVolumen productoVolumen = new();
 
                             productoVolumen.Nombre = item.Producto?.Den;
                             productoVolumen.Disponible = VolumenTotalDisponible;
@@ -1639,7 +1708,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
 
                             var VolumenTotalDisponible = VolumenDisponible - (VolumenConsumido + VolumenCongelado + VolumenProgramado);
 
-                            ProductoVolumen productoVolumen = new ProductoVolumen();
+                            ProductoVolumen productoVolumen = new();
                             productoVolumen.Nombre = item.Producto?.Den;
                             productoVolumen.Disponible = VolumenTotalDisponible;
                             productoVolumen.Congelado = VolumenCongelado;
@@ -1661,13 +1730,17 @@ namespace GComFuelManager.Server.Controllers.Cierres
             }
         }
 
-        [HttpPost("activo")]
+        [HttpPost("activo")] //TODO: checar utilidad
         public async Task<ActionResult> CheckCierreActivo([FromBody] OrdenCierre orden)
         {
             try
             {
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
                 var producto = context.Producto.Find(orden.CodPrd);
-                var ordens = await context.OrdenCierre.Where(x => x.CodCte == orden.CodCte && x.Activa == true && x.Estatus == true).OrderByDescending(x => x.FchCierre).Take(100)
+                var ordens = await context.OrdenCierre.Where(x => x.CodCte == orden.CodCte && x.Activa == true && x.Estatus == true && x.Id_Tad == id_terminal).OrderByDescending(x => x.FchCierre).Take(100)
                     .Include(x => x.Producto)
                     .ToListAsync();
 
@@ -1697,10 +1770,14 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
                 if (string.IsNullOrEmpty(folio))
                     return BadRequest("Folio vacio o no valido");
 
-                var ordens = context.OrdenCierre.Where(x => x.Folio.Equals(folio)).ToList();
+                var ordens = context.OrdenCierre.Where(x => x.Folio.Equals(folio) && x.Id_Tad == id_terminal).ToList();
 
                 foreach (var item in ordens)
                 {
@@ -1720,10 +1797,14 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
                 if (cod == 0)
                     return BadRequest("Orden no valida");
 
-                var orden = context.OrdenCierre.Find(cod);
+                var orden = context.OrdenCierre.FirstOrDefault(x => x.Cod == cod && x.Id_Tad == id_terminal);
 
                 if (orden is null)
                     return BadRequest("No se encontro la orden");
@@ -1752,10 +1833,14 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                List<string?> folios = new List<string?>();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                List<string?> folios = new();
 
                 folios = context.OrdenCierre.Where(x => x.FchCierre >= DateTime.Today.AddDays(-10) && x.FchCierre <= DateTime.Today.AddDays(1)
-                && !string.IsNullOrEmpty(x.Folio) && x.Activa == true)
+                && !string.IsNullOrEmpty(x.Folio) && x.Activa == true && x.Id_Tad == id_terminal)
                     .Select(x => x.Folio)
                     .Distinct()
                     .ToList();
@@ -1768,12 +1853,16 @@ namespace GComFuelManager.Server.Controllers.Cierres
             }
         }
 
-        [HttpPost("folios/detalle")]
+        [HttpPost("folios/detalle")] // TODO: checar utilidad
         public async Task<ActionResult> GetFoliosValidosActivos([FromBody] CierreFiltroDTO filtro)
         {
             try
             {
-                List<FolioDetalleDTO> folios = new List<FolioDetalleDTO>();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                List<FolioDetalleDTO> folios = new();
                 //Filtro de órdenes mediante la obtención del folio
                 if (!filtro.forFolio)
                 {
@@ -1782,12 +1871,14 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 && !string.IsNullOrEmpty(x.Folio)
                 && x.Activa == true
                 && x.CodPed == 0
-                && x.Estatus == true ||
+                && x.Estatus == true
+                && x.Id_Tad == id_terminal ||
                 x.FchCierre >= DateTime.Today.AddDays(-10) && x.FchCierre <= DateTime.Today.AddDays(1)
                 && !string.IsNullOrEmpty(x.Folio)
                 && x.Activa == true
                 && x.Folio.StartsWith("OP")
-                && x.Estatus == true)
+                && x.Estatus == true
+                && x.Id_Tad == id_terminal)
                     .Include(x => x.Cliente)
                     .Include(x => x.Destino)
                     .Include(x => x.Producto)
@@ -1813,13 +1904,15 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 {
                     if (filtro.codCte != null && filtro.codGru != null)
                         folios = await context.OrdenCierre.OrderBy(x => x.FchCierre).Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
-                    && !string.IsNullOrEmpty(x.Folio) && x.Activa == true && x.CodPed == 0 && x.Estatus == true && x.CodGru == filtro.codGru && x.CodCte == filtro.codCte ||
+                    && !string.IsNullOrEmpty(x.Folio) && x.Activa == true && x.CodPed == 0 && x.Estatus == true && x.CodGru == filtro.codGru && x.CodCte == filtro.codCte
+                    && x.Id_Tad == id_terminal ||
                       //x.FchCierre >= DateTime.Today.AddDays(-10) && x.FchCierre <= DateTime.Today.AddDays(1)
                       x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
                     && !string.IsNullOrEmpty(x.Folio)
                     && x.Activa == true
                     && x.Folio.StartsWith("OP")
-                    && x.Estatus == true && x.CodGru == filtro.codGru && x.CodCte == filtro.codCte)
+                    && x.Estatus == true && x.CodGru == filtro.codGru && x.CodCte == filtro.codCte
+                    && x.Id_Tad == id_terminal)
                         .Include(x => x.Cliente)
                         .Include(x => x.Destino)
                         .Include(x => x.Producto)
@@ -1844,13 +1937,13 @@ namespace GComFuelManager.Server.Controllers.Cierres
                     else if (filtro.codGru != null)
                     {
                         folios = await context.OrdenCierre.OrderByDescending(x => x.FchCierre).Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
-                    && !string.IsNullOrEmpty(x.Folio) && x.CodPed == 0 && x.Estatus == true && x.CodGru == filtro.codGru ||
+                    && !string.IsNullOrEmpty(x.Folio) && x.CodPed == 0 && x.Estatus == true && x.CodGru == filtro.codGru && x.Id_Tad == id_terminal ||
                     //  x.FchCierre >= DateTime.Today.AddDays(-10) && x.FchCierre <= DateTime.Today.AddDays(1)
                     x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
                     && !string.IsNullOrEmpty(x.Folio)
                     //&& x.Activa == true
                     && x.Folio.StartsWith("OP")
-                    && x.Estatus == true && x.CodGru == filtro.codGru)
+                    && x.Estatus == true && x.CodGru == filtro.codGru && x.Id_Tad == id_terminal)
                     .Include(x => x.Cliente)
                     .Include(x => x.Destino)
                     .Include(x => x.Producto)
@@ -1876,13 +1969,14 @@ namespace GComFuelManager.Server.Controllers.Cierres
                     else
                     {
                         folios = await context.OrdenCierre.OrderBy(x => x.FchCierre).Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
-                    && !string.IsNullOrEmpty(x.Folio) && x.Activa == true && x.CodPed == 0 && x.Estatus == true
+                    && !string.IsNullOrEmpty(x.Folio) && x.Activa == true && x.CodPed == 0 && x.Estatus == true && x.Id_Tad == id_terminal
                     ||
                     x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
                     && !string.IsNullOrEmpty(x.Folio)
                     && x.Activa == true
                     && x.Folio.StartsWith("OP")
-                    && x.Estatus == true)
+                    && x.Estatus == true
+                    && x.Id_Tad == id_terminal)
                     .Include(x => x.Cliente)
                     .Include(x => x.Destino)
                     .Include(x => x.Producto)
@@ -1913,12 +2007,16 @@ namespace GComFuelManager.Server.Controllers.Cierres
             }
         }
 
-        [HttpPost("folios/detalle/status")]
+        [HttpPost("folios/detalle/status")] // TODO: checar utilidad
         public async Task<ActionResult> GetFoliosValidosActivosStatus([FromBody] CierreFiltroDTO filtro)
         {
             try
             {
-                List<FolioDetalleDTO> folios = new List<FolioDetalleDTO>();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                List<FolioDetalleDTO> folios = new();
                 //Cuando se sabe el folio de la orden
                 if (!filtro.forFolio)
                     folios = await context.OrdenCierre.Where(
@@ -1926,12 +2024,12 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 && !string.IsNullOrEmpty(x.Folio)
                 && x.Activa == true
                 && x.CodPed == 0
-                && x.Estatus == true ||
+                && x.Estatus == true && x.Id_Tad == id_terminal ||
                 x.FchCierre >= DateTime.Today.AddDays(-10) && x.FchCierre <= DateTime.Today.AddDays(1)
                 && !string.IsNullOrEmpty(x.Folio)
                 && x.Activa == true
                 && x.Folio.StartsWith("OP")
-                && x.Estatus == true)
+                && x.Estatus == true && x.Id_Tad == id_terminal)
                     .Include(x => x.Cliente)
                     .Include(x => x.Destino)
                     .Include(x => x.Producto)
@@ -1956,12 +2054,12 @@ namespace GComFuelManager.Server.Controllers.Cierres
                     //Cuando se filtra por grupo empresarial y cliente
                     if (filtro.codCte != null && filtro.codGru != null)
                         folios = await context.OrdenCierre.Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
-                    && !string.IsNullOrEmpty(x.Folio) && x.CodPed == 0 && x.Estatus == true && x.CodGru == filtro.codGru && x.CodCte == filtro.codCte ||
+                    && !string.IsNullOrEmpty(x.Folio) && x.CodPed == 0 && x.Estatus == true && x.CodGru == filtro.codGru && x.CodCte == filtro.codCte && x.Id_Tad == id_terminal ||
                       //x.FchCierre >= DateTime.Today.AddDays(-10) && x.FchCierre <= DateTime.Today.AddDays(1)
                       x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
                     && !string.IsNullOrEmpty(x.Folio)
                     && x.Folio.StartsWith("OP")
-                    && x.Estatus == true && x.CodGru == filtro.codGru && x.CodCte == filtro.codCte)
+                    && x.Estatus == true && x.CodGru == filtro.codGru && x.CodCte == filtro.codCte && x.Id_Tad == id_terminal)
                         .Include(x => x.Cliente)
                          .Include(x => x.Grupo)
                         .Include(x => x.Destino)
@@ -1990,13 +2088,13 @@ namespace GComFuelManager.Server.Controllers.Cierres
                     //Cuando se filtra solo por su grupo  && x.Estatus == true  
                     else if (filtro.codGru != null)
                         folios = await context.OrdenCierre.Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
-                    && !string.IsNullOrEmpty(x.Folio) && x.CodPed == 0 && x.CodGru == filtro.codGru && x.Estatus == true ||
+                    && !string.IsNullOrEmpty(x.Folio) && x.CodPed == 0 && x.CodGru == filtro.codGru && x.Estatus == true && x.Id_Tad == id_terminal ||
                       //x.FchCierre >= DateTime.Today.AddDays(-10) && x.FchCierre <= DateTime.Today.AddDays(1)
                       x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
                     && !string.IsNullOrEmpty(x.Folio)
                    && x.Folio.StartsWith("OP")
                    && x.Estatus == true
-                    && x.CodGru == filtro.codGru)
+                    && x.CodGru == filtro.codGru && x.Id_Tad == id_terminal)
                     .Include(x => x.Cliente)
                      .Include(x => x.Grupo)
                     .Include(x => x.Destino)
@@ -2023,12 +2121,12 @@ namespace GComFuelManager.Server.Controllers.Cierres
                     else
                         //Solamente las fechas
                         folios = await context.OrdenCierre.Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
-                    && !string.IsNullOrEmpty(x.Folio) && x.CodPed == 0 && x.Estatus == true ||
+                    && !string.IsNullOrEmpty(x.Folio) && x.CodPed == 0 && x.Estatus == true && x.Id_Tad == id_terminal ||
                     //x.FchCierre >= DateTime.Today.AddDays(-10) && x.FchCierre <= DateTime.Today.AddDays(1)
                     x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin
                     && !string.IsNullOrEmpty(x.Folio)
                     && x.Folio.StartsWith("OP")
-                    && x.Estatus == true)
+                    && x.Estatus == true && x.Id_Tad == id_terminal)
                     .Include(x => x.Cliente)
                      .Include(x => x.Grupo)
                     .Include(x => x.Destino)
@@ -2062,17 +2160,22 @@ namespace GComFuelManager.Server.Controllers.Cierres
         }
 
         //Filtro para obtener los cierres grupales y de pedido
-        [HttpPost("cierrescompletos")]
+        [HttpPost("cierrescompletos")] // TODO: checar utilidad
         public async Task<ActionResult> GetCierresGP([FromBody] CierreDiarioDTO filtro)
         {
             try
             {
-                List<FolioCierreDTO> folios = new List<FolioCierreDTO>();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                List<FolioCierreDTO> folios = new();
                 folios = await context.OrdenCierre.OrderBy(x => x.FchCierre)
-                      .Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("P")
-                   || x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("G"))
+                      .Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("P") && x.Id_Tad == id_terminal
+                   || x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("G") && x.Id_Tad == id_terminal)
                       .Include(x => x.Cliente)
                       .Include(x => x.Destino)
+                      .Include(x => x.Terminal)
                       .Include(x => x.Producto)
                       .Include(x => x.Grupo)
                       .Include(x => x.OrdenEmbarque)
@@ -2093,7 +2196,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                           Precio = x.Precio,
                           Volumen = x.Volumen,
                           Observaciones = x.Observaciones,
-                          Tipo_Venta = x.TipoPago
+                          Tipo_Venta = x.TipoPago,
+                          Terminales = x.Terminal.Den
                       })
                       .OrderByDescending(x => x.FchCierre)
                       .ToListAsync();
@@ -2106,18 +2210,22 @@ namespace GComFuelManager.Server.Controllers.Cierres
         }
 
         //Filtro para cierres por medio de fechas, grupo y cliente
-        [HttpPost("cierrecompleto")]
+        [HttpPost("cierrecompleto")] // TODO: checar utilidad
         public async Task<ActionResult> GetCierreGP([FromBody] CierreDiarioDTO filtro)
         {
             try
             {
-                List<FolioCierreDTO> folios = new List<FolioCierreDTO>();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                List<FolioCierreDTO> folios = new();
                 //Cuando se filtra por grupo empresarial y cliente
                 if (filtro.codCte != null && filtro.codGru != null)
                 {
                     folios = await context.OrdenCierre.OrderBy(x => x.FchCierre)
-                     .Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("P") && x.CodGru == filtro.codGru && x.CodCte == filtro.codCte
-                  || x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("G") && x.CodGru == filtro.codGru && x.CodCte == filtro.codCte)
+                     .Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("P") && x.CodGru == filtro.codGru && x.CodCte == filtro.codCte && x.Id_Tad == id_terminal
+                  || x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("G") && x.CodGru == filtro.codGru && x.CodCte == filtro.codCte && x.Id_Tad == id_terminal)
                      .Include(x => x.Cliente)
                      .Include(x => x.Destino)
                      .Include(x => x.Producto)
@@ -2146,8 +2254,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 else if (filtro.codGru != null)
                 {
                     folios = await context.OrdenCierre.OrderBy(x => x.FchCierre)
-                   .Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("P") && x.CodGru == filtro.codGru
-                || x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("G") && x.CodGru == filtro.codGru)
+                   .Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("P") && x.CodGru == filtro.codGru && x.Id_Tad == id_terminal
+                || x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("G") && x.CodGru == filtro.codGru && x.Id_Tad == id_terminal)
                    .Include(x => x.Cliente)
                    .Include(x => x.Destino)
                    .Include(x => x.Producto)
@@ -2175,8 +2283,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 else
                 {
                     folios = await context.OrdenCierre.OrderBy(x => x.FchCierre)
-                  .Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("P")
-               || x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("G"))
+                  .Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("P") && x.Id_Tad == id_terminal
+               || x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("G") && x.Id_Tad == id_terminal)
                   .Include(x => x.Cliente)
                   .Include(x => x.Destino)
                   .Include(x => x.Producto)
@@ -2211,19 +2319,24 @@ namespace GComFuelManager.Server.Controllers.Cierres
         }
 
         //Filtro para cierre de pedidos
-        [HttpPost("cierrefolio/detalle")]
+        [HttpPost("cierrefolio/detalle")] //TODO: checar utilidad
         public async Task<ActionResult> GetFoliosCierres([FromBody] CierreDiarioDTO filtro)
         {
             try
             {
-                List<FolioCierreDTO> folios = new List<FolioCierreDTO>();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                List<FolioCierreDTO> folios = new();
                 if (filtro.codCte != null && filtro.codGru != null)
                 {
                     folios = await context.OrdenCierre.OrderBy(x => x.FchCierre)
                         .Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("P")
-                        && x.CodGru == filtro.codGru && x.CodCte == filtro.codCte)
+                        && x.CodGru == filtro.codGru && x.CodCte == filtro.codCte && x.Id_Tad == id_terminal)
                         .Include(x => x.Cliente)
                         .Include(x => x.Destino)
+                        .Include(x => x.Terminal)
                         .Include(x => x.Producto)
                         .Include(x => x.Grupo)
                         .Include(x => x.OrdenEmbarque)
@@ -2243,7 +2356,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                             Estatus = x.Estatus,
                             Precio = x.Precio,
                             Volumen = x.Volumen,
-                            Observaciones = x.Observaciones
+                            Observaciones = x.Observaciones,
+                            Terminales = x.Terminal.Den
                         })
                         .OrderByDescending(x => x.FchCierre)
                         .ToListAsync();
@@ -2251,9 +2365,10 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 else
                 {
                     folios = await context.OrdenCierre.OrderBy(x => x.FchCierre)
-                       .Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("P"))
+                       .Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("P") && x.Id_Tad == id_terminal)
                        .Include(x => x.Cliente)
                        .Include(x => x.Destino)
+                       .Include(x => x.Terminal)
                        .Include(x => x.Producto)
                        .Include(x => x.Grupo)
                        .Include(x => x.OrdenEmbarque)
@@ -2272,7 +2387,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                            Activa = x.Activa,
                            Precio = x.Precio,
                            Volumen = x.Volumen,
-                           Observaciones = x.Observaciones
+                           Observaciones = x.Observaciones,
+                           Terminales = x.Terminal.Den
                        })
                        .OrderByDescending(x => x.FchCierre)
                        .ToListAsync();
@@ -2287,17 +2403,21 @@ namespace GComFuelManager.Server.Controllers.Cierres
         }
 
         //Filtro para cierres grupales
-        [HttpPost("cierregrupo/detalle")]
+        [HttpPost("cierregrupo/detalle")] //TODO: checar utilidad
         public async Task<ActionResult> GetCierresGrupales([FromBody] CierreDiarioDTO filtro)
         {
             try
             {
-                List<FolioCierreDTO> folios = new List<FolioCierreDTO>();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                List<FolioCierreDTO> folios = new();
                 if (filtro.codGru != null)
                 {
                     folios = await context.OrdenCierre.OrderBy(x => x.FchCierre)
                         .Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("G")
-                          && x.CodGru == filtro.codGru)
+                          && x.CodGru == filtro.codGru && x.Id_Tad == id_terminal)
                         .Include(x => x.Cliente)
                         .Include(x => x.Destino)
                         .Include(x => x.Producto)
@@ -2317,7 +2437,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                             Activa = x.Activa,
                             Precio = x.Precio,
                             Volumen = x.Volumen,
-                            Observaciones = x.Observaciones
+                            Observaciones = x.Observaciones,
+                            Terminales = x.Terminal.Den
                         })
                         .OrderByDescending(x => x.FchCierre)
                         .ToListAsync();
@@ -2325,7 +2446,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 else
                 {
                     folios = await context.OrdenCierre.OrderBy(x => x.FchCierre)
-                       .Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("G"))
+                       .Where(x => x.FchCierre >= filtro.FchInicio && x.FchCierre <= filtro.FchFin && x.Folio.StartsWith("G") && x.Id_Tad == id_terminal)
                        .Include(x => x.Cliente)
                        .Include(x => x.Destino)
                        .Include(x => x.Producto)
@@ -2345,7 +2466,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                            Activa = x.Activa,
                            Precio = x.Precio,
                            Volumen = x.Volumen,
-                           Observaciones = x.Observaciones
+                           Observaciones = x.Observaciones,
+                           Terminales = x.Terminal.Den
                        })
                        .OrderByDescending(x => x.FchCierre)
                        .ToListAsync();
@@ -2363,16 +2485,20 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                List<string?> folios = new List<string?>();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                List<string?> folios = new();
                 if (cliente != 0)
                     folios = context.OrdenCierre.Where(x => x.FchCierre >= filtroDTO.FchInicio && x.FchCierre <= filtroDTO.FchFin
-                    && !string.IsNullOrEmpty(x.Folio) && x.Activa == true && x.CodCte == cliente)
+                    && !string.IsNullOrEmpty(x.Folio) && x.Activa == true && x.CodCte == cliente && x.Id_Tad == id_terminal)
                         .Select(x => x.Folio)
                         .Distinct()
                         .ToList();
                 else
                     folios = context.OrdenCierre.Where(x => x.FchCierre >= filtroDTO.FchInicio && x.FchCierre <= filtroDTO.FchFin
-                && !string.IsNullOrEmpty(x.Folio) && x.Activa == true)
+                && !string.IsNullOrEmpty(x.Folio) && x.Activa == true && x.Id_Tad == id_terminal)
                     .Select(x => x.Folio)
                     .Distinct()
                     .ToList();
@@ -2385,18 +2511,22 @@ namespace GComFuelManager.Server.Controllers.Cierres
             }
         }
 
-        [HttpPost("disponibles")]
+        [HttpPost("disponibles")] //TODO: checar unificacion de metodo de volumen
         public async Task<ActionResult> GetCierresDisponiles([FromBody] CierreFiltroDTO filtroDTO)
         {
             try
             {
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
                 if (filtroDTO is null)
                     return BadRequest();
 
-                List<OrdenCierre> cierres = new List<OrdenCierre>();
+                List<OrdenCierre> cierres = new();
 
-                var cierresDis = await context.OrdenCierre.Where(x => x.FchCierre >= filtroDTO.FchInicio && x.FchCierre <= filtroDTO.FchFin
-                && x.Activa == true && x.CodPed == 0)
+                var cierresDis = await context.OrdenCierre.IgnoreAutoIncludes().Where(x => x.FchCierre >= filtroDTO.FchInicio && x.FchCierre <= filtroDTO.FchFin
+                && x.Activa == true && x.CodPed == 0 && x.Id_Tad == id_terminal)
                     .Include(x => x.Producto)
                     .Include(x => x.Destino)
                     .Include(x => x.Cliente)
@@ -2406,7 +2536,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 if (cierresDis is null)
                     return Ok(cierres);
 
-                Porcentaje porcentaje = new Porcentaje();
+                Porcentaje porcentaje = new();
                 var por = context.Porcentaje.FirstOrDefault(x => x.Accion == "cierre");
                 if (por != null)
                     porcentaje = por;
@@ -2421,7 +2551,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                         var listConsumido = context.OrdenPedido.Where(x => !string.IsNullOrEmpty(x.Folio) && x.Folio.Equals(item.Folio) && x.OrdenEmbarque != null && x.OrdenEmbarque.Tonel != null && x.OrdenEmbarque.Codprd == item.CodPrd
                             && x.OrdenEmbarque.Codest == 22
                             && x.OrdenEmbarque.Folio != null
-                            && x.OrdenEmbarque.Bolguidid != null)
+                            && x.OrdenEmbarque.Bolguidid != null
+                            && x.OrdenEmbarque.Codtad == id_terminal)
                             .Include(x => x.OrdenEmbarque)
                             .ThenInclude(x => x.Tonel).ToList();
 
@@ -2433,7 +2564,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
 
                         var countCongelado = context.OrdenPedido.Where(x => !string.IsNullOrEmpty(x.Folio) && x.Folio.Equals(item.Folio) && x.OrdenEmbarque != null && x.OrdenEmbarque.Codprd == item.CodPrd
                         && x.OrdenEmbarque.Codest == 22
-                        && x.OrdenEmbarque.Folio != null)
+                        && x.OrdenEmbarque.Folio != null
+                        && x.OrdenEmbarque.Codtad == id_terminal)
                             .Include(x => x.OrdenEmbarque)
                             .Count();
 
@@ -2441,7 +2573,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                             && x.OrdenEmbarque.Orden.Codest != 14
                             && x.OrdenEmbarque.Codest != 14
                         && x.OrdenEmbarque.Codprd == item.CodPrd
-                        && x.OrdenEmbarque.Orden.BatchId != null)
+                        && x.OrdenEmbarque.Orden.BatchId != null
+                        && x.OrdenEmbarque.Orden.Id_Tad == id_terminal)
                             .Include(x => x.OrdenEmbarque)
                             .ThenInclude(x => x.Orden)
                             .Sum(x => x.OrdenEmbarque!.Orden!.Vol);
@@ -2450,7 +2583,8 @@ namespace GComFuelManager.Server.Controllers.Cierres
                             && x.OrdenEmbarque.Orden.Codest != 14
                             && x.OrdenEmbarque.Codest != 14
                             && x.OrdenEmbarque.Codprd == item.CodPrd
-                            && x.OrdenEmbarque.Orden.BatchId != null)
+                            && x.OrdenEmbarque.Orden.BatchId != null
+                            && x.OrdenEmbarque.Orden.Id_Tad == id_terminal)
                             .Include(x => x.OrdenEmbarque)
                             .ThenInclude(x => x.Orden)
                             .Count();
@@ -2458,20 +2592,23 @@ namespace GComFuelManager.Server.Controllers.Cierres
                         var VolumenProgramado = context.OrdenPedido.Where(x => !string.IsNullOrEmpty(x.Folio) && x.Folio.Equals(item.Folio) && x.OrdenEmbarque != null && x.OrdenEmbarque.Folio == null
                             && x.OrdenEmbarque.Codprd == item.CodPrd
                             && x.OrdenEmbarque.Bolguidid == null && x.OrdenEmbarque.Codest == 3
-                            && x.OrdenEmbarque.FchOrd != null)
+                            && x.OrdenEmbarque.FchOrd != null
+                            && x.OrdenEmbarque.Codtad == id_terminal)
                             .Include(x => x.OrdenEmbarque)
                                 .Sum(x => x.OrdenEmbarque!.Vol);
 
                         var CountVolumenProgramado = context.OrdenPedido.Where(x => !string.IsNullOrEmpty(x.Folio) && x.Folio.Equals(item.Folio) && x.OrdenEmbarque != null && x.OrdenEmbarque.Folio == null
                             && x.OrdenEmbarque.Codprd == item.CodPrd
                             && x.OrdenEmbarque.Bolguidid == null && x.OrdenEmbarque.Codest == 3
-                            && x.OrdenEmbarque.FchOrd != null)
+                            && x.OrdenEmbarque.FchOrd != null
+                            && x.OrdenEmbarque.Codtad == id_terminal)
                             .Include(x => x.OrdenEmbarque).Count();
 
                         var VolumenSolicitado = context.OrdenPedido.Where(x => !string.IsNullOrEmpty(x.Folio) && x.Folio.Equals(item.Folio) && x.OrdenEmbarque != null && x.OrdenEmbarque.Folio == null
                         && x.OrdenEmbarque.Codprd == item.CodPrd
                         && x.OrdenEmbarque.Bolguidid == null && x.OrdenEmbarque.Codest == 9
-                        && x.OrdenEmbarque.FchOrd == null)
+                        && x.OrdenEmbarque.FchOrd == null
+                        && x.OrdenEmbarque.Codtad == id_terminal)
                             .Include(x => x.OrdenEmbarque)
                             .Sum(x => x.OrdenEmbarque!.Vol);
 
@@ -2483,7 +2620,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                         if (sumVolumen != 0 && sumCount != 0)
                             PromedioCargas = sumVolumen / sumCount;
 
-                        ProductoVolumen productoVolumen = new ProductoVolumen();
+                        ProductoVolumen productoVolumen = new();
 
                         productoVolumen.Nombre = item.Producto?.Den;
                         productoVolumen.Disponible = VolumenTotalDisponible;
@@ -2510,7 +2647,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
             }
         }
 
-        [HttpPost("cerrar/auto")]
+        [HttpPost("cerrar/auto")] //No limitar la terminal
         public async Task<ActionResult> CerrarCierresPorPorcentaje([FromBody] CierreFiltroDTO filtroDTO)
         {
             try
@@ -2522,7 +2659,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 if (string.IsNullOrEmpty(id))
                     return BadRequest();
 
-                List<OrdenCierre> cierres = new List<OrdenCierre>();
+                List<OrdenCierre> cierres = new();
 
                 var cierresDis = await context.OrdenCierre.Where(x => x.FchCierre >= filtroDTO.FchInicio && x.FchCierre <= filtroDTO.FchFin
                 && x.Activa == true && x.CodPed == 0)
@@ -2532,7 +2669,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 if (cierresDis is null)
                     return Ok(cierres);
 
-                Porcentaje porcentaje = new Porcentaje();
+                Porcentaje porcentaje = new();
                 var por = context.Porcentaje.FirstOrDefault(x => x.Accion == "cierre");
                 if (por != null)
                     porcentaje = por;
@@ -2610,7 +2747,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                         if (sumVolumen != 0 && sumCount != 0)
                             PromedioCargas = sumVolumen / sumCount;
 
-                        ProductoVolumen productoVolumen = new ProductoVolumen();
+                        ProductoVolumen productoVolumen = new();
 
                         productoVolumen.Nombre = item.Producto?.Den;
                         productoVolumen.Disponible = VolumenTotalDisponible;
@@ -2649,9 +2786,13 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                List<OrdenCierre> cierres = new List<OrdenCierre>();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                List<OrdenCierre> cierres = new();
                 cierres = await context.OrdenCierre.Where(x => x.FchCierre >= fechas.DateInicio && x.FchCierre <= fechas.DateFin && x.Confirmada == false
-                && x.Activa == true && x.Estatus == true)
+                && x.Activa == true && x.Estatus == true && x.Id_Tad == id_terminal && x.CodPed == 0)
                     .Include(x => x.Cliente)
                     .Include(x => x.Destino)
                     .Include(x => x.Producto)
@@ -2684,6 +2825,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                     x.Producto = null!;
                     x.VolumenDisponible = null!;
                     x.Confirmada = true;
+                    x.Terminal = null!;
                 });
 
                 context.UpdateRange(cierres);
@@ -2703,7 +2845,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
             }
         }
 
-        [HttpGet("caducidad/verify")]
+        [HttpGet("caducidad/verify")]//TODO: verificar utilidad
         public async Task<ActionResult> VerificarCaducidad([FromQuery] CierreFiltroDTO dTO)
         {
             try
@@ -2738,12 +2880,12 @@ namespace GComFuelManager.Server.Controllers.Cierres
             }
         }
 
-        [HttpGet("caducidad/cerrar")]
+        [HttpGet("caducidad/cerrar")]//No limitar terminal
         public async Task<ActionResult> CerrarCierreAutoCaducidad()
         {
             try
             {
-                List<OrdenCierre> cierres = new List<OrdenCierre>();
+                List<OrdenCierre> cierres = new();
 
                 cierres = context.OrdenCierre.Where(x => !string.IsNullOrEmpty(x.Folio) && x.FchVencimiento < DateTime.Today && x.Activa == true && x.Folio.StartsWith("P")
                 || !string.IsNullOrEmpty(x.Folio) && x.FchVencimiento < DateTime.Today && x.Activa == true && x.Folio.StartsWith("G"))
@@ -2766,12 +2908,12 @@ namespace GComFuelManager.Server.Controllers.Cierres
             }
         }
 
-        [HttpGet("caducidad/abrir")]
+        [HttpGet("caducidad/abrir")] // No limitar terminal
         public async Task<ActionResult> AbrirCierreAutoCaducidad()
         {
             try
             {
-                List<OrdenCierre> cierres = new List<OrdenCierre>();
+                List<OrdenCierre> cierres = new();
 
                 cierres = context.OrdenCierre.Where(x => x.FchVencimiento > DateTime.Today && x.Activa == false).ToList();
 
@@ -2796,12 +2938,16 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
                 List<OrdenEmbarque> embarques = new();
 
                 if (cierre is null)
                     return BadRequest("No se envio cierre para crear ordenes");
 
-                var newCierre = context.OrdenCierre.Where(x => x.Cod == cierre.Cod)
+                var newCierre = context.OrdenCierre.IgnoreAutoIncludes().Where(x => x.Cod == cierre.Cod && x.Id_Tad == id_terminal)
                     .Include(x => x.Producto)
                     .Include(x => x.Destino)
                     .Include(x => x.Cliente)
@@ -2889,7 +3035,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                     {
                         Codprd = cierre.CodPrd,
                         Coddes = cierre.CodDes,
-                        Codtad = cierre.CodTad,
+                        Codtad = cierre.Id_Tad,
                         Pre = cierre.Precio,
                         Fchpet = DateTime.Now,
                         Codest = 9,
@@ -2927,6 +3073,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                     ordencierre.OrdenPedidos = null;
                     ordencierre.Producto = null;
                     ordencierre.Grupo = null;
+                    ordencierre.Terminal = null;
                     ordencierre.Volumen = (int)embarque.Vol;
 
                     context.Add(ordencierre);
@@ -2936,7 +3083,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
 
                 //context.AddRange(embarques);
                 //await context.SaveChangesAsync();
-                newCierre = context.OrdenCierre.Where(x => x.Cod == cierre.Cod)
+                newCierre = context.OrdenCierre.Where(x => x.Cod == cierre.Cod && x.Id_Tad == id_terminal)
                     .Include(x => x.Grupo)
                     .Include(x => x.Producto)
                     .Include(x => x.Destino)
@@ -2970,12 +3117,17 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                Crear_Orden_Template_DTO crear_Orden_Template_DTO = new Crear_Orden_Template_DTO();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                Crear_Orden_Template_DTO crear_Orden_Template_DTO = new();
 
                 OrdenCierre? orden = context.OrdenCierre
+                    .IgnoreAutoIncludes()
                     .Include(x => x.Moneda)
                     .IgnoreAutoIncludes()
-                    .FirstOrDefault(x => !string.IsNullOrEmpty(x.Folio) && x.Cod == ordenCierre.Cod && x.Folio == ordenCierre.Folio);
+                    .FirstOrDefault(x => !string.IsNullOrEmpty(x.Folio) && x.Cod == ordenCierre.Cod && x.Folio == ordenCierre.Folio && x.Id_Tad == id_terminal);
 
                 if (orden is null)
                     return BadRequest("No se encontro el cierre");
@@ -3001,7 +3153,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 if (crear_Orden_Template_DTO.ID_Cliente is not null)
                     crear_Orden_Template_DTO.Clientes = context.Cliente.Where(x => x.Cod == crear_Orden_Template_DTO.ID_Cliente).ToList();
                 else if (crear_Orden_Template_DTO.ID_Cliente is null && crear_Orden_Template_DTO.ID_Grupo is not null)
-                    crear_Orden_Template_DTO.Clientes = context.Cliente.Where(x => x.codgru == crear_Orden_Template_DTO.ID_Grupo).ToList();
+                    crear_Orden_Template_DTO.Clientes = context.Cliente.Where(x => x.Codgru == crear_Orden_Template_DTO.ID_Grupo).ToList();
 
                 if (crear_Orden_Template_DTO.ID_Destino is not null)
                     crear_Orden_Template_DTO.Destinos = context.Destino.Where(x => x.Cod == crear_Orden_Template_DTO.ID_Destino).ToList();
@@ -3009,7 +3161,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 if (crear_Orden_Template_DTO.ID_Producto is not null)
                     crear_Orden_Template_DTO.Producto = context.Producto.First(x => x.Cod == crear_Orden_Template_DTO.ID_Producto);
 
-                Precio precio = new Precio()
+                Precio precio = new()
                 {
                     Pre = orden.Precio,
                     Producto = crear_Orden_Template_DTO.Producto,
@@ -3063,9 +3215,13 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
-                Crear_Orden_Template_DTO crear_Orden_Template_DTO = new Crear_Orden_Template_DTO();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
 
-                List<OrdenCierre> ordenes = context.OrdenCierre.Where(x => !string.IsNullOrEmpty(x.Folio) && x.Folio == ordenCierre.Folio)
+                Crear_Orden_Template_DTO crear_Orden_Template_DTO = new();
+
+                List<OrdenCierre> ordenes = context.OrdenCierre.IgnoreAutoIncludes().Where(x => !string.IsNullOrEmpty(x.Folio) && x.Folio == ordenCierre.Folio && x.Id_Tad == id_terminal)
                     .Include(x => x.Producto)
                     .Include(x => x.Moneda)
                     .IgnoreAutoIncludes().ToList();
@@ -3101,7 +3257,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                         if (!crear_Orden_Template_DTO.Productos.Any(x => x.Cod == item.CodPrd))
                             crear_Orden_Template_DTO.Productos.AddRange(context.Producto.Where(x => x.Cod == item.CodPrd).ToList());
 
-                    Precio precio = new Precio()
+                    Precio precio = new()
                     {
                         Pre = item.Precio,
                         Producto = item.Producto,
@@ -3114,7 +3270,10 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 }
                 if (!crear_Orden_Template_DTO.Es_Orden_Copiada)
                 {
-                    var pedidos = context.OrdenPedido.Where(x => x.Folio == ordenCierre.Folio && x.CodPed != null && x.OrdenEmbarque != null).ToList();
+                    var pedidos = context.OrdenPedido.IgnoreAutoIncludes().Where(x => x.Folio == ordenCierre.Folio && x.CodPed != null && x.OrdenEmbarque != null
+                    && x.OrdenCierre != null && x.OrdenCierre.Id_Tad == id_terminal)
+                        .Include(x => x.OrdenEmbarque).IgnoreAutoIncludes()
+                        .Include(x => x.OrdenCierre).IgnoreAutoIncludes().ToList();
                     foreach (var item in pedidos)
                     {
                         var pedido = context.OrdenCierre.Where(x => x.CodPed == item.CodPed)
@@ -3141,7 +3300,10 @@ namespace GComFuelManager.Server.Controllers.Cierres
                 }
                 else
                 {
-                    var pedidos = context.OrdenPedido.Where(x => x.Folio_Cierre_Copia == ordenCierre.Folio && x.CodPed != null && x.OrdenEmbarque != null).ToList();
+                    var pedidos = context.OrdenPedido.IgnoreAutoIncludes().Where(x => x.Folio_Cierre_Copia == ordenCierre.Folio && x.CodPed != null && x.OrdenEmbarque != null
+                    && x.OrdenCierre != null && x.OrdenCierre.Id_Tad == id_terminal)
+                        .Include(x => x.OrdenEmbarque).IgnoreAutoIncludes()
+                        .Include(x => x.OrdenCierre).IgnoreAutoIncludes().ToList();
                     foreach (var item in pedidos)
                     {
                         var pedido = context.OrdenCierre.Where(x => x.CodPed == item.CodPed)
@@ -3184,12 +3346,19 @@ namespace GComFuelManager.Server.Controllers.Cierres
         {
             try
             {
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
                 if (string.IsNullOrEmpty(ordenCierre.Folio) || string.IsNullOrWhiteSpace(ordenCierre.Folio))
                     return BadRequest("No se admiten valores vacios");
 
-                Crear_Orden_Template_DTO crear_Orden_Template_DTO = new Crear_Orden_Template_DTO();
+                Crear_Orden_Template_DTO crear_Orden_Template_DTO = new();
 
-                var pedidos = context.OrdenPedido.Where(x => x.Folio_Cierre_Copia == ordenCierre.Folio && x.CodPed != null && x.OrdenEmbarque != null).ToList();
+                var pedidos = context.OrdenPedido.Where(x => x.Folio_Cierre_Copia == ordenCierre.Folio && x.CodPed != null && x.OrdenEmbarque != null
+                && x.OrdenCierre != null && x.OrdenCierre.Id_Tad == id_terminal)
+                    .Include(x => x.OrdenCierre).IgnoreAutoIncludes()
+                    .Include(x => x.OrdenEmbarque).IgnoreAutoIncludes().ToList();
 
                 foreach (var item in pedidos)
                 {
@@ -3227,16 +3396,117 @@ namespace GComFuelManager.Server.Controllers.Cierres
             }
         }
 
+        [HttpGet("cancelarordencliente/{cod}")]
+        public async Task<ActionResult> Cancelar_Ordenembarque([FromRoute] int cod)
+        {
+            try
+            {
+                var ordenembarque = context.OrdenEmbarque.FirstOrDefault(x => x.Cod == cod);
+                if (ordenembarque is null)
+                    return NotFound();
+
+                var orden = context.OrdenCierre.FirstOrDefault(x => x.CodPed == ordenembarque.Cod);
+                if (orden == null)
+                    return NotFound();
+
+                orden.Estatus = false;
+                ordenembarque.Codest = 14;
+
+                context.Update(orden);
+                context.Update(ordenembarque);
+
+                await context.SaveChangesAsync();
+
+
+                return Ok(ordenembarque);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        //Confirmar pedido
+        [HttpPost("confirmarpedido")]
+        public async Task<ActionResult<OrdenCierre>> PostConfirm(List<OrdenCierre> orden)
+        {
+            try
+            {
+                if (orden is null)
+                    return BadRequest("No se encontro el pedido");
+                orden.ForEach(x =>
+                {
+                    x.Cliente = null!;
+                    x.Destino = null!;
+                    x.OrdenEmbarque = null!;
+                    x.Grupo = null!;
+                    x.Producto = null!;
+                    x.VolumenDisponible = null!;
+                    x.Confirmada = true;
+                });
+
+                context.UpdateRange(orden);
+
+                var id = await verifyUser.GetId(HttpContext, UserManager);
+                if (string.IsNullOrEmpty(id))
+                    return BadRequest();
+
+                await context.SaveChangesAsync(id, 15);
+                return Ok(orden);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
+            }
+        }
+
+        [HttpDelete("cancelar/{cod:int}")]
+        public async Task<ActionResult> CancelOrden([FromRoute] int cod)
+        {
+            try
+            {
+                if (cod == 0)
+                    return BadRequest("Orden no valida");
+
+                var orden = context.OrdenCierre.Find(cod);
+
+                if (orden is null)
+                    return BadRequest("No se encontro la orden");
+
+                orden.Activa = false;
+                orden.Estatus = false;
+
+                context.Update(orden);
+
+                var id = await verifyUser.GetId(HttpContext, UserManager);
+                if (string.IsNullOrEmpty(id))
+                    return BadRequest();
+
+                await context.SaveChangesAsync(id, 16);
+
+                return Ok(true);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+
         [HttpGet("cancelar/{ID_Orden}")]
         public async Task<ActionResult> Cancelar_Orden([FromRoute] int ID_Orden)
         {
             try
             {
-                var orden = context.OrdenCierre.FirstOrDefault(x => x.Cod == ID_Orden);
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                var orden = context.OrdenCierre.IgnoreAutoIncludes().FirstOrDefault(x => x.Cod == ID_Orden && x.Id_Tad == id_terminal);
                 if (orden == null)
                     return NotFound();
 
-                var ordenembarque = context.OrdenEmbarque.FirstOrDefault(x => x.Cod == orden.CodPed);
+                var ordenembarque = context.OrdenEmbarque.IgnoreAutoIncludes().FirstOrDefault(x => x.Cod == orden.CodPed && x.Codtad == id_terminal);
                 if (ordenembarque is null)
                     return NotFound();
 
@@ -3259,7 +3529,7 @@ namespace GComFuelManager.Server.Controllers.Cierres
                     .Include(x => x.Producto)
                     .Include(x => x.OrdenEmbarque)
                     .ThenInclude(x => x.Tad)
-                    .FirstOrDefault(x => x.Cod == orden.Cod);
+                    .FirstOrDefault(x => x.Cod == orden.Cod && x.Id_Tad == id_terminal);
 
                 return Ok(newOrden);
             }

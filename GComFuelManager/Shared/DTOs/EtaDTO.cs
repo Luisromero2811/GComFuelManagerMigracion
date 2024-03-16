@@ -14,6 +14,8 @@ namespace GComFuelManager.Shared.DTOs
         public string? Referencia { get; set; } = string.Empty;
         [DisplayName("Fecha de Programa")]
         public string? FechaPrograma { get; set; } = string.Empty;
+        [DisplayName("Unidad de Negocio")]
+        public string? Unidad_Negocio { get; set; } = string.Empty;
         [DisplayName("Estatus de Orden")]
         public string? EstatusOrden { get; set; } = string.Empty;
         [DisplayName("Fecha de Carga")]

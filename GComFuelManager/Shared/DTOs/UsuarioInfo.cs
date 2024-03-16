@@ -23,12 +23,13 @@ namespace GComFuelManager.Shared.DTOs
         //Estado
         public bool Activo { get; set; } = true;
         public int? CodCte { get; set; }
-        public Int16? CodGru { get; set; }
+        public short? CodGru { get; set; }
         public bool IsClient { get; set; } = false;
         public bool ShowPassword { get; set; } = false;
         [NotMapped]
         public bool passwordView { get; set; } = true;
         [NotMapped]
         public bool ShowUsersActions { get; set; } = false;
+        public string Terminal { get; set; } = string.Empty;
     }
 }

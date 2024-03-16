@@ -10,5 +10,6 @@ namespace GComFuelManager.Shared.DTOs
     {
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+        public string Terminal { get; set; } = string.Empty;
     }
 }

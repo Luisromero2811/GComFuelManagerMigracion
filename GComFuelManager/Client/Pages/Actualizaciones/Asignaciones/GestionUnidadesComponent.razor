@@ -1,0 +1,378 @@
+﻿@inject IRepositorio repositorio
+@inject SweetAlertService Swal
+@inject IJSRuntime js
+@inject NotificationService Ns
+@inject GestionUnidadValidation gestionUnidad
+
+@attribute [Authorize(Roles = "Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Contador")]
+
+<h4>Catalogo de Unidades</h4>
+<AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Contador" Context="GestionClientes">
+    <div class="col-12 d-flex justify-content-center">
+        <div class="col-10 card shadow-sm">
+            <div class="col-12 row card-body">
+                <AuthorizeView Roles="Admin, Administrador Sistema, Analista Credito" Context="Gestion">
+                    <h5>Agregar Unidades</h5>
+                    <!--Aquí se agregará las validaciones para gestionar a los clientes-->
+                    <EditForm Model="@Unidad" class="form col-12" OnValidSubmit="@CreateUnidad" Context="Validations">
+                        <FluentValidationValidator Validator="gestionUnidad" />
+                        <ValidationSummary />
+                        <div class="col-12 row mb-3">
+                            <div class="col-2">
+                                <label>Transportista(Empresa):</label>
+                                <RadzenDropDown @bind-Value="Unidad.Transportista" TValue="Transportista" Data="Grupos" TextProperty="Den"
+                                                AllowVirtualization="true" AllowFiltering="true"
+                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                                </RadzenDropDown>
+                            </div>
+                            <div class="col-2">
+                                <label>Placa:</label>
+                                <InputText @bind-Value="Unidad.Placa" class="form-control" MaxLenght="80" />
+                            </div>
+                            <div class="col-2">
+                                <label>Nº Compartimento:</label>
+                                <InputNumber @bind-Value="Unidad.Nrocom" class="form-control" MaxLenght="80" />
+                            </div>
+                            <div class="col-2">
+                                <label>Capacidad:</label>
+                                <InputNumber @bind-Value="Unidad.Capcom" class="form-control" MaxLenght="80" />
+                            </div>
+                            <div class="col-2">
+                                <label>Nº Compartimento 2:</label>
+                                <InputNumber @bind-Value="Unidad.Nrocom2" class="form-control" MaxLenght="80" />
+                            </div>
+                            <div class="col-2">
+                                <label>Capacidad 2:</label>
+                                <InputNumber @bind-Value="Unidad.Capcom2" class="form-control" MaxLenght="80" />
+                            </div>
+                        </div>
+                        <hr />
+                        @*Segunda Parte*@
+                        <div class="col-12 row mb-3">
+                            <div class="col-2">
+                                <label>Nº Compartimento 3:</label>
+                                <InputNumber @bind-Value="Unidad.Nrocom3" class="form-control" MaxLenght="80" />
+                            </div>
+                            <div class="col-2">
+                                <label>Capacidad 3</label>
+                                <InputNumber @bind-Value="Unidad.Capcom3" class="form-control" MaxLenght="80" />
+                            </div>
+                            <div class="col-2">
+                                <label>Nº Compartimento 4:</label>
+                                <InputNumber @bind-Value="Unidad.Nrocom4" class="form-control" MaxLenght="80" />
+                            </div>
+                            <div class="col-2">
+                                <label>Compartimento 4:</label>
+                                <InputNumber @bind-Value="Unidad.Capcom4" class="form-control" MaxLenght="80" />
+                            </div>
+                            <div class="col-2">
+                                <label>Tracto:</label>
+                                <InputText @bind-Value="Unidad.Tracto" class="form-control" MaxLenght="80" />
+                            </div>
+                            <div class="col-2">
+                                <label>Placa-Tracto:</label>
+                                <InputText @bind-Value="Unidad.Placatracto" class="form-control" MaxLenght="80" />
+                            </div>
+                        </div>
+                        <div class="col-12 row mb-3 justify-content-center">
+                            <div class="col-4 d-flex mt-auto">
+                                <button class="col-12 btn gcom-bg-amarillo" type="submit">
+                                    <i class="fa fa-solid fa-plus"></i> Registrar Unidad
+                                </button>
+                            </div>
+                        </div>
+                    </EditForm>
+                </AuthorizeView>
+                <hr />
+                <div class="col-12 mb-4 row">
+                    <div class="col-3">
+                        <label>Terminales:</label>
+                        <DropDownFilter Listado="Terminales" TListado="Tad" TValue="Int16" Seleccion_Multiple="true" Default_Placeholder="Seleccione una terminal">
+                            <RenderValue>
+                                <div>Terminales</div>
+                            </RenderValue>
+                            <Render>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="@context" checked="@(Tads_Seleccionados.Contains(context))" @onchange="args => { CheckTads(context, args?.Value); }"/>
+                                    <label class="form-check-label" for="@context">
+                                        @if (context is not null)
+                                        {
+                                            @context.Den
+                                        }
+                                        else
+                                        {
+                                            <p>Todos</p>
+                                        }
+                                    </label>
+                                </div>
+                            </Render>
+                        </DropDownFilter>
+                    </div>
+                    @*<div class="col-3">
+                        <label>Transportistas (Empresas)</label>
+                        <RadzenDropDown Data="Grupos" class="col-12 form-control-sm" TextProperty="Den" ValueProperty="Cod" @bind-Value="Unidad.Carid"
+                                        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                        AllowVirtualization="true" Change="@GetCliente" Style="height:20px">
+                            <Template Context="data">
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @((data as Transportista)?.Busentid) | @((data as Transportista)?.Den)
+                                </RadzenText>
+                            </Template>
+                            <ValueTemplate Context="data">
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @((data as Transportista)?.Busentid) | @((data as Transportista)?.Den)
+                                </RadzenText>
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>*@
+                    <div class="col-3">
+                        <label>Choferes:</label>
+                        <DropDownFilter Listado="Toneles" TListado="Tonel" TValue="int" Seleccion_Multiple="true" FiltrarValor="ObtenerChoferes"
+                                        Default_Placeholder="Seleccione un Chofer">
+                            <RenderValue>
+                                <div>Choferes</div>
+                            </RenderValue>
+                            <Render>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="@context.Cod" checked="@(Unidad_Seleccionados.Contains(context))" @onchange="args => { CheckUnidad(context, args?.Value); }"/>
+                                    <label class="form-check-label" for="@context.Cod">
+                                        @if (context is not null)
+                                        {
+                                            @context.Den
+                                        }
+                                        else
+                                        {
+                                            <p>Todos</p>
+                                        }
+                                    </label>
+                                </div>
+                            </Render>
+                        </DropDownFilter>
+                    </div>
+                    <div class="col-3 d-flex mt-auto">
+                        <button class="col-12 mx-auto btn gcom-bg-amarillo" type="submit" @onclick="@PostRelacion">
+                            <i class="fa fa-solid fa-plus"></i> Relacionar Terminal-Cliente
+                        </button>
+                    </div>
+                </div>
+                <!--Aquí empieza la tabla de muestreo de datos-->
+                <hr />
+            </div>
+        </div>
+    </div>
+</AuthorizeView>
+
+@code {
+    //Listas
+    List<Tad> Tads_Seleccionados { get; set; } = new();
+    List<Tonel> Unidad_Seleccionados { get; set; } = new();
+    List<Tad> Terminales { get; set; } = new List<Tad>();
+    List<Tonel> Toneles { get; set; } = new List<Tonel>();
+    List<Transportista> Grupos { get; set; } = new List<Transportista>();
+    //Instancias
+    public Tonel Unidad { get; set; } = new Tonel();
+    public Tad Tad { get; set; } = new Tad();
+    ClienteTadDTO clienteTadDTO { get; set; } = new ClienteTadDTO();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Obtener_Terminales_Validas();
+        await GetGrupos();
+        await ObtenerChoferes(string.Empty);
+    }
+
+    private async Task CreateUnidad()
+    {
+        try
+        {
+            Unidad.Cod = Unidad.Transportista!.Cod;
+            var response = await repositorio.Post<Tonel>($"api/vehiculo/crearUnidad", Unidad);
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Exito", $"Transportista {Unidad.Placa} asignado al grupo seleccionado", SweetAlertIcon.Success);
+                await ObtenerChoferes(string.Empty);
+            }
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Obtener_Terminales_Validas()
+    {
+        try
+        {
+            var response = await repositorio.Get<List<Tad>>("api/terminal/activas");
+            if (response.Error)
+            {
+                string? message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Terminales = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+
+        }
+    }
+
+    public async Task GetGrupos()
+    {
+        try
+        {
+            var response = await repositorio.Get<List<Transportista>>("api/transportista/lista");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Grupos = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task ObtenerChoferes(string value)
+    {
+        try
+        {
+            Dictionary<string, string> query = new();
+            query["Placa"] = value;
+
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+
+            var response = await repositorio.Get<List<Tonel>>($"api/vehiculo/filtraractivos?{uri}");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Toneles = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task GetCliente()
+    {
+        try
+        {
+            string? carid = Grupos.FirstOrDefault(x => x.Cod == Unidad.Transportista!.Cod)?.CarrId;
+            var response = await repositorio.Get<List<Tonel>>($"api/vehiculo/{carid}");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Toneles = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+
+    private async Task PostRelacion()
+    {
+        try
+        {
+            if (Tads_Seleccionados.Count != 0 && Unidad_Seleccionados.Count != 0)
+            {
+                clienteTadDTO.Tads = Tads_Seleccionados;
+                clienteTadDTO.Toneles = Unidad_Seleccionados;
+                var response = await repositorio.Post<ClienteTadDTO>($"api/vehiculo/relacion", clienteTadDTO);
+                if (response.Error)
+                {
+                    var message = await response.ObtenerMensajeError();
+                    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    await Swal.FireAsync("Exito", $"Unidad relacionada exitosamente", SweetAlertIcon.Success);
+                }
+            }
+            else
+            {
+                await Swal.FireAsync("Advertencia", "Debe tener seleccionado una terminal y una Unidad", SweetAlertIcon.Warning);
+            }
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task CheckTads(Tad terminal, object check)
+    {
+        try
+        {
+            if ((bool)check)
+            {
+                if (!Tads_Seleccionados.Contains(terminal))
+                    Tads_Seleccionados.Add(terminal);
+            }
+            else
+            {
+                if (Tads_Seleccionados.Contains(terminal))
+                    Tads_Seleccionados.Remove(terminal);
+            }
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+    }
+
+    private async Task CheckUnidad(Tonel tonel, object check)
+    {
+        try
+        {
+            if ((bool)check)
+            {
+                if (!Unidad_Seleccionados.Contains(tonel))
+                    Unidad_Seleccionados.Add(tonel);
+            }
+            else
+            {
+                if (Unidad_Seleccionados.Contains(tonel))
+                    Unidad_Seleccionados.Remove(tonel);
+            }
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+    }
+
+}
+

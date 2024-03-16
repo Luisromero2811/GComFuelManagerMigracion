@@ -249,6 +249,16 @@
                                     </RadzenMenuItem>
                                 </AuthorizeView>
 
+                                <AuthorizeView Roles="Admin, Administrador Sistema, Ejecutivo de Cuenta Comercial" Context="ConfirmCierre">
+                                    <RadzenPanelMenuItem Path="confirm-cierre" class="gcom-bg-rojo" Style="border:hidden">
+                                        <Template>
+                                            <div class="text-white">
+                                                <i class="fa-solid fa-clipboard-check"></i> Confirmación de cierres de clientes
+                                            </div>
+                                        </Template>
+                                    </RadzenPanelMenuItem>
+                                </AuthorizeView>
+
                                 <AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Cierre Pedidos" Context="CierreCerrar">
                                     <RadzenMenuItem Path="cerrar" class="gcom-bg-rojo">
                                         <Template>
@@ -505,10 +515,12 @@
                 </RadzenMenu>
             </div>
             <div class="col-3 d-flex gcom-bg-rojo-dark">
-                <div class="col-6 text-center my-auto d-flex justify-content-end">
+                <div class="col-6 text-center d-flex justify-content-end" style="text-overflow:ellipsis">
                     @if (MenuGeneral.User.Identity is not null)
                     {
-                        @MenuGeneral.User.Identity.Name
+                        <p class="my-auto">
+                            @MenuGeneral.User.Claims.Where(x=>x.Type == "Terminal").FirstOrDefault()?.Value | @MenuGeneral.User.Identity.Name
+                        </p>
                     }
                 </div>
                 <div class="col-6 text-center my-auto">

@@ -48,6 +48,11 @@
         <Columns>
             <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Fecha de creación de cierre" Property="FchCierre" FormatString="{0:dd/MM/yyyy}" Filterable="false" Width="130px" />
             <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Folio del cierre" Property="Folio" Filterable="false" Width="140px;" />
+            <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Unidad de Negocio" Property="Terminal" Filterable="false" Width="140px;">
+                <Template Context="data">
+                    @(data.Terminales is not null ? data.Terminales : "Sin Terminales")
+                </Template>
+            </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Grupo" FilterValue="GrupoSeleccionado" Property="Grupo.Den" Width="160px;">
                 <FilterTemplate>
                     <RadzenDropDown Data="GroupList" @bind-Value="GrupoSeleccionado" AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
@@ -135,8 +140,8 @@
             <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Precio" Property="Precio" Filterable="false" Width="90px" />
             <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Fecha de Vencimiento" Property="FchCierre_Vencimiento" FormatString="{0:dd/MM/yyyy}" Filterable="false" Width="130px" />
             <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Observaciones" Property="Observaciones" Filterable="false" Width="160px" />
-            <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Estado" Property="Estado_Pedidos" Filterable="false" Width="100px"/>
-            <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Tipo de Pago" Property="Tipo_Venta" Filterable="false" Width="110px"/>
+            <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Estado" Property="Estado_Pedidos" Filterable="false" Width="100px" />
+            <RadzenDataGridColumn TItem="FolioCierreDTO" Title="Tipo de Pago" Property="Tipo_Venta" Filterable="false" Width="110px" />
             <!--Precio Volumen y observaciones-->
         </Columns>
     </RadzenDataGrid>

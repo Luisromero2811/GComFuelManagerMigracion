@@ -19,12 +19,14 @@ namespace GComFuelManager.Server.Controllers
         private readonly ApplicationDbContext context;
         private readonly UserManager<IdentityUsuario> userManager;
         private readonly VerifyUserToken verifyUser;
+        private readonly User_Terminal _terminal;
 
-        public RedireccionController(ApplicationDbContext context, UserManager<IdentityUsuario> userManager, VerifyUserToken verifyUser)
+        public RedireccionController(ApplicationDbContext context, UserManager<IdentityUsuario> userManager, VerifyUserToken verifyUser, User_Terminal _Terminal)
         {
             this.context = context;
             this.userManager = userManager;
             this.verifyUser = verifyUser;
+            this._terminal = _Terminal;
         }
 
         [HttpGet]
@@ -32,6 +34,10 @@ namespace GComFuelManager.Server.Controllers
         {
             try
             {
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
                 var redireccionamientos = context.Redireccionamientos.Where(x => x.Fecha_Red >= filtro_.Fecha_Inicio && x.Fecha_Red <= filtro_.Fecha_Fin)
                     .Include(x => x.Grupo)
                     .Include(x => x.Cliente)
@@ -74,7 +80,7 @@ namespace GComFuelManager.Server.Controllers
                     if (x.Orden is not null)
                         if (x.Orden.OrdenEmbarque is not null)
                             if (x.Orden.OrdenEmbarque.Pre is not null)
-                                x.Orden.OrdenEmbarque.Pre = Obtener_Precio_Del_Dia_De_Orden_Synthesis(x.Orden.Cod).Precio;
+                                x.Orden.OrdenEmbarque.Pre = Obtener_Precio_Del_Dia_De_Orden_Synthesis(x.Orden.Cod, id_terminal).Precio;
                 });
 
                 return Ok(redireccionamientos);
@@ -252,7 +258,7 @@ namespace GComFuelManager.Server.Controllers
             }
         }
 
-        private PrecioBolDTO Obtener_Precio_Del_Dia_De_Orden_Synthesis(long? Id)
+        private PrecioBolDTO Obtener_Precio_Del_Dia_De_Orden_Synthesis(long? Id, int id_terminal)
         {
             try
             {
@@ -267,15 +273,15 @@ namespace GComFuelManager.Server.Controllers
 
                 PrecioBolDTO precio = new();
 
-                var precioVig = context.Precio.Where(x => orden != null && x.codDes == orden.Coddes && x.codPrd == orden.Codprd)
+                var precioVig = context.Precio.Where(x => orden != null && x.CodDes == orden.Coddes && x.CodPrd == orden.Codprd && x.Id_Tad == id_terminal)
                     .OrderByDescending(x => x.FchActualizacion)
                     .FirstOrDefault();
 
-                var precioPro = context.PrecioProgramado.Where(x => orden != null && x.codDes == orden.Coddes && x.codPrd == orden.Codprd)
+                var precioPro = context.PrecioProgramado.Where(x => orden != null && x.CodDes == orden.Coddes && x.CodPrd == orden.Codprd && x.Id_Tad == id_terminal)
                     .OrderByDescending(x => x.FchActualizacion)
                     .FirstOrDefault();
 
-                var precioHis = context.PreciosHistorico.Where(x => orden != null && x.codDes == orden.Coddes && x.codPrd == orden.Codprd && x.FchDia <= orden.Fchcar)
+                var precioHis = context.PreciosHistorico.Where(x => orden != null && x.CodDes == orden.Coddes && x.CodPrd == orden.Codprd && x.FchDia <= orden.Fchcar && x.Id_Tad == id_terminal)
                     .OrderByDescending(x => x.FchActualizacion)
                     .FirstOrDefault();
 

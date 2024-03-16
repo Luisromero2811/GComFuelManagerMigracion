@@ -19,6 +19,8 @@ namespace GComFuelManager.Shared.DTOs
         public DateTime? FchCierre { get; set; } = DateTime.MinValue;
         [EpplusIgnore]
         public Grupo? Grupo { get; set; } = null!;
+        [EpplusIgnore]
+        public Tad? Terminal { get; set; } = null!;
         [NotMapped, EpplusIgnore]
         public string? Estado { get; set; } = null!;
         [NotMapped, EpplusIgnore]
@@ -29,6 +31,8 @@ namespace GComFuelManager.Shared.DTOs
 
         [DisplayName("Fecha de Cierre")]
         public string FchCie { get { return string.Format(new System.Globalization.CultureInfo("en-US"), "{0:d}", FchCierre); } }
+        [DisplayName("Unidad de Negocio")]
+        public string Terminales { get; set; } = null!;
         [DisplayName("Grupo")]
         public string NGrupo { get { return Grupo != null ? Grupo.Den! : string.Empty; } }
         //[DisplayName("Cliente")]

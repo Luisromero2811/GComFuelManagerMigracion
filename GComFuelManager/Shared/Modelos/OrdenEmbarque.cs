@@ -104,6 +104,7 @@ namespace GComFuelManager.Shared.Modelos
         [NotMapped, EpplusIgnore] public double? Utilidad_Sobre_Volumen { get; set; } = 0;
         [NotMapped, EpplusIgnore] public bool Mostrar_Detalle_Orden { get; set; } = false;
         [NotMapped, EpplusIgnore] public List<Orden> Ordenes_Synthesis { get; set; } = new();
+        [NotMapped, EpplusIgnore] public string? Terminales { get; set; }
 
         public double Obtener_Utilidad_Coste()
         {

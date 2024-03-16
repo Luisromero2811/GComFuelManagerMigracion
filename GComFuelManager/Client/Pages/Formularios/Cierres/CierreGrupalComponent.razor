@@ -272,6 +272,11 @@
                     <RadzenDataGridColumn TItem="OrdenCierre" Title="Fecha de creación de cierre" Property="FchCierre" FormatString="{0:d}" Filterable="false" Frozen="true" Width="140px" OrderIndex="2" />
                     <RadzenDataGridColumn TItem="OrdenCierre" Title="Fecha de vencimiento" Property="FchVencimiento" FormatString="{0:d}" Filterable="false" OrderIndex="3" />
                     <RadzenDataGridColumn TItem="OrdenCierre" Title="Folio" Property="Folio" Filterable="false" Width="120px" OrderIndex="4" />
+                    <RadzenDataGridColumn TItem="OrdenCierre" Title="Unidad de Negocio" Property="Terminal" Filterable="false" Width="160px;">
+                        <Template Context="data">
+                            @(data.Terminal is not null ? data.Terminal.Den : "Sin unidad de negocio")
+                        </Template>
+                    </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="OrdenCierre" Title="Producto" FilterValue="ProductoSeleccionado" Property="Producto.Den" OrderIndex="5">
                         <FilterTemplate>
                             <RadzenDropDown Data="ProductList" @bind-Value="ProductoSeleccionado" AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
@@ -852,7 +857,7 @@
                 ws.Columns.Width = 65;
                 ws.Columns.AutoFit();
 
-                var header = ws.Cells["A1:O1"];
+                var header = ws.Cells["A1:Q1"];
 
                 var ordenFilter = new List<OrdenCierre>();
                 foreach (var item in ordenCierres)

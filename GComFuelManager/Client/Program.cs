@@ -63,6 +63,12 @@ void ConfigureServices(IServiceCollection services)
     services.AddScoped<AsignarContactoClienteValidation>();
     services.AddScoped<CierreGrupoValidation>();
     services.AddScoped<PreciosValidation>();
+    services.AddScoped<GestionClienteValidation>();
+    services.AddScoped<GestionDestinoValidation>();
+    services.AddScoped<GestionGrupoTransportesValidation>();
+    services.AddScoped<GestionEmpresaTransportesValidation>();
+    services.AddScoped<GestionChoferesValidation>();
+    services.AddScoped<GestionUnidadValidation>();
 
     services.AddScoped<Constructor_De_URL_Parametros>();
 

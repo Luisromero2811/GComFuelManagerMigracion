@@ -1,34 +1,24 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Newtonsoft.Json;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
-
+using System.Text.Json.Serialization;
 
 namespace GComFuelManager.Shared.Modelos
 {
     public class Chofer
     {
-        [JsonProperty("cod"), Key]
+        [Key]
         public int Cod { get; set; }
-
-        [JsonProperty("den"), MaxLength(128)]
+        [MaxLength(128)]
         public string? Den { get; set; } = string.Empty;
-
-        [JsonProperty("codtransport")]
         public int? Codtransport { get; set; } = 0;
-
-        [JsonProperty("dricod"), MaxLength(6)]
+        [MaxLength(6)]
         public string? Dricod { get; set; } = string.Empty;
-
-        [JsonProperty("shortden"), MaxLength(128)]
+        [MaxLength(128)]
         public string? Shortden { get; set; } = string.Empty;
-
-        [JsonProperty("activo")]
         public bool? Activo { get; set; } = true;
-
-        [JsonProperty("Activo_Permanente")]
-        public bool? Activo_Permanente { get; set; } = true; 
+        public bool? Activo_Permanente { get; set; } = true;
+        public short? Id_Tad { get; set; }
 
         [NotMapped]
         public string FullName
@@ -41,8 +31,11 @@ namespace GComFuelManager.Shared.Modelos
                     return $"{Den} {Shortden}";
             }
         }
+
         [NotMapped] public Transportista? Transportista { get; set; } = null!;
         [NotMapped] public Tonel? Tonel { get; set; } = null!;
+        [NotMapped] public List<Tad> Terminales { get; set; } = new();
+        [NotMapped, JsonIgnore] public List<Chofer_Tad> Chofer_Tads { get; set; } = new();
     }
 }
 

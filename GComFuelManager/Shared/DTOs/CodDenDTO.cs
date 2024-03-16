@@ -28,5 +28,6 @@ namespace GComFuelManager.Shared.DTOs
         public int pagina { get; set; } = 1;
         [EpplusIgnore]
         public int tamanopagina { get; set; } = 10;
+        [EpplusIgnore] public List<Tad> Terminales { get; set; } = new();
     }
 }

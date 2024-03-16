@@ -16,6 +16,8 @@ namespace GComFuelManager.Shared.DTOs
         [DisplayName("Orden de compra")]
         public string? OrdenCompra { get; set; } = string.Empty;
         public string? Referencia { get; set; } = string.Empty;
+        [DisplayName("Unidad de Negocio")]
+        public string? Unidad_Negocio { get; set; } = string.Empty;
         public string? Cliente { get; set; } = string.Empty;
         public string? Destino { get; set; } = string.Empty;
         public string? Producto { get; set; } = string.Empty;

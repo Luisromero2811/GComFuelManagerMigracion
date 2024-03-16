@@ -10,24 +10,15 @@ namespace GComFuelManager.Shared.Modelos
 {
     public class OrdenCierre
     {
-        [Key, JsonPropertyName("cod"), EpplusIgnore]
-        public int Cod { get; set; }
+        [Key, EpplusIgnore] public int Cod { get; set; }
 
-        [JsonPropertyName("fchCierre"), EpplusIgnore]
-        public DateTime? FchCierre { get; set; } = DateTime.Today;
-        [JsonPropertyName("fchVencimiento"), EpplusIgnore]
-        public DateTime? FchVencimiento { get; set; } = DateTime.Today;
+        [EpplusIgnore] public DateTime? FchCierre { get; set; } = DateTime.Today;
+        [EpplusIgnore] public DateTime? FchVencimiento { get; set; } = DateTime.Today;
 
-        [DisplayName("Fecha de cierre"), NotMapped]
-        public string? Fch { get { return FchCierre!.Value.ToString("dd/MM/yyyy"); } }
+        [DisplayName("Fecha de cierre"), NotMapped] public string? Fch { get { return FchCierre!.Value.ToString("dd/MM/yyyy"); } }
 
-        [EpplusIgnore, NotMapped]
-        public OrdenEmbarque? OrdenEmbarque { get; set; } = null!;
         [DisplayName("BOL")]
         public string? BOL { get { return OrdenEmbarque is not null ? OrdenEmbarque.Orden is not null ? OrdenEmbarque.Orden.BatchId.ToString() : string.Empty : string.Empty; } }
-
-        [NotMapped, EpplusIgnore]
-        public Orden? Orden { get; set; } = null!;
 
         [DisplayName("Fecha de vencimiento"), NotMapped]
         public string? FchVen { get { return FchVencimiento?.ToString("dd/MM/yyyy"); } }
@@ -35,45 +26,46 @@ namespace GComFuelManager.Shared.Modelos
         [JsonPropertyName("folio"), DisplayName("Folio")]
         public string? Folio { get; set; } = string.Empty;
 
-        [JsonPropertyName("contacto"), EpplusIgnore]
+        [NotMapped, DisplayName("Unidad de Negocio")]
+        public string? Unidad_Negocio { get { return Terminal != null ? Terminal.Den : string.Empty; } }
+
+        [EpplusIgnore]
         public string? Contacto { get { return ContactoN != null ? ContactoN.Nombre : string.Empty; } }
 
-        [JsonPropertyName("email"), EpplusIgnore]
+        [EpplusIgnore]
         public string? Email { get { return ContactoN != null ? ContactoN.Correo : string.Empty; } }
 
-        [JsonPropertyName("codPrd"), EpplusIgnore]
+        [EpplusIgnore]
         public byte? CodPrd { get; set; }
 
-        [NotMapped, EpplusIgnore]
-        public Producto? Producto { get; set; } = null!;
         [DisplayName("producto")]
         public string Pro { get { return Producto != null && !string.IsNullOrEmpty(Producto.Den) ? Producto.Den : "Sin producto asignado"; } }
 
-        [JsonPropertyName("codCte"), EpplusIgnore]
+        [EpplusIgnore]
         public int? CodCte { get; set; }
 
         [NotMapped, EpplusIgnore]
         public Cliente? Cliente { get; set; } = null!;
 
-        [JsonPropertyName("modeloVenta"), EpplusIgnore]
+        [EpplusIgnore]
         public string? ModeloVenta { get; set; } = string.Empty;
 
-        [JsonPropertyName("tipoVenta"), DisplayName("Tipo de Venta")]
+        [DisplayName("Tipo de Venta")]
         public string? TipoVenta { get; set; } = string.Empty;
 
-        [JsonPropertyName("tipoPago"), DisplayName("Tipo de Pago")]
+        [DisplayName("Tipo de Pago")]
         public string? TipoPago { get; set; } = "Credito";
 
-        [JsonPropertyName("precio"), DisplayName("Precio"), DisplayFormat(DataFormatString = "{0:C}")]
+        [DisplayName("Precio"), DisplayFormat(DataFormatString = "{0:C}")]
         public double Precio { get; set; } = 0;
 
         //[JsonPropertyName("temperatura"), DisplayName("Temperatura")]
         //[NotMapped] public double? Temperatura { get; set; } = null!;
 
-        [JsonPropertyName("vendedor"), DisplayName("Vendedor")]
+        [DisplayName("Vendedor")]
         public string? Vendedor { get; set; } = string.Empty;
 
-        [JsonPropertyName("codDes"), EpplusIgnore]
+        [EpplusIgnore]
         public int? CodDes { get; set; }
 
         [NotMapped, EpplusIgnore]
@@ -85,80 +77,54 @@ namespace GComFuelManager.Shared.Modelos
         [DisplayName("cliente")]
         public string? Cli { get { return Cliente != null ? Cliente.Den : "Sin cliente asignado"; } }
 
-        [JsonPropertyName("volumen"), DisplayName("Volumen"), EpplusIgnore]
+        [EpplusIgnore]
         public int? Volumen { get; set; }
         [DisplayName("Volumen"), NotMapped]
         public string Volumenes { get { return string.Format(new System.Globalization.CultureInfo("en-US"), "{0:N2}", Volumen); } }
 
-        [JsonPropertyName("observaciones"), DisplayName("Observaciones")]
+        [DisplayName("Observaciones")]
         public string? Observaciones { get; set; } = string.Empty;
 
-        [JsonPropertyName("estatus"), EpplusIgnore]
+        [EpplusIgnore]
         public bool? Estatus { get; set; } = true;
 
-        [JsonPropertyName("Activa"), EpplusIgnore]
+        [EpplusIgnore]
         public bool? Activa { get; set; } = true;
 
-        [JsonPropertyName("confirmada"), EpplusIgnore]
+        [EpplusIgnore]
         public bool? Confirmada { get; set; } = true;
 
-        [JsonProperty("codCon"), EpplusIgnore]
+        [EpplusIgnore]
         public int? CodCon { get; set; }
 
-        [JsonProperty("codPed"), EpplusIgnore]
+        [EpplusIgnore]
         public int? CodPed { get; set; } = 0;
 
-
-
-        [NotMapped, EpplusIgnore]
-        public Contacto? ContactoN { get; set; } = null!;
-
-        [EpplusIgnore, JsonProperty("fchLlegada")]
-        public DateTime? FchLlegada { get; set; } = DateTime.Now;
+        [EpplusIgnore] public DateTime? FchLlegada { get; set; } = DateTime.Now;
 
         [DisplayName("Fecha de llegada"), NotMapped]
         public string? FechaLlegada { get { return FchLlegada!.Value.ToString("D"); } }
 
-        [DisplayName("Turno"), JsonPropertyName("turno")]
+        [DisplayName("Turno")]
         public string? Turno { get; set; } = string.Empty;
 
-        [EpplusIgnore, JsonPropertyName("codGru")]
+        [EpplusIgnore]
         public Int16? CodGru { get; set; }
 
-        [EpplusIgnore, NotMapped]
-        public Grupo? Grupo { get; set; } = null!;
+        [EpplusIgnore, NotMapped] public DateTime? FchCar { get; set; } = DateTime.Today;
+        [EpplusIgnore, NotMapped] public short? Id_Tad { get; set; } = 0;
+        [EpplusIgnore] public int? ID_Moneda { get; set; } = 0;
+        [EpplusIgnore] public double? Equibalencia { get; set; } = 1;
 
-        [EpplusIgnore, NotMapped]
-        public OrdenPedido? ordenPedido { get; set; } = null!;
-
-        [EpplusIgnore, NotMapped]
-        public bool IsCierreVolumen { get; set; } = true;
-
-        [EpplusIgnore, NotMapped]
-        public bool IsDifferentVol { get; set; } = false;
-        //Turno cambiado
-        [EpplusIgnore, NotMapped]
-        public bool IsDifferentTurn { get; set; } = false;
-
-        [EpplusIgnore, NotMapped]
-        public DateTime? FchCar { get; set; } = DateTime.Today;
-        [EpplusIgnore, NotMapped]
-        public Int16? CodTad { get; set; } = 1;
-        [EpplusIgnore, NotMapped]
-        public bool IsAutoPrecio { get; set; } = true;
-
-        [EpplusIgnore, NotMapped]
-        public VolumenDisponibleDTO? VolumenDisponible { get; set; } = new VolumenDisponibleDTO();
-        [EpplusIgnore, NotMapped]
-        public bool isGroup { get; set; } = false;
-        [EpplusIgnore, NotMapped]
-        public bool PrecioOverDate { get; set; }
-
-        [DisplayName("fchPrecio"), EpplusIgnore]
-        public DateTime? fchPrecio { get; set; } = DateTime.Now;
+        [EpplusIgnore, NotMapped] public bool IsCierreVolumen { get; set; } = true;
+        [EpplusIgnore, NotMapped] public bool IsDifferentVol { get; set; } = false;
+        [EpplusIgnore, NotMapped] public bool IsDifferentTurn { get; set; } = false;
+        [EpplusIgnore, NotMapped] public bool IsAutoPrecio { get; set; } = true;
+        [EpplusIgnore, NotMapped] public bool isGroup { get; set; } = false;
+        [EpplusIgnore, NotMapped] public bool PrecioOverDate { get; set; }
+        [EpplusIgnore] public DateTime? fchPrecio { get; set; } = DateTime.Now;
         [DisplayName("Fecha de Precio"), NotMapped]
         public string? FchPre { get { return fchPrecio?.ToString("dd/MM/yyyy"); } }
-
         [DisplayName("Estado"), NotMapped]
         public string Estado_Pedido
         {
@@ -188,6 +154,23 @@ namespace GComFuelManager.Shared.Modelos
 
             }
         }
+        [NotMapped, EpplusIgnore] public int? Cantidad_Sugerida { get; set; } = 0;
+        [NotMapped, EpplusIgnore] public int? Cantidad_Confirmada { get; set; } = 0;
+        [NotMapped, EpplusIgnore] public int? Volumen_Seleccionado { get; set; } = 62000;
+        [NotMapped, EpplusIgnore] public int? Volumen_Por_Unidad { get { return Volumen_Seleccionado >= 62000 ? Volumen_Seleccionado / 2 : Volumen_Seleccionado; } }
+        [EpplusIgnore] public bool Precio_Manual { get; set; } = true;
+        [NotMapped, EpplusIgnore] public int? Ordenes_Relacionadas { get; set; } = 0;
+        [NotMapped, EpplusIgnore] public string? Folio_Perteneciente { get; set; } = string.Empty;
+
+        [EpplusIgnore, NotMapped] public Grupo? Grupo { get; set; } = null!;
+        [EpplusIgnore, NotMapped] public OrdenPedido? ordenPedido { get; set; } = null!;
+        [NotMapped, EpplusIgnore] public Producto? Producto { get; set; } = null!;
+        [EpplusIgnore, NotMapped] public VolumenDisponibleDTO? VolumenDisponible { get; set; } = new VolumenDisponibleDTO();
+        [NotMapped, EpplusIgnore] public List<OrdenPedido> OrdenPedidos { get; set; } = new List<OrdenPedido>();
+        [EpplusIgnore, NotMapped] public Moneda? Moneda { get; set; } = null!;
+        [EpplusIgnore, NotMapped] public OrdenEmbarque? OrdenEmbarque { get; set; } = null!;
+        [NotMapped, EpplusIgnore] public Contacto? ContactoN { get; set; } = null!;
+        [NotMapped, EpplusIgnore] public Tad? Terminal { get; set; } = null!;
 
         public OrdenCierre ShallowCopy()
         {
@@ -204,7 +187,7 @@ namespace GComFuelManager.Shared.Modelos
                 CodGru = CodGru,
                 CodPed = CodPed,
                 CodPrd = CodPrd,
-                CodTad = CodTad,
+                Id_Tad = Id_Tad,
                 fchPrecio = fchPrecio,
                 FchCar = FchCar,
                 FchCierre = FchCierre,
@@ -226,7 +209,6 @@ namespace GComFuelManager.Shared.Modelos
                 Vendedor = Vendedor
             };
         }
-        [NotMapped, EpplusIgnore] public int? Cantidad_Sugerida { get; set; } = 0;
         public int? GetCantidadSugerida()
         {
             try
@@ -240,16 +222,7 @@ namespace GComFuelManager.Shared.Modelos
                 return 0;
             }
         }
-        [NotMapped, EpplusIgnore] public int? Cantidad_Confirmada { get; set; } = 0;
-        [NotMapped, EpplusIgnore] public int? Volumen_Seleccionado { get; set; } = 62000;
-        [NotMapped, EpplusIgnore] public int? Volumen_Por_Unidad { get { return Volumen_Seleccionado >= 62000 ? Volumen_Seleccionado / 2 : Volumen_Seleccionado; } }
-        [NotMapped, EpplusIgnore] public List<OrdenPedido> OrdenPedidos { get; set; } = new List<OrdenPedido>();
-        public bool Precio_Manual { get; set; } = true;
-        [NotMapped, EpplusIgnore] public int? Ordenes_Relacionadas { get; set; } = 0;
-        [NotMapped, EpplusIgnore] public string? Folio_Perteneciente { get; set; } = string.Empty;
-        [EpplusIgnore, NotMapped] public Moneda? Moneda { get; set; } = null!;
-        [EpplusIgnore] public int? ID_Moneda { get; set; } = 0;
-        public double? Equibalencia { get; set; } = 1;
+
         #region Calculo de volumenes
         [NotMapped, EpplusIgnore] public double? Volumen_Solicitado { get; set; } = 0;
         public double? GetVolumenSolicitado()

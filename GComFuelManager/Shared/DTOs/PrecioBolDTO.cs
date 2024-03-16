@@ -47,6 +47,8 @@ namespace GComFuelManager.Shared.DTOs
         }
         [DisplayName("BOL")]
         public int? BOL { get; set; } = 0;
+        [DisplayName("Unidad de Negocio")]
+        public string? Unidad_Negocio { get; set; } = string.Empty;
         [DisplayName("Cliente")]
         public string? Cliente_Original { get; set; } = string.Empty;
         [DisplayName("Destino")]
@@ -76,6 +78,7 @@ namespace GComFuelManager.Shared.DTOs
         [NotMapped, EpplusIgnore] public Cliente? Cliente { get; set; } = null!;
         [NotMapped, EpplusIgnore] public Destino? Destino { get; set; } = null!;
         [NotMapped, EpplusIgnore] public Producto? Producto { get; set; } = null!;
+        [NotMapped, EpplusIgnore] public Tad? Tad { get; set; } = null!;
     }
 }
 

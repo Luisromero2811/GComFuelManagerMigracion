@@ -180,15 +180,15 @@ namespace GComFuelManager.Server.Controllers
 
                 PrecioBolDTO precio = new();
 
-                var precioVig = context.Precio.Where(x => orden != null && x.codDes == orden.Coddes && x.codPrd == orden.Codprd)
+                var precioVig = context.Precio.Where(x => orden != null && x.CodDes == orden.Coddes && x.CodPrd == orden.Codprd)
                     .OrderByDescending(x => x.FchDia)
                     .FirstOrDefault();
 
-                var precioPro = context.PrecioProgramado.Where(x => orden != null && x.codDes == orden.Coddes && x.codPrd == orden.Codprd)
+                var precioPro = context.PrecioProgramado.Where(x => orden != null && x.CodDes == orden.Coddes && x.CodPrd == orden.Codprd)
                     .OrderByDescending(x => x.FchDia)
                     .FirstOrDefault();
 
-                var precioHis = context.PreciosHistorico.Where(x => orden != null && x.codDes == orden.Coddes && x.codPrd == orden.Codprd
+                var precioHis = context.PreciosHistorico.Where(x => orden != null && x.CodDes == orden.Coddes && x.CodPrd == orden.Codprd
                     && orden.Fchcar != null && x.FchDia <= DateTime.Today)
                     .OrderByDescending(x => x.FchDia)
                     .FirstOrDefault();

@@ -377,6 +377,11 @@
                     </AuthorizeView>
                     <RadzenDataGridColumn TItem="OrdenCierre" Title="Fecha de creación de cierre" Property="FchCierre" FormatString="{0:d}" Filterable="false" Width="140px" OrderIndex="2" />
                     <RadzenDataGridColumn TItem="OrdenCierre" Title="Fecha de vencimiento" Property="FchVencimiento" FormatString="{0:d}" Filterable="false" OrderIndex="3" />
+                    <RadzenDataGridColumn TItem="OrdenCierre" Title="Unidad de Negocio" Property="Terminal" Filterable="false" Width="160px;">
+                        <Template Context="data">
+                            @(data.Terminal is not null ? data.Terminal.Den : "Sin unidad de negocio")
+                        </Template>
+                    </RadzenDataGridColumn>
                     <RadzenDataGridColumn TItem="OrdenCierre" Title="Folio" Property="Folio" Filterable="false" Width="120px" OrderIndex="4" />
                     <RadzenDataGridColumn TItem="OrdenCierre" Title="BOL" Property="OrdenEmbarque.Orden.BatchId" Filterable="false" Width="120px" OrderIndex="5" />
                     <RadzenDataGridColumn TItem="OrdenCierre" Title="Folio de referencia" Property="OrdenEmbarque.Folio" Filterable="false" OrderIndex="6" />

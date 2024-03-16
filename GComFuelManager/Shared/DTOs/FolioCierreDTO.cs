@@ -32,6 +32,8 @@ namespace GComFuelManager.Shared.DTOs
         [EpplusIgnore]
         public string? Estado { get; set; } = null!;
         [EpplusIgnore]
+        public Tad? Terminal { get; set; } = null!;
+        [EpplusIgnore]
         public OrdenEmbarque? ordenEmbarque { get; set; } = null!;
         [EpplusIgnore]
         public OrdenCierre? ordenCierre { get; set; } = null!;
@@ -40,6 +42,8 @@ namespace GComFuelManager.Shared.DTOs
         public string FchCie { get { return string.Format(new System.Globalization.CultureInfo("es-MX"), "{0:dd/MM/yyyy}", FchCierre); } }
         [DisplayName("Folio de Cierre / OC")]
         public string? Folio { get; set; } = null!;
+        [DisplayName("Unidad de Negocio")]
+        public string Terminales { get; set; } = null!;
         [DisplayName("Grupo")]
         public string NGrupo { get { return Grupo != null ? Grupo.Den! : string.Empty; } }
         [DisplayName("Cliente")]

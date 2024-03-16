@@ -129,12 +129,12 @@
         Menus.Add(new Menu() { name = "Usuarios", icon = "user", path = "/usuarios", roles = "Admin, Administrador Sistema, Administrador de Usuarios, Direccion, Gerencia" });
         //configuracion
         Menus.Add(new Menu()
-            {
-                isMenu = true,
-                name = "Configuracion",
-                icon = "gear",
-                roles = "Admin, Administrador Sistema, Direccion, Gerencia, Programador, Gestion de Transporte, Correo de Clientes, Analista Credito, Contador, Ejecutivo de Cuenta Comercial",
-                Menus = new()
+        {
+            isMenu = true,
+            name = "Configuracion",
+            icon = "gear",
+            roles = "Admin, Administrador Sistema, Direccion, Gerencia, Programador, Gestion de Transporte, Correo de Clientes, Analista Credito, Contador, Ejecutivo de Cuenta Comercial",
+            Menus = new()
                 {
                     new()
                     {
@@ -213,6 +213,13 @@
                                 roles = "Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Contador, Correo de Clientes, Ejecutivo de Cuenta Comercial",
                                 path = "asignar-cliente-destino"
                             },
+                            new()
+                            {
+                                name = "Catalogo de Unidades de Negocios",
+                                icon = "user-tie",
+                                roles = "Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Contador, Correo de Clientes, Ejecutivo de Cuenta Comercial",
+                                path = "catalogoterminales"
+                            }
                         }
                     },
                     new()
@@ -237,15 +244,15 @@
                         roles = "Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Contador, Correo de Clientes, Ejecutivo de Cuenta Comercial",
                     },
                 }
-            });
+        });
         //precios
         Menus.Add(new Menu()
-            {
-                name = "Precios",
-                icon = "money-bill-1-wave",
-                roles = "Admin, Administrador Sistema, Precios, Direccion, Gerencia, Analista Credito, Contador, Revision Precios",
-                isMenu = true,
-                Menus = new()
+        {
+            name = "Precios",
+            icon = "money-bill-1-wave",
+            roles = "Admin, Administrador Sistema, Precios, Direccion, Gerencia, Analista Credito, Contador, Revision Precios",
+            isMenu = true,
+            Menus = new()
                 {
                     new()
                     {
@@ -258,15 +265,15 @@
                         roles = "Admin, Administrador Sistema, Direccion, Gerencia, Precios, Analista Credito, Contador, Revision Precios"
                     }
                 }
-            });
+        });
         //cierres
         Menus.Add(new Menu()
-            {
-                isMenu = true,
-                name = "Cierres",
-                icon = "store-slash",
-                roles = "Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial, Comprador, Lectura de Cierre de Orden, Cierre Pedidos, Revision Precios",
-                Menus = new()
+        {
+            isMenu = true,
+            name = "Cierres",
+            icon = "store-slash",
+            roles = "Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial, Comprador, Lectura de Cierre de Orden, Cierre Pedidos, Revision Precios",
+            Menus = new()
                 {
                     new()
                     {
@@ -281,6 +288,13 @@
                         icon = "store-slash",
                         roles = "Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial, Comprador, Lectura de Cierre de Orden, Revision Precios",
                         path = "cierre-grupo"
+                    },
+                    new()
+                    {
+                        name = "Confirmación de cierres de clientes",
+                        icon = "clipboard-check",
+                        roles = "Admin, Administrador Sistema, Direccion, Gerencia, Ejecutivo de Cuenta Comercial",
+                        path = "confirm-cierre"
                     },
                     new()
                     {
@@ -312,15 +326,15 @@
                     }
                 }
 
-            });
+        });
         //ordenes
         Menus.Add(new Menu()
-            {
-                isMenu = true,
-                name = "Ordenes",
-                icon = "rectangle-list",
-                roles = "Admin, Administrador Sistema, Direccion, Lectura Asignacion, Gerencia, Ejecutivo de Cuenta Comercial, Ejecutivo de Cuenta Operativo , Programador, Revision Precios , Coordinador, Analista Suministros, Auditor, Capturista Recepcion Producto, Analista Credito, Contador, Auditor , Comprador, Revision Precios",
-                Menus = new()
+        {
+            isMenu = true,
+            name = "Ordenes",
+            icon = "rectangle-list",
+            roles = "Admin, Administrador Sistema, Direccion, Lectura Asignacion, Gerencia, Ejecutivo de Cuenta Comercial, Ejecutivo de Cuenta Operativo , Programador, Revision Precios , Coordinador, Analista Suministros, Auditor, Capturista Recepcion Producto, Analista Credito, Contador, Auditor , Comprador, Revision Precios",
+            Menus = new()
                 {
                     new()
                     {
@@ -400,15 +414,15 @@
                         path = "actualizar/pedidos"
                     },
                 }
-            });
+        });
         //pedimentos
         Menus.Add(new Menu()
-            {
-                name = "Pedimentos",
-                icon = "file-circle-check",
-                roles = "Admin, Administrador Sistema, Direccion, Gerencia, Contraloria",
-                isMenu = true,
-                Menus = new()
+        {
+            name = "Pedimentos",
+            icon = "file-circle-check",
+            roles = "Admin, Administrador Sistema, Direccion, Gerencia, Contraloria",
+            isMenu = true,
+            Menus = new()
                 {
                     new()
                     {
@@ -425,15 +439,15 @@
                         path = "listado/pedimentos"
                     },
                 }
-            });
+        });
         //redirecciones
         Menus.Add(new Menu()
-            {
-                name = "Redireccionamientos",
-                icon = "diamond-turn-right",
-                roles = "Admin, Administrador Sistema",
-                isMenu = true,
-                Menus = new()
+        {
+            name = "Redireccionamientos",
+            icon = "diamond-turn-right",
+            roles = "Admin, Administrador Sistema",
+            isMenu = true,
+            Menus = new()
                 {
                     new()
                     {
@@ -450,16 +464,16 @@
                         path = "listado/redireccion"
                     },
                 }
-            });
+        });
 
         //ventas
         Menus.Add(new Menu()
-            {
-                name = "Ventas",
-                icon = "file-circle-check",
-                roles = "Admin, Administrador Sistema, Reportes De Venta",
-                isMenu = true,
-                Menus = new()
+        {
+            name = "Ventas",
+            icon = "file-circle-check",
+            roles = "Admin, Administrador Sistema, Reportes De Venta",
+            isMenu = true,
+            Menus = new()
                 {
                     new()
                     {
@@ -476,16 +490,16 @@
                         path = "establecer/meta"
                     },
                 }
-            });
+        });
 
         //tarifario
         Menus.Add(new Menu()
-            {
-                name = "Tarifario",
-                icon = "file-invoice-dollar",
-                roles = "Admin, Administrador Sistema, Tarifas",
-                isMenu = true,
-                Menus = new()
+        {
+            name = "Tarifario",
+            icon = "file-invoice-dollar",
+            roles = "Admin, Administrador Sistema, Tarifas",
+            isMenu = true,
+            Menus = new()
                 {
                     new()
                     {
@@ -502,7 +516,7 @@
                         path = "tarifa/historial"
                     },
                 }
-            });
+        });
 
     }
 

@@ -65,6 +65,41 @@ namespace GComFuelManager.Server.Controllers
             }
         }
 
+        [HttpGet("allactives")]
+        public async Task<ActionResult> GetAllActives()
+        {
+            try
+            {
+                var grupos = await context.Grupo
+                    .OrderBy(x => x.Den)
+                    .ToListAsync();
+                return Ok(grupos);
+            }
+            catch (Exception e)
+            {
+
+                return BadRequest(e.Message);
+            }
+        }
+
+        [HttpGet("filtraractivos")]
+        public ActionResult Obtener_Grupos_Activos([FromQuery] Grupo grupo)
+        {
+            try
+            {
+                var grupos = context.Grupo.IgnoreAutoIncludes().AsQueryable();
+
+                if (!string.IsNullOrEmpty(grupo.Den))
+                    grupos = grupos.Where(x => x.Den!.ToLower().Contains(grupo.Den.ToLower()));
+
+                return Ok(grupos);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] Grupo grupo)
         {

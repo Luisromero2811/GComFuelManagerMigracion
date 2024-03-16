@@ -4,7 +4,7 @@
     <Authorized>
         <div class="card border-white text-black bg-white">
             <div class="card-header">
-                <h3 align="center">Bienvenido @context.User.Identity?.Name</h3>
+                <h3 align="center">Bienvenido @context.User.Identity?.Name a la unidad de negocio @context.User.FindFirstValue("Terminal")</h3>
             </div>
             <div class="card-body">
                 <img class="mx-auto d-block w-50" src="https://i.postimg.cc/Z57T1QGJ/Triptico-Energas-EDITABLE-03.png" alt="Card image cap">
@@ -15,5 +15,8 @@
 </AuthorizeView>
 
 @code {
-
+    protected override Task OnInitializedAsync()
+    {
+        return base.OnInitializedAsync();
+    }
 }

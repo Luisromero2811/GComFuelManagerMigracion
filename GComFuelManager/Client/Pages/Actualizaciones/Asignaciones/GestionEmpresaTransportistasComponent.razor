@@ -1,0 +1,499 @@
+﻿@inject IRepositorio repositorio
+@inject SweetAlertService Swal
+@inject IJSRuntime js
+@inject NotificationService Ns
+@inject GestionEmpresaTransportesValidation gestionTransportista
+
+@attribute [Authorize(Roles = "Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Contador")]
+
+<h4>Catalogo de Transportistas</h4>
+<AuthorizeView Roles="Admin, Administrador Sistema, Direccion, Gerencia, Analista Credito, Contador" Context="GestionClientes">
+    <div class="col-12 d-flex justify-content-center">
+        <div class="col-10 card shadow-sm">
+            <div class="col-12 row card-body">
+                <AuthorizeView Roles="Admin, Administrador Sistema, Analista Credito" Context="Gestion">
+                    <h5>Agregar Empresas Transportistas</h5>
+                    <!--Aquí se agregará las validaciones para gestionar a los clientes-->
+                    <EditForm Model="@transportista" class="form col-12" OnValidSubmit="@CreateEmpresaTransportes" Context="Validations">
+                        <FluentValidationValidator Validator="gestionTransportista" />
+                        <ValidationSummary />
+                        <div class="col-12 row">
+                            <div class="col-4">
+                                <label>Grupo Transportes:</label>
+                                <RadzenDropDown @bind-Value="transportista.GrupoTransportista" TValue="GrupoTransportista" Data="Grupos" TextProperty="den"
+                                                AllowVirtualization="true" AllowFiltering="true"
+                                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" class="col-12">
+                                </RadzenDropDown>
+                            </div>
+                            <div class="col-4">
+                                <label>Nombre empresa de Transportes:</label>
+                                <InputText @bind-Value="transportista.Den" class="form-control" MaxLenght="80" />
+                            </div>
+                            <div class="col-2 d-flex mt-auto">
+                                <button class="col-12 btn gcom-bg-amarillo" type="submit">
+                                    <i class="fa fa-solid fa-plus"></i> Registrar
+                                </button>
+                            </div>
+                        </div>
+                    </EditForm>
+                </AuthorizeView>
+                <!--Aquí ligamos la terminal a los clientes-->
+            </div>
+        </div>
+    </div>
+</AuthorizeView>
+
+<div class="card mt-2" style="height:500px;">
+    <div class="card-header">
+        <b>Gestión de Transportista - Unidades de negocio</b>
+    </div>
+    <div class="card-body">
+        <div class="col-12 row">
+            <div class="col-3">
+                <label>Grupo de Transportes</label>
+                @*<DropDownFilter Listado="GrupoActivo" TListado="Grupo" TValue="Int16?" Default_Placeholder="Seleccione un Grupo" FiltrarValor="Obtener_Grupos"
+                                    Propiedad_Valor="Cod" On_Change_Method="@GetCliente" @bind-Valor="Cliente.Codgru">
+                        <RenderValue>
+                            @context.Den
+                        </RenderValue>
+                        <Render>
+                            @context.Den
+                        </Render>
+                    </DropDownFilter>*@
+                <DropDownFilter Listado="Grupos" TListado="GrupoTransportista" TValue="int?" Default_Placeholder="Seleccione un Grupo" FiltrarValor="ObtenerEmpresa"
+                                Propiedad_Valor="cod" On_Change_Method="@GetCliente" @bind-Valor="transportista.Codgru">
+                    <RenderValue>
+                        @context.den
+                    </RenderValue>
+                    <Render>
+                        @context.den
+                    </Render>
+                </DropDownFilter>
+            </div>
+            <div class="col-3">
+                <label>Unidad de Negocio</label>
+                @*<DropDownFilter Listado="Vendedores" TListado="Vendedor" TValue="int" Default_Placeholder="Seleccione un vendedor" FiltrarValor="Obtener_Vendedores"
+                                    @bind-Valor="@Vendedor.Id" Propiedad_Valor="Id" On_Change_Method="@(()=>Obtener_Originadores(string.Empty))">
+                        <RenderValue>
+                            @context.Nombre
+                        </RenderValue>
+                        <Render>
+                            @context.Nombre
+                        </Render>
+                    </DropDownFilter>*@
+                <DropDownFilter Listado="Terminales" TListado="Tad" TValue="Int16" Seleccion_Multiple="true" Default_Placeholder="Seleccione una unidad de negocio">
+                    <RenderValue>
+                        <div>@context.Den</div>
+                    </RenderValue>
+                    <Render>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="@context.Cod" checked="@(Tads_Seleccionados.Contains(context))" @onchange="args => { CheckTads(context, args?.Value); }" />
+                            <label class="form-check-label" for="@context.Cod">
+                                @if (context is not null)
+                                {
+                                    @context.Den
+                                }
+                                else
+                                {
+                                    <p>@context.Den</p>
+                                }
+                            </label>
+                        </div>
+                    </Render>
+                </DropDownFilter>
+            </div>
+            <div class="col-3">
+                <label></label>
+                <button class="col-12 btn gcom-bg-amarillo mt-auto" type="submit" @onclick="@PostRelacion">
+                    <i class="fa fa-solid fa-plus"></i> Relacionar Cliente-Unidad
+                </button>
+            </div>
+        </div>
+        <div class="col-12">
+            <table class="table table-sm table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" checked="@(Transportistas.Any(i => Transportista_Seleccionados != null && Transportista_Seleccionados.Contains(i)))"
+                                   @onchange="args => CheckItemAll(args?.Value)" />
+                        </th>
+                        <th>Cliente</th>
+                        <th>Unidades de Negocio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Transportistas.Count > 0)
+                    {
+                        <Virtualize Items="Transportistas" TItem="Transportista" Context="item">
+                            <tr>
+                                <th>
+                                    @*<input type="checkbox" checked="@(Clientes_Seleccionados.Contains(item))" @onchange="args => { CheckItem(item, args?.Value); }" />*@
+                                    <input class="form-check-input" type="checkbox" value="" id="@item.Cod" checked="@(Transportista_Seleccionados.Contains(item))" @onchange="args => { CheckTransportista(item, args?.Value); }" />
+                                </th>
+                                <td>@item.Den</td>
+                                <td>
+                                    @if (item.Terminales is not null)
+                                    {
+                                        @foreach (var items in item.Terminales)
+                                        {
+                                            <span class="badge rounded-pill gcom-bg-rojo me-2">
+                                                @items.Den
+
+                                                <button class="button-circle gcom-bg-amarillo" @onclick="@(()=>Borrar_Relacion(item, items))">
+                                                    <i class="fa fa-solid fa-xmark"></i>
+                                                </button>
+
+                                            </span>
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                        </Virtualize>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@*<div class="col-12 row">
+        <div class="col-3">
+            <label>Terminales:</label>
+            <DropDownFilter Listado="Terminales" TListado="Tad" TValue="Int16" Seleccion_Multiple="true" Default_Placeholder="Seleccione una terminal">
+                <RenderValue>
+                    <div>Terminales</div>
+                </RenderValue>
+                <Render>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="@context.Cod" checked="@(Tads_Seleccionados.Contains(context))" @onchange="args => { CheckTads(context, args?.Value); }" />
+                        <label class="form-check-label" for="@context.Cod">
+                            @if (context is not null)
+                            {
+                                @context.Den
+                            }
+                            else
+                            {
+                                <p>Todos</p>
+                            }
+                        </label>
+                    </div>
+                </Render>
+            </DropDownFilter>
+        </div>
+        <div class="col-3">
+            <label>Grupo de Transportes</label>
+            <DropDownFilter Listado="Grupos" TListado="GrupoTransportista" TValue="int?" Default_Placeholder="Seleccione un Grupo" FiltrarValor="ObtenerEmpresa"
+                            Propiedad_Valor="cod" On_Change_Method="@GetCliente" @bind-Valor="transportista.Codgru">
+                <RenderValue>
+                    @context.den
+                </RenderValue>
+                <Render>
+                    @context.den
+                </Render>
+            </DropDownFilter>
+        </div>
+        <div class="col-3">
+            <label>Transportistas:</label>
+            <DropDownFilter Listado="Transportistas" TListado="Transportista" TValue="int" Seleccion_Multiple="true" Puede_Filtrar="true"
+                            Default_Placeholder="Seleccione un Transportista">
+                <RenderValue>
+                    <div>Empresa de Transportes</div>
+                </RenderValue>
+                <Render>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="@context.Cod" checked="@(Transportista_Seleccionados.Contains(context))" @onchange="args => { CheckTransportista(context, args?.Value); }" />
+                        <label class="form-check-label" for="@context.Cod">
+                            @if (context is not null)
+                            {
+                                @context.Den
+                            }
+                            else
+                            {
+                                <p>Todos</p>
+                            }
+                        </label>
+                    </div>
+                </Render>
+            </DropDownFilter>
+        </div>
+        <div class="col-3">
+            <label></label>
+            <button class="col-12 mt-auto btn gcom-bg-amarillo" type="submit" @onclick="@PostRelacion">
+                <i class="fa fa-solid fa-plus"></i> Relacionar Terminal-Cliente
+            </button>
+        </div>
+    </div>*@
+
+<style>
+    .button-circle { /* Green */
+        border: none;
+        color: white;
+        padding: .40rem .60rem;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: .75rem;
+        cursor: pointer;
+        border-radius: 2rem;
+    }
+</style>
+
+@code {
+
+    //Listas
+    List<Tad> Tads_Seleccionados { get; set; } = new();
+    List<Transportista> Transportista_Seleccionados { get; set; } = new();
+    List<Tad> Terminales { get; set; } = new List<Tad>();
+    List<Transportista> Transportistas { get; set; } = new List<Transportista>();
+    List<GrupoTransportista> Grupos { get; set; } = new List<GrupoTransportista>();
+    //Instancias
+    public Transportista transportista { get; set; } = new Transportista();
+    public Tad Tad { get; set; } = new Tad();
+    ClienteTadDTO clienteTadDTO { get; set; } = new ClienteTadDTO();
+
+    Transportista_Tad transportista_Tad { get; set; } = new Transportista_Tad();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Obtener_Terminales_Validas();
+        await GetGrupos();
+    }
+
+    private async Task CreateEmpresaTransportes()
+    {
+        try
+        {
+            transportista.Codgru = transportista.GrupoTransportista!.cod!;
+            var response = await repositorio.Post<Transportista>($"api/transportista/crearTransportista", transportista);
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Exito", $"Transportista {transportista.Den} asignado al grupo seleccionado", SweetAlertIcon.Success);
+            }
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Obtener_Terminales_Validas()
+    {
+        try
+        {
+            var response = await repositorio.Get<List<Tad>>("api/terminal/activas");
+            if (response.Error)
+            {
+                string? message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Terminales = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+
+        }
+    }
+
+    public async Task ObtenerEmpresa(string value)
+    {
+        try
+        {
+            Dictionary<string, string> query = new();
+            query["den"] = value;
+
+            var uri = Constructor_De_URL_Parametros.Generar_URL(query);
+
+            var response = await repositorio.Get<List<GrupoTransportista>>($"api/transportista/filtraractivos?{uri}");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Grupos = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    public async Task GetGrupos()
+    {
+        try
+        {
+            var response = await repositorio.Get<List<GrupoTransportista>>("api/transportista/gruposactivos");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Grupos = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+
+    private async Task GetCliente()
+    {
+        try
+        {
+            var response = await repositorio.Get<List<Transportista>>($"api/transportista/Grupo/{transportista.Codgru}");
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                Transportistas = response.Response;
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+
+    private async Task PostRelacion()
+    {
+        try
+        {
+            if (Tads_Seleccionados.Count != 0 && Transportista_Seleccionados.Count != 0)
+            {
+                clienteTadDTO.Tads = Tads_Seleccionados;
+                clienteTadDTO.Transportistas = Transportista_Seleccionados;
+                var response = await repositorio.Post<ClienteTadDTO>($"api/transportista/relacionempresa", clienteTadDTO);
+                if (response.Error)
+                {
+                    var message = await response.ObtenerMensajeError();
+                    await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+                }
+                else
+                {
+                    await Swal.FireAsync("Exito", $"Transportista relacionado exitosamente", SweetAlertIcon.Success);
+                }
+            }
+            else
+            {
+                await Swal.FireAsync("Advertencia", "Debe de tener seleccionado una Terminal y una empresa Transportista", SweetAlertIcon.Warning);
+            }
+
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    private async Task Borrar_Relacion(Transportista transportista, Tad tads)
+    {
+        try
+        {
+            transportista_Tad.Id_Terminal = tads.Cod;
+            transportista_Tad.Id_Transportista = transportista.Cod;
+            var response = await repositorio.Post<Transportista_Tad>($"api/transportista/borrar/relacion", transportista_Tad);
+            if (response.Error)
+            {
+                var message = await response.ObtenerMensajeError();
+                await Swal.FireAsync("Error", message, SweetAlertIcon.Error);
+            }
+            else
+            {
+                await Swal.FireAsync("Exito", "Relacion borrada con éxito", SweetAlertIcon.Success);
+                await ObtenerEmpresa(string.Empty);
+                await GetCliente();
+            }
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+    }
+
+    private async Task CheckTads(Tad terminal, object check)
+    {
+        try
+        {
+            if ((bool)check)
+            {
+                if (!Tads_Seleccionados.Contains(terminal))
+                    Tads_Seleccionados.Add(terminal);
+            }
+            else
+            {
+                if (Tads_Seleccionados.Contains(terminal))
+                    Tads_Seleccionados.Remove(terminal);
+            }
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+    }
+
+    private async Task CheckTransportista(Transportista transportista, object check)
+    {
+        try
+        {
+            if ((bool)check)
+            {
+                if (!Transportista_Seleccionados.Contains(transportista))
+                    Transportista_Seleccionados.Add(transportista);
+            }
+            else
+            {
+                if (Transportista_Seleccionados.Contains(transportista))
+                    Transportista_Seleccionados.Remove(transportista);
+            }
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+    }
+
+
+    private async Task CheckItemAll(object check)
+    {
+        try
+        {
+            if ((bool)check)
+                Transportista_Seleccionados = Transportistas;
+            else
+                Transportista_Seleccionados = new();
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+            await Swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+    }
+
+}
+

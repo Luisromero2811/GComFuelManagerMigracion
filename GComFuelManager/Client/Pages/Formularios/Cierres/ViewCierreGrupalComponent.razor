@@ -54,6 +54,11 @@
     <Columns>
         <RadzenDataGridColumn TItem="FolioCierreGrupalDTO" Title="Fecha de Cierre" Property="FchCierre" FormatString="{0:d}" Filterable="false" Width="140px" />
         <RadzenDataGridColumn TItem="FolioCierreGrupalDTO" Title="Folio del cierre" Property="Folio" Filterable="false" Width="200px;" />
+        <RadzenDataGridColumn TItem="FolioCierreGrupalDTO" Title="Unidad de Negocio" Property="Terminal" Filterable="false" Width="140px;">
+            <Template Context="data">
+                @(data.Terminales is not null ? data.Terminales : "Sin Terminales")
+            </Template>
+        </RadzenDataGridColumn>
         <RadzenDataGridColumn TItem="FolioCierreGrupalDTO" Title="Grupo" Filterable="false">
             <Template Context="data">
                 @(data.Grupo is not null ? data.Grupo.Den : "Sin grupo")

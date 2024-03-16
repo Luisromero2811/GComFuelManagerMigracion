@@ -52,8 +52,13 @@
                 </RadzenDataGridColumn>
             </AuthorizeView>
             <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Orden de compra" Property="OrdenCompra.den" Width="200px" Frozen="true" MinWidth="200px" Filterable="false" OrderIndex="2" />
-            <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Folio" Property="OrdenCierre.Folio" Width="200px" Frozen="true" MinWidth="200px" Filterable="false" OrderIndex="3" />
-            <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Cliente" Property="Destino.Cliente.Den" Width="200px" Frozen="true" MinWidth="200px" FilterValue="ClienteSeleccionado" OrderIndex="4">
+            <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Unidad de Negocio" Width="180px" Frozen="true" Filterable="false" OrderIndex="3">
+                <Template Context="data">
+                    @data?.Tad?.Den
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Folio" Property="OrdenCierre.Folio" Width="200px" Frozen="true" MinWidth="200px" Filterable="false" OrderIndex="4" />
+            <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Cliente" Property="Destino.Cliente.Den" Width="200px" MinWidth="200px" FilterValue="ClienteSeleccionado" OrderIndex="5">
                 <FilterTemplate Context="Cliente">
                     <RadzenDropDown Data="ClienteList" AllowFiltering="true" @bind-Value="ClienteSeleccionado" AllowClear="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
                         <ValueTemplate Context="data">
@@ -67,7 +72,7 @@
                     </div>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Destino" Property="Destino.Den" Width="200px" MinWidth="200px" FilterValue="DestinosSeleccionado" OrderIndex="5">
+            <RadzenDataGridColumn TItem="OrdenEmbarque" Title="Destino" Property="Destino.Den" Width="200px" MinWidth="200px" FilterValue="DestinosSeleccionado" OrderIndex="6">
                 <FilterTemplate Context="Destinos">
                     <RadzenDropDown Data="DestinoList" AllowFiltering="true" @bind-Value="DestinosSeleccionado" AllowClear="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
                         <ValueTemplate Context="data">

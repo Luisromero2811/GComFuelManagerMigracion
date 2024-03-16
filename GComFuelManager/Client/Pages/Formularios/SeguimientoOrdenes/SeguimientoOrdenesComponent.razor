@@ -95,6 +95,11 @@
                         @(data?.BatchId is null ? data?.Fchcar?.ToString("dd/MM/yyyy") : data?.OrdenEmbarque?.Fchcar?.ToString("dd/MM/yyyy"))
                     </Template>
                 </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Orden" Title="Unidad de Negocio" Width="180px" Filterable="false">
+                    <Template Context="data">
+                        @(data.Terminal is not null ? data.Terminal.Den : "Sin unidad de negocio")
+                    </Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Orden" Title="Estatus Orden" Property="Estado.den" Width="160px" Filterable="false">
                     <Template Context="data">
                         <div class="col-12">
@@ -407,6 +412,7 @@
                             {
                                 Referencia = item?.Ref,
                                 FechaPrograma = item?.Fchcar?.ToString("dd/MM/yyyy"),
+                                Unidad_Negocio = item?.Terminal?.Den,
                                 EstatusOrden = item?.Estado.den,
                                 //FechaCarga = item?.Fch?.ToString("yyyy-MM-dd"),
                                 Bol = item?.BatchId,
@@ -451,6 +457,7 @@
                             {
                                 Referencia = item?.Ref,
                                 FechaPrograma = item?.OrdenEmbarque?.Fchcar?.ToString("dd/MM/yyyy"),
+                                Unidad_Negocio = item?.Terminal?.Den,
                                 EstatusOrden = item?.Estado.den,
                                 FechaCarga = item?.Fchcar?.ToString("dd/MM/yyyy HH:mm:ss"),
                                 Bol = item?.BatchId,
@@ -617,6 +624,7 @@
                         {
                             Referencia = item?.Ref,
                             FechaPrograma = item?.Fchcar?.ToString("dd/MM/yyyy"),
+                            Unidad_Negocio = item?.Terminal?.Den,
                             EstatusOrden = item?.Estado.den,
                             Bol = item?.BatchId,
                             Cliente = item?.Destino?.Cliente?.Den,
@@ -650,6 +658,7 @@
                             //Operador = item?.Chofer?.Den
                             Referencia = item?.Ref,
                             FechaPrograma = item?.OrdenEmbarque?.Fchcar?.ToString("dd/MM/yyyy"),
+                            Unidad_Negocio = item?.Terminal?.Den,
                             EstatusOrden = item?.Estado.den,
                             FechaCarga = item?.Fchcar?.ToString("dd/MM/yyyy HH:mm:ss"),
                             Bol = item?.BatchId,

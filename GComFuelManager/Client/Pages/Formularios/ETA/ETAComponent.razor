@@ -219,6 +219,9 @@
                                         Fecha de Programa
                                     </th>
                                     <th>
+                                        Unidad de Negocio
+                                    </th>
+                                    <th>
                                         Estatus de Orden
                                     </th>
                                     <th style="max-width:200px; position: sticky;">
@@ -301,6 +304,7 @@
                                     <td></td>
                                     <td></td>
                                     <td></td>
+                                    <td></td>
                                 </tr>
                                 <Virtualize Items="@ordens" Context="data" TItem="EtaDTO">
                                     <tr class="@(etaDto == data ? "table-active" : string.Empty)" style="white-space:nowrap;">
@@ -315,6 +319,7 @@
                                                 @data?.FechaPrograma
                                             </p>
                                         </td>
+                                        <td>@data?.Unidad_Negocio</td>
                                         <td>@data?.EstatusOrden</td>
                                         <td>
                                             @*@data?.FechaCarga*@

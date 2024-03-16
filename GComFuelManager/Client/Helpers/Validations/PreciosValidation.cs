@@ -7,11 +7,11 @@ namespace GComFuelManager.Client.Helpers.Validations
     {
         public PreciosValidation()
         {
-            RuleFor(x => x.codGru).NotEmpty().WithName("Grupo");
-            RuleFor(x => x.codZona).NotEmpty().WithName("Zona");
-            RuleFor(x => x.codCte).NotEmpty().WithName("Cliente");
-            RuleFor(x => x.codDes).NotEmpty().WithName("Destino");
-            RuleFor(x => x.codPrd).NotEmpty().WithName("Producto");
+            RuleFor(x => x.CodGru).NotEmpty().WithName("Grupo");
+            RuleFor(x => x.CodZona).NotEmpty().WithName("Zona");
+            RuleFor(x => x.CodCte).NotEmpty().WithName("Cliente");
+            RuleFor(x => x.CodDes).NotEmpty().WithName("Destino");
+            RuleFor(x => x.CodPrd).NotEmpty().WithName("Producto");
             RuleFor(x => x.Pre).NotEmpty().WithName("Precio");
         }
     }

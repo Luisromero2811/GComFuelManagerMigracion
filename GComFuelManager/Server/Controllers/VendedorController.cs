@@ -1,4 +1,4 @@
-﻿using GComFuelManager.Server.Helpers;
+using GComFuelManager.Server.Helpers;
 using GComFuelManager.Server.Identity;
 using GComFuelManager.Shared.DTOs;
 using GComFuelManager.Shared.Modelos;
@@ -21,12 +21,14 @@ namespace GComFuelManager.Server.Controllers
         private readonly ApplicationDbContext context;
         private readonly UserManager<IdentityUsuario> userManager;
         private readonly VerifyUserId verifyUser;
+        private readonly User_Terminal _terminal;
 
-        public VendedorController(ApplicationDbContext context, UserManager<IdentityUsuario> userManager, VerifyUserId verifyUser)
+        public VendedorController(ApplicationDbContext context, UserManager<IdentityUsuario> userManager, VerifyUserId verifyUser, User_Terminal _Terminal)
         {
             this.context = context;
             this.userManager = userManager;
             this.verifyUser = verifyUser;
+            this._terminal = _Terminal;
         }
 
         [HttpGet("anos/reporte")]
@@ -34,7 +36,11 @@ namespace GComFuelManager.Server.Controllers
         {
             try
             {
-                var Fechas_Diponibles = context.Orden.Where(x => x.Fch != null).Select(x => x.Fch.Value.Year);
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                var Fechas_Diponibles = context.Orden.Where(x => x.Fch != null && x.Id_Tad == id_terminal).Select(x => x.Fch.Value.Year);
                 var años_ordenados = Fechas_Diponibles.Order();
                 var años = Fechas_Diponibles.Distinct();
                 return Ok(años);
@@ -84,15 +90,23 @@ namespace GComFuelManager.Server.Controllers
             }
         }
 
-        [HttpGet("clientes")]
+        [HttpGet("clientes")]//TODO: checar utilidad
         public ActionResult Obtener_Clientes_De_Vendedores_Filtrados([FromQuery] Cliente cliente)
         {
             try
             {
-                var vendedores = context.Cliente.IgnoreAutoIncludes().Where(x => x.Activo && x.Id_Vendedor == cliente.Id_Vendedor).Include(x => x.Originador).OrderBy(x => x.Den).AsQueryable();
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
+                var vendedores = context.Cliente_Tad.IgnoreAutoIncludes().Where(x => x.Cliente != null && x.Cliente.Activo && x.Cliente.Id_Vendedor == cliente.Id_Vendedor && x.Id_Terminal == id_terminal)
+                    .OrderBy(x => x.Cliente!.Den)
+                    .Include(x => x.Cliente).ThenInclude(x => x.Originador).Select(x => x.Cliente).AsQueryable();
+
+                //var vendedores = context.Cliente.IgnoreAutoIncludes().Where(x => x.Activo && x.Id_Vendedor == cliente.Id_Vendedor).Include(x => x.Originador).OrderBy(x => x.Den).AsQueryable();
 
                 if (!string.IsNullOrEmpty(cliente.Den) || !string.IsNullOrWhiteSpace(cliente.Den))
-                    vendedores = vendedores.Where(x => (!string.IsNullOrEmpty(x.Den) || !string.IsNullOrWhiteSpace(x.Den)) && x.Den.ToLower().Contains(cliente.Den.ToLower())).OrderBy(x => x.Den);
+                    vendedores = vendedores.Where(x => x != null && (!string.IsNullOrEmpty(x.Den) || !string.IsNullOrWhiteSpace(x.Den)) && x.Den.ToLower().Contains(cliente.Den.ToLower())).OrderBy(x => x!.Den);
 
                 return Ok(vendedores);
             }
@@ -174,6 +188,10 @@ namespace GComFuelManager.Server.Controllers
         {
             try
             {
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
                 if (clientes is null)
                     return NotFound();
 
@@ -183,14 +201,19 @@ namespace GComFuelManager.Server.Controllers
 
                 foreach (var cliente in clientes)
                 {
-                    var cliente_buscado = context.Cliente.FirstOrDefault(x => x.Cod == cliente.Cod);
-                    if (cliente_buscado is not null)
+                    if (context.Cliente_Tad.Any(x => x.Id_Cliente == cliente.Cod && x.Id_Terminal == id_terminal))
                     {
-                        cliente_buscado.Id_Vendedor = vendedor.Id;
-                        cliente_buscado.Id_Originador = vendedor.Id_Originador;
-                        context.Update(cliente_buscado);
-                        await context.SaveChangesAsync(id, 38);
+                        var cliente_buscado = context.Cliente.FirstOrDefault(x => x.Cod == cliente.Cod);
+                        if (cliente_buscado is not null)
+                        {
+                            cliente_buscado.Id_Vendedor = vendedor.Id;
+                            cliente_buscado.Id_Originador = vendedor.Id_Originador;
+                            context.Update(cliente_buscado);
+                            await context.SaveChangesAsync(id, 38);
+                        }
                     }
+                    else
+                        return BadRequest($"El cliente {cliente.Den} no se encuentra en esta terminal");
                 }
                 return Ok();
             }
@@ -273,6 +296,10 @@ namespace GComFuelManager.Server.Controllers
         {
             try
             {
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
                 Reporte_Venta reporte_Venta = new();
 
                 var vendedores = context.Vendedores.IgnoreAutoIncludes().Where(x => x.Activo)
@@ -308,9 +335,11 @@ namespace GComFuelManager.Server.Controllers
                             if (context.Cliente.Any(x => x.Id_Vendedor == vendedor_valido.Id))
                             {
                                 if (vendedor.Id_Originador != 0)
-                                    clientes_validos = context.Cliente.Where(x => x.Id_Vendedor == vendedor_valido.Id && x.Id_Originador == vendedor.Id_Originador).Select(x => (int?)x.Cod).ToList();
+                                    clientes_validos = context.Cliente.Where(x => x.Id_Vendedor == vendedor_valido.Id && x.Id_Originador == vendedor.Id_Originador && x.Terminales.Any(x => x.Cod == id_terminal))
+                                        .Include(x => x.Terminales).IgnoreAutoIncludes().Select(x => (int?)x.Cod).ToList();
                                 else
-                                    clientes_validos = context.Cliente.Where(x => x.Id_Vendedor == vendedor_valido.Id).Select(x => (int?)x.Cod).ToList();
+                                    clientes_validos = context.Cliente.Where(x => x.Id_Vendedor == vendedor_valido.Id && x.Terminales.Any(y => y.Cod == id_terminal))
+                                        .Include(x => x.Terminales).IgnoreAutoIncludes().Select(x => (int?)x.Cod).ToList();
 
                                 Mes_Venta mes_Venta = new()
                                 {
@@ -319,7 +348,7 @@ namespace GComFuelManager.Server.Controllers
                                 };
 
                                 var Ordenes = context.Orden.IgnoreAutoIncludes().Where(x => x.Destino != null && x.Destino.Codcte != null && clientes_validos.Any(y => x.Destino.Codcte == y)
-                                && x.Fchcar != null && x.Fchcar.Value.Month == mes && x.Fchcar.Value.Year == vendedor.Fecha_Registro && x.Codest != 14)
+                                && x.Fchcar != null && x.Fchcar.Value.Month == mes && x.Fchcar.Value.Year == vendedor.Fecha_Registro && x.Codest != 14 && x.Id_Tad == id_terminal)
                                 .Include(x => x.Producto).IgnoreAutoIncludes()
                                 .Include(x => x.Destino).IgnoreAutoIncludes()
                                 .Include(x => x.OrdenEmbarque).IgnoreAutoIncludes()
@@ -430,6 +459,10 @@ namespace GComFuelManager.Server.Controllers
         {
             try
             {
+                var id_terminal = _terminal.Obtener_Terminal(context, HttpContext);
+                if (id_terminal == 0)
+                    return BadRequest();
+
                 Reporte_Venta reporte_Venta = new();
                 List<Vendedor> Originadores_Como_Vendedores = new();
                 var originadores = context.Originadores.IgnoreAutoIncludes().Where(x => x.Activo).OrderBy(x => x.Nombre).AsQueryable();
@@ -474,10 +507,11 @@ namespace GComFuelManager.Server.Controllers
                                     //Nombre_Mes = new DateTime(DateTime.Today.Year, mes, 1).ToString("MMM")
                                 };
 
-                                List<int?> clientes_validos = context.Cliente.Where(x => x.Id_Originador == item.Id).Select(x => (int?)x.Cod).ToList();
+                                List<int?> clientes_validos = context.Cliente.Where(x => x.Id_Originador == item.Id && x.Terminales.Any(y => y.Cod == id_terminal)).Include(x => x.Terminales)
+                                    .IgnoreAutoIncludes().Select(x => (int?)x.Cod).ToList();
 
                                 var Ordenes = context.Orden.IgnoreAutoIncludes().Where(x => x.Destino != null && x.Destino.Codcte != null && clientes_validos.Any(y => y == x.Destino.Codcte)
-                                        && x.Fchcar != null && x.Fchcar.Value.Month == mes && x.Fchcar.Value.Year == originador.Fecha_Registro && x.Codest != 14)
+                                        && x.Fchcar != null && x.Fchcar.Value.Month == mes && x.Fchcar.Value.Year == originador.Fecha_Registro && x.Codest != 14 && x.Id_Tad == id_terminal)
                                         .Include(x => x.Producto).IgnoreAutoIncludes()
                                         .Include(x => x.Destino).IgnoreAutoIncludes()
                                         .Include(x => x.OrdenEmbarque).IgnoreAutoIncludes().Select(x => new { x.Bolguiid, x.Ref, x.Obtener_Precio_Orden_Embarque, x.Obtener_Volumen, x.Obtener_Nombre_Producto }).ToList();

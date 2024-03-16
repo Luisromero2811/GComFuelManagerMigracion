@@ -61,7 +61,8 @@ namespace GComFuelManager.Server.Controllers
                             Precio = item.Precio,
                             Tipo_Venta = item.TipoPago,
                             Activa = item.Activa,
-                            Estatus = item.Estatus
+                            Estatus = item.Estatus,
+                            Terminales = item.Terminal.Den
                         });
                     }
                 }
